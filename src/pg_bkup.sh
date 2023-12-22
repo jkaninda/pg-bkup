@@ -2,13 +2,12 @@
 
 set -e
 TIME=$(date +%Y%m%d_%H%M%S)
-MY_SQL_DUMP=/usr/bin/mysqldump
 arg0=$(basename "$0" .sh)
 blnk=$(echo "$arg0" | sed 's/./ /g')
 export OPERATION=backup
 export STORAGE=local
 export STORAGE_PATH=/backup
-export S3_PATH=/mysql-bkup
+export S3_PATH=/pg-bkup
 export TIMEOUT=60
 export PGPASSWORD=""
 export FILE_COMPRESION=true
@@ -122,7 +121,7 @@ backup()
 else
        export PGPASSWORD=${DB_PASSWORD}
        ## Test database connection
-       
+
        ## Backup database
         pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -v | gzip > ${STORAGE_PATH}/${DB_NAME}_${TIME}.sql.gz
         echo "Database has been saved"   
