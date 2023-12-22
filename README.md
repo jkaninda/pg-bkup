@@ -66,20 +66,22 @@ services:
       POSTGRES_DB: bkup
       POSTGRES_PASSWORD: password
       POSTGRES_USER: bkup
-  mysql-bkup:
-    image: jkaninda/mysql-bkup
-    container_name: mysql-bkup
+  pg-bkup:
+    image: jkaninda/pg-bkup
+    container_name: pg-bkup
+    depends_on:
+      - postgres
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup -d mariadb
+      - bkup --operation backup -d bkup
     volumes:
       - ./backup:/backup
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
-      - DB_NAME=mariadb
-      - DB_USERNAME=mariadb
+      - DB_NAME=bkup
+      - DB_USERNAME=bkup
       - DB_PASSWORD=password
 ```
 ## Restore database :
@@ -120,7 +122,7 @@ services:
     volumes:
       - ./backup:/backup
     environment:
-      #- FILE_NAME=mariadb_20231217_040238.sql # Optional if file name is set from command
+      #- FILE_NAME=database_20231217_040238.sql.gz # Optional if file name is set from command
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_USERNAME=user_name
@@ -136,7 +138,7 @@ docker-compose up -d
 ```sh
 docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://eu2.contabostorage.com" jkaninda/mysql-bkup:latest  bkup -o backup -s s3 -d database_name
 ```
-> To change s3 backup path add this flag : --path myPath . default path is /mysql_bkup
+> To change s3 backup path add this flag : --path /mycustomPath . default path is /pg_bkup
 
 Simple S3 backup usage
 
@@ -177,10 +179,11 @@ Make an automated backup (every night at 1).
 DB_USERNAME='db_username'
 DB_PASSWORD='password'
 DB_HOST='db_hostname'
+DB_PORT="5432"
 DB_NAME='db_name'
 BACKUP_DIR='/some/path/backup/'
 
-docker run --rm --name mysql-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup -o backup -d $DB_NAME
+docker run --rm --name mysql-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup -o backup -d $DB_NAME
 ```
 
 ```sh
