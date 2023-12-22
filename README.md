@@ -154,7 +154,7 @@ bkup --operation backup --storage s3 --dbname mydatabase
     command:
       - /bin/sh
       - -c
-      - pg_bkup --operation restore --source s3 -f database_20231217_115621.sql.gz --dbname database_name
+      - pg_bkup --operation restore --storage s3 -f database_20231217_115621.sql.gz --dbname database_name
     environment:
       - DB_PORT=3306
       - DB_HOST=postgress
