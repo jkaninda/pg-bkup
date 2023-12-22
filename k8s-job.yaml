@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-bkup-job
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          backoffLimit: 4
+          containers:
+          - name: pg-bkup
+            image: jkaninda/pg-bkup
+            command:
+            - /bin/sh
+            - -c
+            - bkup --operation backup 
+            env:
+              - name: DB_PORT
+                value: "5432"
+              - name: DB_HOST
+                value: "porstgress-svc"
+              - name: DB_NAME
+                value: "database_name"
+              - name: DB_USERNAME
+                value: "user_name"
+              # Please use secret!
+              - name: DB_PASSWORD
+                value: "password"
+          restartPolicy: Never
