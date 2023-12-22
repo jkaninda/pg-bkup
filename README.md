@@ -67,12 +67,12 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: bkup
   mysql-bkup:
-    image: jkaninda/mysql-bkup:latest
+    image: jkaninda/mysql-bkup
     container_name: mysql-bkup
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup -db mariadb
+      - bkup --operation backup -d mariadb
     volumes:
       - ./backup:/backup
     environment:
@@ -201,32 +201,42 @@ Simple Kubernetes CronJob usage:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pg-bkup-job
+  name: bkup-job
 spec:
-  schedule: "0 0 * * *"
+  schedule: "0 1 * * *"
   jobTemplate:
     spec:
       template:
         spec:
-          backoffLimit: 4
+          backoffLimit: 2
           containers:
           - name: pg-bkup
             image: jkaninda/pg-bkup
+            securityContext:
+              privileged: true
             command:
             - /bin/sh
             - -c
-            - bkup --operation backup 
+            - bkup --operation backup -s s3 --path /custom_path
             env:
               - name: DB_PORT
-                value: "3306"
+                value: "5432" 
               - name: DB_HOST
-                value: "postgress-svc"
+                value: ""
               - name: DB_NAME
-                value: "database_name"
+                value: ""
               - name: DB_USERNAME
-                value: "db_name"
-              # Please use secret instead!
+                value: ""
+              # Please use secret!
               - name: DB_PASSWORD
-                value: "password"
+                value: ""
+              - name: ACCESS_KEY
+                value: ""
+              - name: SECRET_KEY
+                value: ""
+              - name: BUCKETNAME
+                value: ""
+              - name: S3_ENDPOINT
+                value: "https://s3.amazonaws.com"
           restartPolicy: Never
 ```

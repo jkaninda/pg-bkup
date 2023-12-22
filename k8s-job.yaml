@@ -1,31 +1,41 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pg-bkup-job
+  name: bkup-job
 spec:
-  schedule: "0 0 * * *"
+  schedule: "0 1 * * *"
   jobTemplate:
     spec:
       template:
         spec:
-          backoffLimit: 4
+          backoffLimit: 2
           containers:
           - name: pg-bkup
             image: jkaninda/pg-bkup
+            securityContext:
+              privileged: true
             command:
             - /bin/sh
             - -c
-            - bkup --operation backup 
+            - bkup --operation backup -s s3 --path /custom_path
             env:
               - name: DB_PORT
-                value: "5432"
+                value: "5432" 
               - name: DB_HOST
-                value: "porstgress-svc"
+                value: ""
               - name: DB_NAME
-                value: "database_name"
+                value: ""
               - name: DB_USERNAME
-                value: "user_name"
+                value: ""
               # Please use secret!
               - name: DB_PASSWORD
                 value: "password"
+              - name: ACCESS_KEY
+                value: ""
+              - name: SECRET_KEY
+                value: ""
+              - name: BUCKETNAME
+                value: ""
+              - name: S3_ENDPOINT
+                value: "https://s3.amazonaws.com"
           restartPolicy: Never
