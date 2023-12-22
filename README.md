@@ -141,7 +141,7 @@ docker-compose up -d
 ## Backup to S3
 
 ```sh
-docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://eu2.contabostorage.com" jkaninda/mysql-bkup:latest  bkup -o backup -s s3 -d database_name
+docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://eu2.contabostorage.com" jkaninda/pg-bkup  bkup -o backup -s s3 -d database_name
 ```
 > To change s3 backup path add this flag : --path /mycustomPath . default path is /pg_bkup
 
@@ -152,8 +152,8 @@ bkup --operation backup --storage s3 --dbname mydatabase
 ```
 ```yaml
   mysql-bkup:
-    image: jkaninda/mysql-bkup:latest
-    container_name: mysql-bkup
+    image: jkaninda/pg-bkup:latest
+    container_name: pg-bkup
     tty: true
     privileged: true
     devices:
@@ -163,7 +163,7 @@ bkup --operation backup --storage s3 --dbname mydatabase
       - -c
       - pg_bkup --operation restore --storage s3 -f database_20231217_115621.sql.gz --dbname database_name
     environment:
-      - DB_PORT=3306
+      - DB_PORT=5432
       - DB_HOST=postgress
       - DB_USERNAME=user_name
       - DB_PASSWORD=password
@@ -188,7 +188,7 @@ DB_PORT="5432"
 DB_NAME='db_name'
 BACKUP_DIR='/some/path/backup/'
 
-docker run --rm --name mysql-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup -o backup -d $DB_NAME
+docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup -o backup -d $DB_NAME
 ```
 
 ```sh
