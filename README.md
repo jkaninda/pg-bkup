@@ -109,7 +109,7 @@ bkup --operation restore --storage s3 --file database_20231217_115621.sql --dbna
 ## Docker run:
 
 ```sh
-docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/mysql-bkup:latest  bkup -o backup -d database_name -f napata_20231219_022941.sql.gz
+docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup:latest  bkup -o backup -d database_name -f napata_20231219_022941.sql.gz
 ```
 
 ## Docker compose file:
