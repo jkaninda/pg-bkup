@@ -116,7 +116,7 @@ create_pgpass(){
 }
 backup()
 {
- if [ -z "${DB_HOST}"] ||  [ -z "${DB_NAME}"] ||  [ -z "${DB_USERNAME}"] ||  [ -z "${DB_PASSWORD}"]; then
+if [[ -z $DB_HOST ]] ||  [[ -z $DB_NAME ]] ||  [[ -z $DB_USERNAME ]] ||  [[ -z $DB_PASSWORD ]]; then
    echo "Please make sure all required options are set "
 else
        export PGPASSWORD=${DB_PASSWORD}
@@ -124,6 +124,8 @@ else
 
        ## Backup database
         pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -v | gzip > ${STORAGE_PATH}/${DB_NAME}_${TIME}.sql.gz
+        echo "$TIME: ${DB_NAME}_${TIME}.sql.gz" | tee -a "${STORAGE_PATH}/history.txt"
+
         echo "Database has been saved"   
 fi
 exit 0
@@ -131,15 +133,13 @@ exit 0
 
 restore()
 {
-if [ -z "${DB_HOST}" ] ||  [ -z "${DB_NAME}" ] ||  [ -z "${DB_USERNAME}" ] || [ -z "${DB_PASSWORD}" ]; then
+if [[ -z $DB_HOST ]] ||  [[ -z $DB_NAME ]] ||  [[ -z $DB_USERNAME ]] || [[ -z $DB_PASSWORD ]]; then
    echo "Please make sure all required options are set "
 else
     ## Restore database
-    export PGPASSWORD=${DB_PASSWORD}
+    export PGPASSWORD=$DB_PASSWORD
      if [ -f "${STORAGE_PATH}/$FILE_NAME" ]; then
-        #pg_restore -h ${DB_HOST} -P ${DB_PORT} -U ${DB_USERNAME} -v -d ${DB_NAME} ${STORAGE_PATH}/$FILE_NAME
-        #cat ${STORAGE_PATH}/${FILE_NAME} | psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -v -d ${DB_NAME} < ${STORAGE_PATH}/$FILE_NAME
-         if gzip -t ${STORAGE_PATH}/$FILE_NAME; then
+         if gzip -t $STORAGE_PATH/$FILE_NAME; then
             zcat ${STORAGE_PATH}/${FILE_NAME} | psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -v -d ${DB_NAME}
          else 
             cat ${STORAGE_PATH}/${FILE_NAME} | psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -v -d ${DB_NAME}
@@ -167,7 +167,7 @@ s3_restore()
 
 mount_s3()
 {
-if [ -z "${ACCESS_KEY}"] ||  [ -z "${SECRET_KEY}"]; then
+if [[ -z $ACCESS_KEY ]] ||  [[ -z $SECRET_KEY ]]; then
 echo "Please make sure all environment variables are set "
 echo "BUCKETNAME=$BUCKETNAME \nACCESS_KEY=$nACCESS_KEY \nSECRET_KEY=$SECRET_KEY"
 else
