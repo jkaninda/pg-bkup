@@ -4,3 +4,4 @@ data
 compose.yaml
 .env
 test.md
+.DS_Store
