@@ -13,7 +13,8 @@ Postgres Backup tool, backup database to S3 or Object Storage
 - [Docker Hub](https://hub.docker.com/r/jkaninda/pg-bkup)
 - [Github](https://github.com/jkaninda/pg-bkup)
 
-> MySQL solution :
+## MySQL solution :
+
 - [MySQL](https://github.com/jkaninda/mysql-bkup)
 
 ## Storage:
@@ -118,7 +119,7 @@ docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backu
 version: '3'
 services:
   pg-bkup:
-    image: jkaninda/pg-bkup:latest
+    image: jkaninda/pg-bkup
     container_name: pg-bkup
     command:
       - /bin/sh
@@ -151,8 +152,8 @@ Simple S3 backup usage
 bkup --operation backup --storage s3 --dbname mydatabase 
 ```
 ```yaml
-  mysql-bkup:
-    image: jkaninda/pg-bkup:latest
+  pg-bkup:
+    image: jkaninda/pg-bkup
     container_name: pg-bkup
     tty: true
     privileged: true
@@ -173,35 +174,92 @@ bkup --operation backup --storage s3 --dbname mydatabase
       - S3_ENDPOINT=${S3_ENDPOINT}
 
 ```
-## Run "docker run" from crontab
+## Run in Scheduled mode
 
-Make an automated backup (every night at 1).
+This tool can be run as CronJob in Kubernetes for a regular backup which makes deployment on Kubernetes easy as Kubernetes has CronJob resources.
+For Docker, you need to run it in scheduled mode by adding `--mode scheduled` flag and specify the periodical backup time by adding `--period "0 1 * * *"` flag.
 
-> backup_script.sh
+Make an automated backup on Docker
 
-```sh
-#!/bin/sh
-DB_USERNAME='db_username'
-DB_PASSWORD='password'
-DB_HOST='db_hostname'
-DB_PORT="5432"
-DB_NAME='db_name'
-BACKUP_DIR='/some/path/backup/'
+## Syntax of crontab (field description)
 
-docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup -o backup -d $DB_NAME
-```
+The syntax is:
 
-```sh
-chmod +x backup_script.sh
-```
+- 1: Minute (0-59)
+- 2: Hours (0-23)
+- 3: Day (0-31)
+- 4: Month (0-12 [12 == December])
+- 5: Day of the week(0-7 [7 or 0 == sunday])
 
-Your crontab looks like this:
+Easy to remember format:
 
 ```conf
-0 1 * * * /path/to/backup_script.sh
+* * * * * command to be executed
+```
+
+```conf
+- - - - -
+| | | | |
+| | | | ----- Day of week (0 - 7) (Sunday=0 or 7)
+| | | ------- Month (1 - 12)
+| | --------- Day of month (1 - 31)
+| ----------- Hour (0 - 23)
+------------- Minute (0 - 59)
+```
+
+> At every 30th minute
+
+```conf
+*/30 * * * *
+```
+> “At minute 0.” every hour
+```conf
+0 * * * *
+```
+
+> “At 01:00.” every day
+
+```conf
+0 1 * * *
+```
+
+## Example of scheduled mode
+
+> Docker run :
+
+```sh
+docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup --operation backup --dbname $DB_NAME --mode scheduled --period "0 1 * * *"
+```
+
+> With Docker compose
+
+```yaml
+version: "3"
+services:
+  pg-bkup:
+    image: jkaninda/pg-bkup
+    container_name: pg-bkup
+    privileged: true
+    devices:
+    - "/dev/fuse"
+    command:
+      - /bin/sh
+      - -c
+      - bkup --operation backup --storage s3 --path /mys3_custome_path --dbname database_name --mode scheduled --period "*/30 * * * *"
+    environment:
+      - DB_PORT=5432
+      - DB_HOST=postgreshost
+      - DB_USERNAME=userName
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ACCESS_KEY=${ACCESS_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - BUCKETNAME=${BUCKETNAME}
+      - S3_ENDPOINT=${S3_ENDPOINT}
 ```
 
 ## Kubernetes CronJob
+
+For Kubernetes you don't need to run it in scheduled mode.
 
 Simple Kubernetes CronJob usage:
 
