@@ -32,6 +32,8 @@ Postgres Backup tool, backup database to S3 or Object Storage
 | --path        |      | Set s3 path without file name. eg: /custom_path      |
 | --dbname        | -d     | Set database name      |
 | --port        | -p     | Set database port (default: 3306)      |
+| --mode     | -m     | Set execution mode. default or scheduled (default: default)        |
+| --period     |      | Set crontab period for scheduled mode only. (default: "0 1 * * *")        |
 | --timeout     | -t     | Set timeout (default: 60s)        |
 | --help        | -h     | Print this help message and exit   |
 | --version     | -V     | Print version information and exit |
