@@ -237,7 +237,7 @@ scheduled_mode()
      create_crontab_script
      echo ""
      echo "**********************************"
-     echo "     Starting PostGres Bkup...     "
+     echo "     Starting PostgreSQL Bkup...   "
      echo "***********************************"
      echo "Running in Scheduled mode          "
      echo "Execution period $SCHEDULE_PERIOD"

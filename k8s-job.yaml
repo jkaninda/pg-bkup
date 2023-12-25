@@ -37,5 +37,5 @@ spec:
               - name: BUCKETNAME
                 value: ""
               - name: S3_ENDPOINT
-                value: "https://s3.amazonaws.com"
+                value: "https://s3.us-west-2.amazonaws.com"
           restartPolicy: Never
