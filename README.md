@@ -276,7 +276,6 @@ spec:
     spec:
       template:
         spec:
-          backoffLimit: 2
           containers:
           - name: pg-bkup
             image: jkaninda/pg-bkup
