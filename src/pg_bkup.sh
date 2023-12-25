@@ -12,6 +12,9 @@ export TIMEOUT=60
 export PGPASSWORD=""
 export FILE_COMPRESION=true
 export CONNECTION=""
+export EXECUTION_MODE="default"
+export SCHEDULE_PERIOD="0 1 * * *"
+export FILE_COMPRESION=true
 usage_info()
 {
     echo "Usage: \\"
@@ -47,6 +50,8 @@ help()
     echo "     |--path              -- Set s3 path, without file name"
     echo "  -d |--dbname            -- Set database name "
     echo "  -p |--port              -- Set database port (default: 3306)"
+    echo "  -m |--mode              -- Set execution mode (default: default)"
+    echo "     |--period            -- Set schedule period time (default: '0 1 * * *')"
     echo "  -t |--timeout           -- Set timeout (default: 120s)"
     echo "  -h |--help              -- Print this help message and exit"
     echo "  -V |--version           -- Print version information and exit"
@@ -92,6 +97,16 @@ flags()
             shift
             [ $# = 0 ] && error "No database name specified"
             export DB_PORT="$1"
+            shift;;
+        (-m|--mode)
+            shift
+            [ $# = 0 ] && error "No execution mode specified"
+            export EXECUTION_MODE="$1"
+            shift;;
+        (--period)
+            shift
+            [ $# = 0 ] && error "No schedule period entered"
+            export SCHEDULE_PERIOD="$1"
             shift;;
         (-t|--timeout)
             shift
@@ -185,8 +200,59 @@ else
 export STORAGE_PATH=/s3mnt$S3_PATH
 fi
 }
+create_crontab_script()
+{
+TASK=/usr/local/bin/backup_cron.sh
+touch $TASK
+if [ $STORAGE == 's3' ]
+then
+cat > "$TASK" <<EOF
+#!/usr/bin/env bash 
+set -e
+bkup --operation backup --dbname $DB_NAME --port $DB_PORT --storage s3 --path $S3_PATH 
+EOF
+else
+cat > "$TASK" <<EOF
+#!/usr/bin/env bash 
+set -e
+bkup --operation backup --dbname $DB_NAME --port $DB_PORT
+EOF
+fi
+
+chmod +x /usr/local/bin/backup_cron.sh
+ln -s /usr/local/bin/backup_cron.sh /usr/local/bin/backup_cron
+## Create crontab job
+CRON_JOB=/etc/cron.d/backup_cron
+touch $CRON_JOB
+cat > "$CRON_JOB" <<EOF
+$SCHEDULE_PERIOD root exec /bin/bash -c ". /run/supervisord.env; /usr/local/bin/backup_cron.sh >> /var/log/pg-bkup.log"
+EOF
+chmod 0644 /etc/cron.d/*
+crontab /etc/cron.d/backup_cron
+}
+scheduled_mode()
+{
+  if [  $OPERATION == 'backup' ]
+  then
+     create_crontab_script
+     echo ""
+     echo "**********************************"
+     echo "     Starting PostGres Bkup...     "
+     echo "***********************************"
+     echo "Running in Scheduled mode          "
+     echo "Execution period $SCHEDULE_PERIOD"
+     echo "Log file in /var/log/pg-bkup.log "
+    supervisord -c /etc/supervisor/supervisord.conf
+  else
+    echo "Scheduled mode supports only backup operation"
+    exit 1
+  fi
+}
+
 flags "$@"
 # ?
+if [  $EXECUTION_MODE == 'default' ]
+then
   if [  $OPERATION != 'backup' ]
   then
      if [ $STORAGE != 's3' ]
@@ -207,3 +273,10 @@ flags "$@"
          s3_backup
       fi
    fi
+elif [  $EXECUTION_MODE == 'scheduled' ]
+then
+  scheduled_mode
+else
+echo "Error, unknow execution mode!"
+exit 1
+fi
