@@ -8,7 +8,7 @@ Postgres Backup tool, backup database to S3 or Object Storage
 - Docker
 - Kubernetes
 
-> Links:
+## Links:
 
 - [Docker Hub](https://hub.docker.com/r/jkaninda/pg-bkup)
 - [Github](https://github.com/jkaninda/pg-bkup)
@@ -21,6 +21,12 @@ Postgres Backup tool, backup database to S3 or Object Storage
 - local
 - s3
 - Object storage
+
+## Volumes:
+
+- /s3mnt => S3 mounting path 
+- /backup => local storage mounting path
+
 ## Usage
 
 | Options       | Shorts | Usage                              |
@@ -307,3 +313,15 @@ spec:
                 value: "https://s3.us-west-2.amazonaws.com"
           restartPolicy: Never
 ```
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Authors
+
+**Jonas Kaninda**
+- <https://github.com/jkaninda>
+
+## Copyright
+
+Copyright (c) [2023] [Jonas Kaninda]
