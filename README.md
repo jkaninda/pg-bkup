@@ -8,7 +8,7 @@ Postgres Backup tool, backup database to S3 or Object Storage
 - Docker
 - Kubernetes
 
-> Links:
+## Links:
 
 - [Docker Hub](https://hub.docker.com/r/jkaninda/pg-bkup)
 - [Github](https://github.com/jkaninda/pg-bkup)
