@@ -1,5 +1,10 @@
-#!/usr/bin/env bash 
-
+#!/usr/bin/env bash
+ 
+# PosgreSQL Backup & Restore 
+# @author    Jonas Kaninda
+# @license   MIT License <https://opensource.org/licenses/MIT>
+# @link      https://github.com/jkaninda/pg-bkup
+#
 set -e
 TIME=$(date +%Y%m%d_%H%M%S)
 arg0=$(basename "$0" .sh)
