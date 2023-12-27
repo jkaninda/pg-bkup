@@ -1,6 +1,6 @@
 version: "3"
 services:
-  postgres-bkup:
+  pg-bkup:
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     privileged: true
@@ -9,12 +9,10 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup --path /mys3_custome_path --dbname database_name --mode scheduled --period "0 1 * * *"
-    volumes:
-      - ./backup:/backup
+      - bkup --operation backup --storage s3 --path /mys3_custome_path --dbname database_name --mode scheduled --period "0 1 * * *"
     environment:
       - DB_PORT=5432
-      - DB_HOST=postgres
+      - DB_HOST=postgress
       - DB_USERNAME=userName
       - DB_PASSWORD=${DB_PASSWORD}
       - ACCESS_KEY=${ACCESS_KEY}

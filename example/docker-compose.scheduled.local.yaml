@@ -6,7 +6,9 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup --dbname database_name
+      - bkup --operation backup --dbname database_name --mode scheduled --period "0 1 * * *"
+    volumes:
+      - ./backup:/backup
     environment:
       - DB_PORT=5432
       - DB_HOST=postgress
