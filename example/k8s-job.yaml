@@ -1,14 +1,13 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: bkup-job
+  name: pg-bkup-job
 spec:
   schedule: "0 1 * * *"
   jobTemplate:
     spec:
       template:
         spec:
-          backoffLimit: 2
           containers:
           - name: pg-bkup
             image: jkaninda/pg-bkup
@@ -17,7 +16,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - bkup --operation backup -s s3 --path /custom_path
+            - bkup --operation backup --storage s3 --path /custom_path
             env:
               - name: DB_PORT
                 value: "5432" 

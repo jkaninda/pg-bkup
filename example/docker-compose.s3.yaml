@@ -1,0 +1,21 @@
+version: "3"
+services:
+  pg-bkup:
+    image: jkaninda/pg-bkup
+    container_name: pg-bkup
+    privileged: true
+    devices:
+    - "/dev/fuse"
+    command:
+      - /bin/sh
+      - -c
+      - bkup --operation backup --storage s3 --path /mys3_custome_path --dbname database_name
+    environment:
+      - DB_PORT=5432
+      - DB_HOST=postgress
+      - DB_USERNAME=userName
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ACCESS_KEY=${ACCESS_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - BUCKETNAME=${BUCKETNAME}
+      - S3_ENDPOINT=https://s3.us-west-2.amazonaws.com
