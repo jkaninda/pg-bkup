@@ -45,7 +45,20 @@ error()
     echo "$arg0: $*" >&2
     exit 0
 }
-
+info() {
+    { set +x; } 2> /dev/null
+    echo 'pg-bkup:' '[INFO] ' "$@"
+    #set -x
+}
+warning() {
+    { set +x; } 2> /dev/null
+    echo 'pg-bkup:' '[WARNING] ' "$@"
+}
+fatal() {
+    { set +x; } 2> /dev/null
+    echo 'pg-bkup:' '[ERROR] ' "$@" >&2
+    exit 1
+}
 help()
 {
     echo
@@ -137,16 +150,16 @@ create_pgpass(){
 backup()
 {
 if [[ -z $DB_HOST ]] ||  [[ -z $DB_NAME ]] ||  [[ -z $DB_USERNAME ]] ||  [[ -z $DB_PASSWORD ]]; then
-   echo "Please make sure all required options are set "
+   fatal "Please make sure all required options are set "
 else
        export PGPASSWORD=${DB_PASSWORD}
        ## Test database connection
 
        ## Backup database
-        pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -v | gzip > ${STORAGE_PATH}/${DB_NAME}_${TIME}.sql.gz
+        pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} | gzip > ${STORAGE_PATH}/${DB_NAME}_${TIME}.sql.gz
         echo "$TIME: ${DB_NAME}_${TIME}.sql.gz" | tee -a "${STORAGE_PATH}/history.txt"
 
-        echo "Database has been saved"   
+        info "Database has been saved"   
 fi
 exit 0
 }
@@ -154,7 +167,7 @@ exit 0
 restore()
 {
 if [[ -z $DB_HOST ]] ||  [[ -z $DB_NAME ]] ||  [[ -z $DB_USERNAME ]] || [[ -z $DB_PASSWORD ]]; then
-   echo "Please make sure all required options are set "
+   fatal "Please make sure all required options are set "
 else
     ## Restore database
     export PGPASSWORD=$DB_PASSWORD
@@ -164,9 +177,9 @@ else
          else 
             cat ${STORAGE_PATH}/${FILE_NAME} | psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -v -d ${DB_NAME}
          fi
-        echo "Database has been restored"
+        info "Database has been restored"
       else
-        echo "Error, file not found in ${STORAGE_PATH}/${FILE_NAME}"
+        fatal "File not found in ${STORAGE_PATH}/${FILE_NAME}"
       fi 
 fi
 exit
@@ -188,19 +201,18 @@ s3_restore()
 mount_s3()
 {
 if [[ -z $ACCESS_KEY ]] ||  [[ -z $SECRET_KEY ]]; then
-echo "Please make sure all environment variables are set "
-echo "BUCKETNAME=$BUCKETNAME \nACCESS_KEY=$nACCESS_KEY \nSECRET_KEY=$SECRET_KEY"
+fatal "Please make sure all environment variables are set "
 else
     echo "$ACCESS_KEY:$SECRET_KEY" | tee /etc/passwd-s3fs
     chmod 600 /etc/passwd-s3fs
-    echo "Mounting Object storage in /s3mnt .... "
+    info "Mounting Object storage in /s3mnt .... "
     if [ -z "$(ls -A /s3mnt)" ]; then
        s3fs $BUCKETNAME /s3mnt -o passwd_file=/etc/passwd-s3fs -o use_cache=/tmp/s3cache -o allow_other -o url=$S3_ENDPOINT -o use_path_request_style
        if [ ! -d "/s3mnt$S3_PATH" ]; then
            mkdir -p /s3mnt$S3_PATH
         fi 
     else
-     echo "Object storage already mounted in /s3mnt"
+     info "Object storage already mounted in /s3mnt"
     fi
 export STORAGE_PATH=/s3mnt$S3_PATH
 fi
@@ -244,13 +256,12 @@ scheduled_mode()
      echo "**********************************"
      echo "     Starting PostgreSQL Bkup...   "
      echo "***********************************"
-     echo "Running in Scheduled mode          "
-     echo "Execution period $SCHEDULE_PERIOD"
-     echo "Log file in /var/log/pg-bkup.log "
+     info "Running in Scheduled mode          "
+     info "Execution period $SCHEDULE_PERIOD"
+     info "Log file in /var/log/pg-bkup.log "
     supervisord -c /etc/supervisor/supervisord.conf
   else
-    echo "Scheduled mode supports only backup operation"
-    exit 1
+    fatal "Scheduled mode supports only backup operation"
   fi
 }
 
@@ -262,19 +273,19 @@ then
   then
      if [ $STORAGE != 's3' ]
      then
-          echo "Restore from local"
+          info "Restore from local"
           restore
       else
-        echo "Restore from s3"
+        info "Restore from s3"
         s3_restore
       fi
   else
       if [ $STORAGE != 's3' ]
       then
-          echo "Backup to local destination"
+          info "Backup to local storage"
           backup
       else
-         echo "Backup to s3 storage"
+         info "Backup to s3 storage"
          s3_backup
       fi
    fi
@@ -282,6 +293,5 @@ elif [  $EXECUTION_MODE == 'scheduled' ]
 then
   scheduled_mode
 else
-echo "Error, unknow execution mode!"
-exit 1
+fatal "Unknow execution mode"
 fi
