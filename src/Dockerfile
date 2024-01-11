@@ -13,7 +13,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV VERSION="0.2"
 
 RUN apt-get update -qq
-RUN apt-get install build-essential libcurl4-openssl-dev libxml2-dev mime-support -y
 RUN apt install s3fs postgresql-client postgresql-client-common libpq-dev supervisor cron -y
 
 # Clear cache

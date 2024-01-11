@@ -155,11 +155,15 @@ else
        export PGPASSWORD=${DB_PASSWORD}
        ## Test database connection
 
+      export BK_FILE_NAME="${DB_NAME}_${TIME}.sql.gz"
        ## Backup database
-        pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} | gzip > ${STORAGE_PATH}/${DB_NAME}_${TIME}.sql.gz
-        echo "$TIME: ${DB_NAME}_${TIME}.sql.gz" | tee -a "${STORAGE_PATH}/history.txt"
-
-        info "Database has been saved"   
+      pg_dump -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} | gzip > ${STORAGE_PATH}/$BK_FILE_NAME
+      if [[ $? -eq 0 ]];then
+        echo $BK_FILE_NAME | tee -a "${STORAGE_PATH}/history.txt"
+        info "Database has been backed up"
+      else
+        fatal "An error occurred during the backup"
+      fi  
 fi
 exit 0
 }
@@ -266,7 +270,7 @@ scheduled_mode()
 }
 
 flags "$@"
-# ?
+
 if [  $EXECUTION_MODE == 'default' ]
 then
   if [  $OPERATION != 'backup' ]

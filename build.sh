@@ -6,6 +6,6 @@ if [ $# -eq 0 ]
     tag=$1
 fi
 
-docker build -f src/docker/Dockerfile  -t jkaninda/pg-bkup:$tag .
+docker build -f src/Dockerfile  -t jkaninda/pg-bkup:$tag .
 
-docker compose up -d
+#docker compose up -d
