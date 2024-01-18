@@ -323,7 +323,7 @@ func s3Mount() {
 		}
 		//Change file permission
 		utils.ChangePermission(s3fsPasswdFile, 0600)
-		utils.Info("Mounting Object storage in", s3MountPath)
+		utils.Info("Mounting Object storage in ", s3MountPath)
 		if isEmpty, _ := utils.IsDirEmpty(s3MountPath); isEmpty {
 			cmd := exec.Command("s3fs", bucketName, s3MountPath,
 				"-o", "passwd_file="+s3fsPasswdFile,
