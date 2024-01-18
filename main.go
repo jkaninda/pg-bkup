@@ -23,7 +23,7 @@ var appVersion string = os.Getenv("VERSION")
 const s3MountPath string = "/s3mnt"
 
 var (
-	operation          string = "bakup"
+	operation          string = "backup"
 	storage            string = "local"
 	file               string = ""
 	s3Path             string = "/pg-bkup"
@@ -42,7 +42,7 @@ var (
 	disableCompression bool   = false
 	startBackup        bool   = true
 	outputContent      string = ""
-	potimeout          int    = 30
+	timeout            int    = 30
 	period             string = "0 1 * * *"
 )
 
@@ -70,7 +70,7 @@ func init() {
 	dbName = *dbnameFlag
 	executionMode = *modeFlag
 	dbPort = fmt.Sprint(*portFlag)
-	potimeout = *timeoutFlag
+	timeout = *timeoutFlag
 	period = *periodFlag
 	disableCompression = *disableCompressionFlag
 
@@ -92,26 +92,44 @@ func init() {
 		os.Exit(0)
 	}
 	if *dbnameFlag != "" {
-		os.Setenv("DB_NAME", dbName)
+		err := os.Setenv("DB_NAME", dbName)
+		if err != nil {
+			return
+		}
 	}
 	if *pathFlag != "" {
 		s3Path = *pathFlag
-		os.Setenv("S3_PATH", fmt.Sprint(*pathFlag))
+		err := os.Setenv("S3_PATH", fmt.Sprint(*pathFlag))
+		if err != nil {
+			return
+		}
 
 	}
 	if *fileFlag != "" {
 		file = *fileFlag
-		os.Setenv("FILE_NAME", fmt.Sprint(*fileFlag))
+		err := os.Setenv("FILE_NAME", fmt.Sprint(*fileFlag))
+		if err != nil {
+			return
+		}
 
 	}
-	if *portFlag != 3306 {
-		os.Setenv("DB_PORT", fmt.Sprint(*portFlag))
+	if *portFlag != 5432 {
+		err := os.Setenv("DB_PORT", fmt.Sprint(*portFlag))
+		if err != nil {
+			return
+		}
 	}
 	if *periodFlag != "" {
-		os.Setenv("SCHEDULE_PERIOD", fmt.Sprint(*periodFlag))
+		err := os.Setenv("SCHEDULE_PERIOD", fmt.Sprint(*periodFlag))
+		if err != nil {
+			return
+		}
 	}
 	if *storageFlag != "" {
-		os.Setenv("STORAGE", fmt.Sprint(*storageFlag))
+		err := os.Setenv("STORAGE", fmt.Sprint(*storageFlag))
+		if err != nil {
+			return
+		}
 	}
 	dbHost = os.Getenv("DB_HOST")
 	dbPassword = os.Getenv("DB_PASSWORD")
@@ -133,7 +151,10 @@ func version() {
 	fmt.Print()
 }
 func main() {
-	os.Setenv("STORAGE_PATH", storagePath)
+	err := os.Setenv("STORAGE_PATH", storagePath)
+	if err != nil {
+		return
+	}
 
 	if startBackup {
 		start()
@@ -175,7 +196,10 @@ func backup() {
 		utils.Info("Backing up database...")
 		bkFileName := fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
 
-		os.Setenv("PGPASSWORD", dbPassword)
+		err := os.Setenv("PGPASSWORD", dbPassword)
+		if err != nil {
+			return
+		}
 		if disableCompression {
 			bkFileName = fmt.Sprintf("%s_%s.sql", dbName, time.Now().Format("20060102_150405"))
 			cmd := exec.Command("pg_dump",
@@ -246,7 +270,10 @@ func restore() {
 
 		if utils.FileExists(fmt.Sprintf("%s/%s", storagePath, file)) {
 			testDatabaseConnection()
-			os.Setenv("PGPASSWORD", dbPassword)
+			err := os.Setenv("PGPASSWORD", dbPassword)
+			if err != nil {
+				return
+			}
 
 			extension := filepath.Ext(fmt.Sprintf("%s/%s", storagePath, file))
 			// GZ compressed file
@@ -314,10 +341,13 @@ func s3Mount() {
 		utils.Fatal("Please make sure all environment variables are set")
 	} else {
 		storagePath = fmt.Sprintf("%s%s", s3MountPath, s3Path)
-		os.Setenv("STORAGE_PATH", storagePath)
+		err := os.Setenv("STORAGE_PATH", storagePath)
+		if err != nil {
+			return
+		}
 
 		//Write file
-		err := utils.WriteToFile(s3fsPasswdFile, fmt.Sprintf("%s:%s", accessKey, secretKey))
+		err = utils.WriteToFile(s3fsPasswdFile, fmt.Sprintf("%s:%s", accessKey, secretKey))
 		if err != nil {
 			utils.Fatal("Error creating file")
 		}
@@ -334,7 +364,7 @@ func s3Mount() {
 			)
 
 			if err := cmd.Run(); err != nil {
-				utils.Fatalf("Error mounting Object storage:", err)
+				utils.Fatal("Error mounting Object storage:", err)
 			}
 
 			if err := os.MkdirAll(storagePath, os.ModePerm); err != nil {
@@ -363,7 +393,7 @@ func createCrontabScript() {
 	if err := touchCmd.Run(); err != nil {
 		utils.Fatalf("Error creating file %s: %v\n", task, err)
 	}
-	var disableC string = ""
+	var disableC = ""
 	if disableCompression {
 		disableC = "--disable-compression"
 	}
