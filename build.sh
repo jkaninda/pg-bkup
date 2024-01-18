@@ -11,4 +11,4 @@ CGO_ENABLED=0 GOOS=linux go build
 
 docker build -f docker/Dockerfile  -t jkaninda/pg-bkup:$tag .
 
-docker compose up -d --force-recreate
+#docker compose up -d --force-recreate
