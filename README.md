@@ -2,6 +2,7 @@
 Postgres Backup tool, backup database to S3 or Object Storage
 
 [![Build](https://github.com/jkaninda/pg-bkup/actions/workflows/build.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/build.yml)
+[![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/pg-bkup)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/pg-bkup?style=flat-square)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/pg-bkup?style=flat-square)
 
@@ -27,22 +28,31 @@ Postgres Backup tool, backup database to S3 or Object Storage
 - /s3mnt => S3 mounting path 
 - /backup => local storage mounting path
 
-## Usage
+### Usage
 
 | Options       | Shorts | Usage                              |
 |---------------|--------|------------------------------------|
-| pg_bkup    | bkup   | CLI utility                    |
+| pg-bkup    | bkup   | CLI utility                    |
 | --operation   | -o     | Set operation. backup or restore (default: backup)    |
 | --storage      | -s     | Set storage. local or s3 (default: local)        |
 | --file        | -f     | Set file name for restoration      |
 | --path        |      | Set s3 path without file name. eg: /custom_path      |
 | --dbname        | -d     | Set database name      |
-| --port        | -p     | Set database port (default: 3306)      |
+| --port        | -p     | Set database port (default: 5432)      |
 | --mode     | -m     | Set execution mode. default or scheduled (default: default)        |
+| --disable-compression     |      | Disable database backup compression       |
 | --period     |      | Set crontab period for scheduled mode only. (default: "0 1 * * *")        |
 | --timeout     | -t     | Set timeout (default: 60s)        |
 | --help        | -h     | Print this help message and exit   |
 | --version     | -V     | Print version information and exit |
+
+
+## Note:
+
+Creating a user for backup tasks who has read-only access is recommended!
+
+> create read-only user
+
 
 ## Backup database :
 

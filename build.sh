@@ -6,6 +6,9 @@ if [ $# -eq 0 ]
     tag=$1
 fi
 
-docker build -f src/Dockerfile  -t jkaninda/pg-bkup:$tag .
+#go build
+CGO_ENABLED=0 GOOS=linux go build
 
-#docker compose up -d
+docker build -f docker/Dockerfile  -t jkaninda/pg-bkup:$tag .
+
+docker compose up -d --force-recreate
