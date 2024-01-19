@@ -7,7 +7,7 @@ if [ $# -eq 0 ]
 fi
 
 #go build
-#CGO_ENABLED=0 GOOS=linux go build
+CGO_ENABLED=0 GOOS=linux go build
 
 docker build -f docker/Dockerfile  -t jkaninda/pg-bkup:$tag .
 

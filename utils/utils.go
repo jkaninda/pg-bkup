@@ -1,10 +1,10 @@
 package utils
 
 /*****
-*   PostgreSQL Backup & Restore
+*   MySQL Backup & Restore
 * @author    Jonas Kaninda
 * @license   MIT License <https://opensource.org/licenses/MIT>
-* @link      https://github.com/jkaninda/pg-bkup
+* @link      https://github.com/jkaninda/mysql-bkup
 **/
 import (
 	"fmt"
@@ -69,4 +69,11 @@ func IsDirEmpty(name string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// TestDatabaseConnection  tests the database connection
+func TestDatabaseConnection() {
+	Info("Testing database connection...")
+	// Test database connection
+
 }
