@@ -46,6 +46,7 @@ func BackupDatabase(disableCompression bool) {
 
 		if disableCompression {
 			bkFileName = fmt.Sprintf("%s_%s.sql", dbName, time.Now().Format("20060102_150405"))
+			// Execute pg_dump
 			cmd := exec.Command("pg_dump",
 				"-h", dbHost,
 				"-p", dbPort,
@@ -56,7 +57,7 @@ func BackupDatabase(disableCompression bool) {
 			if err != nil {
 				log.Fatal(err)
 			}
-
+			// save output
 			file, err := os.Create(fmt.Sprintf("%s/%s", storagePath, bkFileName))
 			if err != nil {
 				log.Fatal(err)
@@ -67,9 +68,10 @@ func BackupDatabase(disableCompression bool) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			utils.Info("Database has been backed up")
+			utils.Done("Database has been backed up")
 
 		} else {
+			// Execute pg_dump
 			cmd := exec.Command("pg_dump",
 				"-h", dbHost,
 				"-p", dbPort,
@@ -82,6 +84,7 @@ func BackupDatabase(disableCompression bool) {
 			}
 			gzipCmd := exec.Command("gzip")
 			gzipCmd.Stdin = stdout
+			// save output
 			gzipCmd.Stdout, err = os.Create(fmt.Sprintf("%s/%s", storagePath, bkFileName))
 			gzipCmd.Start()
 			if err != nil {
@@ -93,7 +96,7 @@ func BackupDatabase(disableCompression bool) {
 			if err := gzipCmd.Wait(); err != nil {
 				log.Fatal(err)
 			}
-			utils.Info("Database has been backed up")
+			utils.Done("Database has been backed up")
 
 		}
 
