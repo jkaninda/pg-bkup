@@ -130,6 +130,7 @@ func init() {
 		}
 	}
 	storage = os.Getenv("STORAGE")
+
 	err := os.Setenv("STORAGE_PATH", storagePath)
 	if err != nil {
 		return
@@ -142,8 +143,6 @@ func version() {
 	fmt.Print()
 }
 func main() {
-	//cmd.Execute()
-
 	err := os.Setenv("STORAGE_PATH", storagePath)
 	if err != nil {
 		return

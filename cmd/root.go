@@ -50,5 +50,6 @@ func init() {
 	rootCmd.PersistentFlags().IntP("port", "p", 5432, "Set database port")
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Print this help message")
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "shows version information")
+	rootCmd.AddCommand(VersionCmd)
 
 }

@@ -30,23 +30,23 @@ func RestoreDatabase(file string) {
 			utils.TestDatabaseConnection()
 
 			extension := filepath.Ext(fmt.Sprintf("%s/%s", storagePath, file))
-			// GZ compressed file
+			// Restore from compressed file / .sql.gz
 			if extension == ".gz" {
 				str := "zcat " + fmt.Sprintf("%s/%s", storagePath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
 				_, err := exec.Command("bash", "-c", str).Output()
 				if err != nil {
 					utils.Fatal("Error, in restoring the database")
 				}
-				utils.Info("Database has been restored")
+				utils.Done("Database has been restored")
 
 			} else if extension == ".sql" {
-				//SQL file
+				//Restore from sql file
 				str := "cat " + fmt.Sprintf("%s/%s", storagePath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
 				_, err := exec.Command("bash", "-c", str).Output()
 				if err != nil {
 					utils.Fatal("Error in restoring the database", err)
 				}
-				utils.Info("Database has been restored")
+				utils.Done("Database has been restored")
 			} else {
 				utils.Fatal("Unknown file extension ", extension)
 			}
