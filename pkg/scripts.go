@@ -14,9 +14,6 @@ import (
 const cronLogFile = "/var/log/pg-bkup.log"
 const backupCronFile = "/usr/local/bin/backup_cron.sh"
 
-func init() {
-
-}
 func CreateCrontabScript(disableCompression bool, storage string) {
 	//task := "/usr/local/bin/backup_cron.sh"
 	touchCmd := exec.Command("touch", backupCronFile)
