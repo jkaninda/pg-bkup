@@ -21,15 +21,13 @@ var (
 	s3Endpoint = ""
 )
 
-func init() {
+// MountS3Storage Mount s3 storage using s3fs
+func MountS3Storage(s3Path string) {
 	accessKey = os.Getenv("ACCESS_KEY")
 	secretKey = os.Getenv("SECRET_KEY")
 	bucketName = os.Getenv("BUCKETNAME")
 	s3Endpoint = os.Getenv("S3_ENDPOINT")
-}
 
-// MountS3Storage Mount s3 storage using s3fs
-func MountS3Storage(s3Path string) {
 	if accessKey == "" || secretKey == "" || bucketName == "" {
 		utils.Fatal("Please make sure all environment variables are set")
 	} else {

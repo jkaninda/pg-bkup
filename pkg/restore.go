@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 )
 
-// Restore restore database
-func Restore(file string) {
+// RestoreDatabase restore database
+func RestoreDatabase(file string) {
 	dbHost = os.Getenv("DB_HOST")
 	dbPassword = os.Getenv("DB_PASSWORD")
 	dbUserName = os.Getenv("DB_USERNAME")
