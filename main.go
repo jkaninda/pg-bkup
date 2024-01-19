@@ -160,7 +160,7 @@ func start() {
 		if operation != "backup" {
 			if storage != "s3" {
 				utils.Info("Restore from local")
-				pkg.Restore(file)
+				pkg.RestoreDatabase(file)
 			} else {
 				utils.Info("Restore from s3")
 				s3Restore()
@@ -168,7 +168,7 @@ func start() {
 		} else {
 			if storage != "s3" {
 				utils.Info("Backup to local storage")
-				pkg.Backup(disableCompression)
+				pkg.BackupDatabase(disableCompression)
 			} else {
 				utils.Info("Backup to s3 storage")
 				s3Backup()
@@ -182,7 +182,7 @@ func start() {
 }
 func s3Backup() {
 	pkg.MountS3Storage(s3Path)
-	pkg.Backup(disableCompression)
+	pkg.BackupDatabase(disableCompression)
 }
 
 // Run in scheduled mode
@@ -215,5 +215,5 @@ func scheduledMode() {
 func s3Restore() {
 	// Restore database from S3
 	pkg.MountS3Storage(s3Path)
-	pkg.Restore(file)
+	pkg.RestoreDatabase(file)
 }

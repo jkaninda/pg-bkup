@@ -22,8 +22,8 @@ var (
 	storagePath = "/backup"
 )
 
-// Backup backup database
-func Backup(disableCompression bool) {
+// BackupDatabase backup database
+func BackupDatabase(disableCompression bool) {
 	dbHost = os.Getenv("DB_HOST")
 	dbPassword = os.Getenv("DB_PASSWORD")
 	dbUserName = os.Getenv("DB_USERNAME")
