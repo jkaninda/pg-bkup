@@ -6,7 +6,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup --dbname database_name
+      - bkup backup --dbname database_name
     volumes:
       - ./backup:/backup
     environment:

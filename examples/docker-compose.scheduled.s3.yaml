@@ -9,7 +9,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup --storage s3 --path /mys3_custom_path --dbname database_name --mode scheduled --period "0 1 * * *"
+      - bkup backup --storage s3 --path /mys3_custom_path --dbname database_name --mode scheduled --period "0 1 * * *"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgress

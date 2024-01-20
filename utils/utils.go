@@ -8,6 +8,7 @@ package utils
 **/
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"io/fs"
 	"os"
 )
@@ -69,5 +70,37 @@ func IsDirEmpty(name string) (bool, error) {
 func TestDatabaseConnection() {
 	Info("Testing database connection...")
 	// Test database connection
+}
+func GetEnv(cmd *cobra.Command, flagName, envName string) string {
+	value, _ := cmd.Flags().GetString(flagName)
+	if value != "" {
+		err := os.Setenv(envName, value)
+		if err != nil {
+			return value
+		}
+	}
+	return os.Getenv(envName)
+}
+func FlagGetString(cmd *cobra.Command, flagName string) string {
+	value, _ := cmd.Flags().GetString(flagName)
+	if value != "" {
+		return value
 
+	}
+	return ""
+}
+func FlagGetBool(cmd *cobra.Command, flagName string) bool {
+	value, _ := cmd.Flags().GetBool(flagName)
+	return value
+}
+
+func SetEnv(key, value string) {
+
+	err := os.Setenv(key, value)
+	if err != nil {
+		return
+	}
+}
+
+func ShowHistory() {
 }

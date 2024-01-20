@@ -30,12 +30,12 @@ func CreateCrontabScript(disableCompression bool, storage string) {
 	if storage == "s3" {
 		scriptContent = fmt.Sprintf(`#!/usr/bin/env bash
 set -e
-bkup --operation backup --dbname %s --port %s --storage s3 --path %s %v
+bkup backup --dbname %s --port %s --storage s3 --path %s %v
 `, os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), os.Getenv("S3_PATH"), disableC)
 	} else {
 		scriptContent = fmt.Sprintf(`#!/usr/bin/env bash
 set -e
-bkup --operation backup --dbname %s --port %s %v
+bkup backup --dbname %s --port %s %v
 `, os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), disableC)
 	}
 

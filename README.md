@@ -33,7 +33,9 @@ PostgreSQL Backup and Restoration tool. Backup database to AWS S3 storage or any
 | Options       | Shorts | Usage                              |
 |---------------|--------|------------------------------------|
 | pg-bkup    | bkup   | CLI utility                    |
-| --operation   | -o     | Set operation. backup or restore (default: backup)    |
+| backup                |    | Backup database operation                                          |
+| restore               |    | Restore database operation                                         |
+| history               |    | Show the history of backup                                      |
 | --storage      | -s     | Set storage. local or s3 (default: local)        |
 | --file        | -f     | Set file name for restoration      |
 | --path        |      | Set s3 path without file name. eg: /custom_path      |
@@ -67,12 +69,12 @@ bkup -o backup
 ### S3
 
 ```sh
-bkup --operation backup --storage s3
+bkup backup --storage s3
 ```
 ## Docker run:
 
 ```sh
-docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  bkup -o backup -d database_name
+docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  bkup backup -d database_name
 ```
 
 ## Docker compose file:
@@ -82,7 +84,6 @@ services:
   postgres:
     image: postgres:14.5
     container_name: postgres
-    pull_policy: if_not_present
     restart: unless-stopped
     volumes:
       - ./postgres:/var/lib/postgresql/data
@@ -98,7 +99,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup -d bkup
+      - bkup backup -d bkup
     volumes:
       - ./backup:/backup
     environment:
@@ -113,22 +114,22 @@ services:
 Simple database restore operation usage
 
 ```sh
-bkup --operation restore --file database_20231217_115621.sql  --dbname database_name
+bkup restore --file database_20231217_115621.sql  --dbname database_name
 ```
 
 ```sh
-bkup -o restore -f database_20231217_115621.sql -d database_name
+bkup restore -f database_20231217_115621.sql -d database_name
 ```
 ### S3
 
 ```sh
-bkup --operation restore --storage s3 --file database_20231217_115621.sql --dbname database_name
+bkup restore --storage s3 --file database_20231217_115621.sql --dbname database_name
 ```
 
 ## Docker run:
 
 ```sh
-docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  bkup -o restore -d database_name -f napata_20231219_022941.sql.gz
+docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  bkup restore -d database_name -f napata_20231219_022941.sql.gz
 ```
 
 ## Docker compose file:
@@ -142,7 +143,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation restore --file database_20231217_115621.sql -d database_name
+      - bkup restore --file database_20231217_115621.sql -d database_name
     volumes:
       - ./backup:/backup
     environment:
@@ -160,14 +161,14 @@ docker-compose up -d
 ## Backup to S3
 
 ```sh
-docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://s3.us-west-2.amazonaws.com" jkaninda/pg-bkup  bkup -o backup -s s3 -d database_name
+docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://s3.us-west-2.amazonaws.com" jkaninda/pg-bkup  bkup backup -s s3 -d database_name
 ```
 > To change s3 backup path add this flag : --path /mycustomPath . default path is /pg-bkup
 
 Simple S3 backup usage
 
 ```sh
-bkup --operation backup --storage s3 --dbname mydatabase 
+bkup backup --storage s3 --dbname mydatabase 
 ```
 ```yaml
   pg-bkup:
@@ -180,7 +181,7 @@ bkup --operation backup --storage s3 --dbname mydatabase
     command:
       - /bin/sh
       - -c
-      - pg-bkup --operation restore --storage s3 -f database_20231217_115621.sql.gz --dbname database_name
+      - pg-bkup restore --storage s3 -f database_20231217_115621.sql.gz --dbname database_name
     environment:
       - DB_PORT=5432
       - DB_HOST=postgress
@@ -246,7 +247,7 @@ Easy to remember format:
 > Docker run :
 
 ```sh
-docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup --operation backup --dbname $DB_NAME --mode scheduled --period "0 1 * * *"
+docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  bkup backup --dbname $DB_NAME --mode scheduled --period "0 1 * * *"
 ```
 
 > With Docker compose
@@ -263,7 +264,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - bkup --operation backup --storage s3 --path /mys3_custome_path --dbname database_name --mode scheduled --period "*/30 * * * *"
+      - bkup backup --storage s3 --path /mys3_custome_path --dbname database_name --mode scheduled --period "*/30 * * * *"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgreshost
@@ -277,7 +278,7 @@ services:
 
 ## Kubernetes CronJob
 
-For Kubernetes you don't need to run it in scheduled mode.
+For Kubernetes, you don't need to run it in scheduled mode.
 
 Simple Kubernetes CronJob usage:
 
@@ -300,7 +301,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - bkup --operation backup -s s3 --path /custom_path
+            - bkup backup -s s3 --path /custom_path
             env:
               - name: DB_PORT
                 value: "5432" 
