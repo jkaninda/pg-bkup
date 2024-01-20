@@ -1,5 +1,9 @@
 package cmd
 
+/*
+Copyright © 2024 Jonas Kaninda  <jonaskaninda@gmail.com>
+*/
+
 import (
 	"fmt"
 	"github.com/spf13/cobra"
@@ -16,8 +20,7 @@ var VersionCmd = &cobra.Command{
 	},
 }
 
-// Version display application version
 func Version() {
 	fmt.Printf("Version: %s \n", appVersion)
-	fmt.Print()
+	fmt.Println()
 }

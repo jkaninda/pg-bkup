@@ -11,15 +11,16 @@ import (
 	"os/exec"
 )
 
-const s3MountPath string = "/s3mnt"
-const s3fsPasswdFile string = "/etc/passwd-s3fs"
-
 var (
 	accessKey  = ""
 	secretKey  = ""
 	bucketName = ""
 	s3Endpoint = ""
 )
+
+func S3Mount() {
+	MountS3Storage(s3Path)
+}
 
 // MountS3Storage Mount s3 storage using s3fs
 func MountS3Storage(s3Path string) {
@@ -44,7 +45,9 @@ func MountS3Storage(s3Path string) {
 		}
 		//Change file permission
 		utils.ChangePermission(s3fsPasswdFile, 0600)
-		utils.Info("Mounting Object storage in", s3MountPath)
+
+		//Mount object storage
+		utils.Info("Mounting Object storage in ", s3MountPath)
 		if isEmpty, _ := utils.IsDirEmpty(s3MountPath); isEmpty {
 			cmd := exec.Command("s3fs", bucketName, s3MountPath,
 				"-o", "passwd_file="+s3fsPasswdFile,
