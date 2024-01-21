@@ -41,7 +41,7 @@ func RestoreDatabase(file string) {
 	dbPort = os.Getenv("DB_PORT")
 	storagePath = os.Getenv("STORAGE_PATH")
 	if file == "" {
-		utils.Fatal("Error required --file")
+		utils.Fatal("Error, file required")
 	}
 
 	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" || file == "" {

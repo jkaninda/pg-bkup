@@ -21,7 +21,7 @@ ENV ACCESS_KEY=""
 ENV SECRET_KEY=""
 ENV S3_ENDPOINT=https://s3.amazonaws.com
 ARG DEBIAN_FRONTEND=noninteractive
-ENV VERSION="v0.4"
+ENV VERSION="v0.5"
 LABEL authors="Jonas Kaninda"
 
 RUN apt-get update -qq

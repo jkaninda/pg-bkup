@@ -26,11 +26,14 @@ func S3Mount() {
 func MountS3Storage(s3Path string) {
 	accessKey = os.Getenv("ACCESS_KEY")
 	secretKey = os.Getenv("SECRET_KEY")
-	bucketName = os.Getenv("BUCKETNAME")
+	bucketName = os.Getenv("BUCKET_NAME")
+	if bucketName == "" {
+		bucketName = os.Getenv("BUCKETNAME")
+	}
 	s3Endpoint = os.Getenv("S3_ENDPOINT")
 
 	if accessKey == "" || secretKey == "" || bucketName == "" {
-		utils.Fatal("Please make sure all environment variables are set")
+		utils.Fatal("Please make sure all environment variables are set for S3")
 	} else {
 		storagePath := fmt.Sprintf("%s%s", s3MountPath, s3Path)
 		err := os.Setenv("STORAGE_PATH", storagePath)

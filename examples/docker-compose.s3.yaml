@@ -17,5 +17,5 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - ACCESS_KEY=${ACCESS_KEY}
       - SECRET_KEY=${SECRET_KEY}
-      - BUCKETNAME=${BUCKETNAME}
+      - BUCKET_NAME=${BUCKET_NAME}
       - S3_ENDPOINT=https://s3.us-west-2.amazonaws.com

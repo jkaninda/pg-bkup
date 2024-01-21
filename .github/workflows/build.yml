@@ -35,5 +35,5 @@ jobs:
           file: "./docker/Dockerfile"
           platforms: linux/amd64,linux/arm64
           tags: |
-           "${{env.BUILDKIT_IMAGE}}:v0.4"
+           "${{env.BUILDKIT_IMAGE}}:v0.5"
            "${{env.BUILDKIT_IMAGE}}:latest"
