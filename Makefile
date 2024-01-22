@@ -17,7 +17,7 @@ docker-build:
 	docker build -f docker/Dockerfile  -t jkaninda/pg-bkup:latest .
 
 docker-run: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" jkaninda/pg-bkup  bkup backup --path /pgGo
+	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" jkaninda/pg-bkup  bkup backup
 
 
 docker-run-scheduled: docker-build
