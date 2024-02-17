@@ -23,6 +23,8 @@ func init() {
 	//Backup
 	BackupCmd.PersistentFlags().StringP("mode", "m", "default", "Set execution mode. default or scheduled")
 	BackupCmd.PersistentFlags().StringP("period", "", "0 1 * * *", "Set schedule period time")
+	BackupCmd.PersistentFlags().BoolP("prune", "", false, "Prune old backup")
+	BackupCmd.PersistentFlags().IntP("keep-last", "", 7, "keep all backup and delete within this time interval, default 7 days")
 	BackupCmd.PersistentFlags().BoolP("disable-compression", "", false, "Disable backup compression")
 
 }
