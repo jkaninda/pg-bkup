@@ -5,7 +5,6 @@ Copyright © 2024 Jonas Kaninda  <jonaskaninda@gmail.com>
 package cmd
 
 import (
-	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -18,16 +17,6 @@ var rootCmd = &cobra.Command{
 	Long:    `PostgreSQL Database backup and restoration tool. Backup database to AWS S3 storage or any S3 Alternatives for Object Storage.`,
 	Example: utils.MainExample,
 	Version: appVersion,
-	//TODO: To remove
-	//For old user || To remove
-	Run: func(cmd *cobra.Command, args []string) {
-		if operation != "" {
-			if operation == "backup" || operation == "restore" {
-				fmt.Println(utils.Notice)
-				utils.Fatal("New config required, please check --help")
-			}
-		}
-	},
 }
 var operation = ""
 var s3Path = "/pg-bkup"
@@ -48,11 +37,6 @@ func init() {
 	rootCmd.PersistentFlags().IntP("timeout", "t", 30, "Set timeout")
 	rootCmd.PersistentFlags().IntP("port", "p", 5432, "Set database port")
 	rootCmd.PersistentFlags().StringVarP(&operation, "operation", "o", "", "Set operation, for old version only")
-
-	rootCmd.PersistentFlags().StringP("mode", "m", "default", "Set execution mode. default or scheduled")
-	rootCmd.PersistentFlags().StringP("period", "", "0 1 * * *", "Set schedule period time")
-	rootCmd.PersistentFlags().BoolP("disable-compression", "", false, "Disable backup compression")
-	rootCmd.PersistentFlags().StringP("file", "f", "", "File name of database")
 
 	rootCmd.AddCommand(VersionCmd)
 	rootCmd.AddCommand(BackupCmd)
