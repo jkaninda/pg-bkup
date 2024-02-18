@@ -185,26 +185,37 @@ func deleteOldBackup(keepLast int) {
 	backupDir := storagePath + "/"
 	// Get current time
 	currentTime := time.Now()
-	// Walk through files in the directory
-	err := filepath.Walk(backupDir, func(path string, info os.FileInfo, err error) error {
+	// Delete file
+	deleteFile := func(filePath string) error {
+		err := os.Remove(filePath)
+		if err != nil {
+			utils.Fatal("Error:", err)
+		} else {
+			utils.Done("File", filePath, "deleted successfully")
+		}
+		return err
+	}
+
+	// Walk through the directory and delete files modified more than specified days ago
+	err := filepath.Walk(backupDir, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		// Check if the file is older than defined day days
-		if info.Mode().IsRegular() && info.ModTime().Before(currentTime.AddDate(0, 0, -keepLast)) {
-			// Remove the file
-			err := os.Remove(path)
-			if err != nil {
-				utils.Fatal("Error removing file ", path, err)
-			} else {
-				utils.Done("Removed file: ", path)
+		// Check if it's a regular file and if it was modified more than specified days ago
+		if fileInfo.Mode().IsRegular() {
+			timeDiff := currentTime.Sub(fileInfo.ModTime())
+			if timeDiff.Hours() > 24*float64(keepLast) {
+				err := deleteFile(filePath)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		utils.Fatal("Error walking through directory: ", err)
+		utils.Fatal("Error:", err)
+		return
 	}
-
 }
