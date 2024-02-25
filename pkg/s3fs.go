@@ -1,6 +1,6 @@
 // Package pkg /*
 /*
-Copyright © 2024 Jonas Kaninda  <jonaskaninda.gmail.com>
+Copyright © 2024 Jonas Kaninda
 */
 package pkg
 
