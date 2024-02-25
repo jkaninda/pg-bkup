@@ -53,18 +53,18 @@ PostgreSQL Backup and Restoration tool. Backup database to AWS S3 storage or any
 
 ## Environment variables
 
-| Name        | Requirement                                      | Description          |
-|-------------|--------------------------------------------------|----------------------|
-| DB_PORT     | Optional, default 5432                           | Database port number |
-| DB_HOST     | Required                                         | Database host        |
-| DB_NAME     | Optional if it was provided from the -d flag     | Database name        |
-| DB_USERNAME | Required                                         | Database user name   |
-| DB_PASSWORD | Required                                         | Database password    |
-| ACCESS_KEY  | Optional, required for S3 storage                | AWS S3 Access Key    |
-| SECRET_KEY  | Optional, required for S3 storage                | AWS S3 Secret Key    |
-| BUCKET_NAME | Optional, required for S3 storage                | AWS S3 Bucket Name   |
-| S3_ENDPOINT | Optional, required for S3 storage                | AWS S3 Endpoint      |
-| FILE_NAME   | Optional if it was provided from the --file flag | File to restore      |
+| Name        | Requirement                                      | Description                                          |
+|-------------|--------------------------------------------------|------------------------------------------------------|
+| DB_PORT     | Optional, default 5432                           | Database port number                                 |
+| DB_HOST     | Required                                         | Database host                                        |
+| DB_NAME     | Optional if it was provided from the -d flag     | Database name                                        |
+| DB_USERNAME | Required                                         | Database user name                                   |
+| DB_PASSWORD | Required                                         | Database password                                    |
+| ACCESS_KEY  | Optional, required for S3 storage                | AWS S3 Access Key                                    |
+| SECRET_KEY  | Optional, required for S3 storage                | AWS S3 Secret Key                                    |
+| BUCKET_NAME | Optional, required for S3 storage                | AWS S3 Bucket Name                                   |
+| S3_ENDPOINT | Optional, required for S3 storage                | AWS S3 Endpoint                                      |
+| FILE_NAME   | Optional if it was provided from the --file flag | Database file to restore (extensions: .sql, .sql.gz) |
 
 
 ## Note:
@@ -79,11 +79,9 @@ Creating a user for backup tasks who has read-only access is recommended!
 Simple backup usage
 
 ```sh
-pg-bkup --operation backup
+bkup backup
 ```
-```sh
-pg-bkup -o backup
-```
+
 ### S3
 
 ```sh
