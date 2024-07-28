@@ -179,7 +179,7 @@ docker-compose up -d
 ```sh
 docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://s3.us-west-2.amazonaws.com" jkaninda/pg-bkup  pg-bkup backup -s s3 -d database_name
 ```
-> To change s3 backup path add this flag : --path /mycustomPath . default path is /pg-bkup
+> To change s3 backup path add this flag : --path /my_customPath . default path is /pg-bkup
 
 Simple S3 backup usage
 
@@ -279,7 +279,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - pg-bkup backup --storage s3 --path /mys3_custome_path --dbname database_name --mode scheduled --period "*/30 * * * *"
+      - pg-bkup backup --storage s3 --path /mys3_custom_path --dbname database_name --mode scheduled --period "*/30 * * * *"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgreshost
