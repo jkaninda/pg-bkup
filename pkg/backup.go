@@ -6,6 +6,7 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/hpcloud/tail"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"log"
@@ -58,11 +59,7 @@ func scheduledMode() {
 	fmt.Println("     Starting PostgreSQL Bkup...   ")
 	fmt.Println("***********************************")
 	utils.Info("Running in Scheduled mode")
-	utils.Info("Log file in /var/log/pg-bkup.log")
 	utils.Info("Execution period ", os.Getenv("SCHEDULE_PERIOD"))
-
-	//Test database connexion
-	utils.TestDatabaseConnection()
 
 	//Test database connexion
 	utils.TestDatabaseConnection()
@@ -70,10 +67,33 @@ func scheduledMode() {
 	utils.Info("Creating backup job...")
 	CreateCrontabScript(disableCompression, storage)
 
-	//Start Supervisor
-	supervisordCmd := exec.Command("supervisord", "-c", "/etc/supervisor/supervisord.conf")
-	if err := supervisordCmd.Run(); err != nil {
-		utils.Fatalf("Error starting supervisord: %v\n", err)
+	supervisorConfig := "/etc/supervisor/supervisord.conf"
+
+	// Start Supervisor
+	cmd := exec.Command("supervisord", "-c", supervisorConfig)
+	err := cmd.Start()
+	if err != nil {
+		utils.Fatal("Failed to start supervisord: %v", err)
+	}
+	utils.Info("Starting backup job...")
+	defer func() {
+		if err := cmd.Process.Kill(); err != nil {
+			utils.Info("Failed to kill supervisord process: %v", err)
+		} else {
+			utils.Info("Supervisor stopped.")
+		}
+	}()
+	if _, err := os.Stat(cronLogFile); os.IsNotExist(err) {
+		utils.Fatal("Log file %s does not exist.", cronLogFile)
+	}
+	t, err := tail.TailFile(cronLogFile, tail.Config{Follow: true})
+	if err != nil {
+		utils.Fatalf("Failed to tail file: %v", err)
+	}
+
+	// Read and print new lines from the log file
+	for line := range t.Lines {
+		fmt.Println(line.Text)
 	}
 }
 
@@ -86,6 +106,7 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 	dbPort = os.Getenv("DB_PORT")
 	storagePath = os.Getenv("STORAGE_PATH")
 
+	utils.Info("Starting database backup...")
 	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" {
 		utils.Fatal("Please make sure all required environment variables for database are set")
 	} else {

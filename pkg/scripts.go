@@ -11,9 +11,6 @@ import (
 	"os/exec"
 )
 
-const cronLogFile = "/var/log/pg-bkup.log"
-const backupCronFile = "/usr/local/bin/backup_cron.sh"
-
 func CreateCrontabScript(disableCompression bool, storage string) {
 	//task := "/usr/local/bin/backup_cron.sh"
 	touchCmd := exec.Command("touch", backupCronFile)
@@ -52,6 +49,11 @@ bkup backup --dbname %s --port %s %v
 	if err := lnCmd.Run(); err != nil {
 		utils.Fatalf("Error creating symbolic link: %v\n", err)
 
+	}
+
+	touchLogCmd := exec.Command("touch", cronLogFile)
+	if err := touchLogCmd.Run(); err != nil {
+		utils.Fatalf("Error creating file %s: %v\n", cronLogFile, err)
 	}
 
 	cronJob := "/etc/cron.d/backup_cron"
