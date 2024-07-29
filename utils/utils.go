@@ -9,6 +9,7 @@ package utils
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"io"
 	"io/fs"
 	"os"
 )
@@ -45,6 +46,42 @@ func WriteToFile(filePath, content string) error {
 
 	_, err = file.WriteString(content)
 	return err
+}
+func DeleteFile(filePath string) error {
+	err := os.Remove(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to delete file: %v", err)
+	}
+	return nil
+}
+func CopyFile(src, dst string) error {
+	// Open the source file for reading
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %v", err)
+	}
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destinationFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %v", err)
+	}
+	defer destinationFile.Close()
+
+	// Copy the content from source to destination
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy file: %v", err)
+	}
+
+	// Flush the buffer to ensure all data is written
+	err = destinationFile.Sync()
+	if err != nil {
+		return fmt.Errorf("failed to sync destination file: %v", err)
+	}
+
+	return nil
 }
 func ChangePermission(filePath string, mod int) {
 	if err := os.Chmod(filePath, fs.FileMode(mod)); err != nil {

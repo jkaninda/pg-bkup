@@ -33,16 +33,35 @@ func StartBackup(cmd *cobra.Command) {
 	prune, _ := cmd.Flags().GetBool("prune")
 	disableCompression, _ = cmd.Flags().GetBool("disable-compression")
 	executionMode, _ = cmd.Flags().GetString("mode")
+	dbName = os.Getenv("DB_NAME")
+	storagePath = os.Getenv("STORAGE_PATH")
+
+	//Generate file name
+	backupFileName := fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
+	if disableCompression {
+		backupFileName = fmt.Sprintf("%s_%s.sql", dbName, time.Now().Format("20060102_150405"))
+	}
 
 	if executionMode == "default" {
-		if storage == "s3" {
+		switch storage {
+		case "s3":
 			utils.Info("Backup database to s3 storage")
-			s3Backup(disableCompression, s3Path, prune, keepLast)
-		} else {
+			BackupDatabase(backupFileName, disableCompression, prune, keepLast)
+			s3Upload(backupFileName, s3Path)
+		case "local":
 			utils.Info("Backup database to local storage")
-			BackupDatabase(disableCompression, prune, keepLast)
-
+			BackupDatabase(backupFileName, disableCompression, prune, keepLast)
+			moveToBackup(backupFileName, storagePath)
+		case "ssh":
+			fmt.Println("x is 2")
+		case "ftp":
+			fmt.Println("x is 3")
+		default:
+			utils.Info("Backup database to local storage")
+			BackupDatabase(backupFileName, disableCompression, prune, keepLast)
+			moveToBackup(backupFileName, storagePath)
 		}
+
 	} else if executionMode == "scheduled" {
 		scheduledMode()
 	} else {
@@ -98,7 +117,7 @@ func scheduledMode() {
 }
 
 // BackupDatabase backup database
-func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
+func BackupDatabase(backupFileName string, disableCompression bool, prune bool, keepLast int) {
 	dbHost = os.Getenv("DB_HOST")
 	dbPassword = os.Getenv("DB_PASSWORD")
 	dbUserName = os.Getenv("DB_USERNAME")
@@ -117,12 +136,9 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 		utils.TestDatabaseConnection()
 		// Backup Database database
 		utils.Info("Backing up database...")
-		//Generate file name
-		bkFileName := fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
 
 		// Verify is compression is disabled
 		if disableCompression {
-			bkFileName = fmt.Sprintf("%s_%s.sql", dbName, time.Now().Format("20060102_150405"))
 			// Execute pg_dump
 			cmd := exec.Command("pg_dump",
 				"-h", dbHost,
@@ -135,7 +151,7 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 				log.Fatal(err)
 			}
 			// save output
-			file, err := os.Create(fmt.Sprintf("%s/%s", storagePath, bkFileName))
+			file, err := os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -145,7 +161,6 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			utils.Done("Database has been backed up")
 
 		} else {
 			// Execute pg_dump
@@ -162,7 +177,7 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 			gzipCmd := exec.Command("gzip")
 			gzipCmd.Stdin = stdout
 			// save output
-			gzipCmd.Stdout, err = os.Create(fmt.Sprintf("%s/%s", storagePath, bkFileName))
+			gzipCmd.Stdout, err = os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
 			gzipCmd.Start()
 			if err != nil {
 				log.Fatal(err)
@@ -173,30 +188,62 @@ func BackupDatabase(disableCompression bool, prune bool, keepLast int) {
 			if err := gzipCmd.Wait(); err != nil {
 				log.Fatal(err)
 			}
-			utils.Done("Database has been backed up")
 
 		}
+		utils.Done("Database has been backed up")
+
 		//Delete old backup
-		if prune {
-			deleteOldBackup(keepLast)
-		}
+		//if prune {
+		//	deleteOldBackup(keepLast)
+		//}
 
-		historyFile, err := os.OpenFile(fmt.Sprintf("%s/history.txt", storagePath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		historyFile, err := os.OpenFile(fmt.Sprintf("%s/history.txt", tmpPath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer historyFile.Close()
-		if _, err := historyFile.WriteString(bkFileName + "\n"); err != nil {
+		if _, err := historyFile.WriteString(backupFileName + "\n"); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 }
+func moveToBackup(backupFileName string, destinationPath string) {
+	//Copy backup from tmp folder to storage destination
+	err := utils.CopyFile(filepath.Join(tmpPath, backupFileName), filepath.Join(destinationPath, backupFileName))
+	if err != nil {
+		utils.Fatal("Error copying file ", backupFileName, err)
 
-func s3Backup(disableCompression bool, s3Path string, prune bool, keepLast int) {
+	}
+	//Delete backup file from tmp folder
+	err = utils.DeleteFile(filepath.Join(tmpPath, backupFileName))
+	if err != nil {
+		fmt.Println("Error deleting file:", err)
+
+	}
+	utils.Done("Database has been backed up and copied to destination ")
+}
+func s3Upload(backupFileName string, s3Path string) {
+	bucket := os.Getenv("BUCKET_NAME")
+	utils.Info("Uploading file to S3 storage")
+	err := utils.UploadFileToS3(tmpPath, backupFileName, bucket, s3Path)
+	if err != nil {
+		utils.Fatalf("Error uploading file to S3: %s ", err)
+
+	}
+
+	//Delete backup file from tmp folder
+	err = utils.DeleteFile(filepath.Join(tmpPath, backupFileName))
+	if err != nil {
+		fmt.Println("Error deleting file:", err)
+
+	}
+	utils.Done("Database has been backed up and uploaded to s3 ")
+}
+func s3Backup(backupFileName string, disableCompression bool, s3Path string, prune bool, keepLast int) {
 	// Backup Database to S3 storage
-	MountS3Storage(s3Path)
-	BackupDatabase(disableCompression, prune, keepLast)
+	//MountS3Storage(s3Path)
+	//BackupDatabase(backupFileName, disableCompression, prune, keepLast)
 }
 func deleteOldBackup(keepLast int) {
 	utils.Info("Deleting old backups...")

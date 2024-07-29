@@ -19,6 +19,13 @@ ENV STORAGE=local
 ENV BUCKET_NAME=""
 ENV ACCESS_KEY=""
 ENV SECRET_KEY=""
+ENV REGION=""
+ENV SSH_USER=""
+ENV SSH_PASSWORD=""
+ENV SSH_HOST_NAME=""
+ENV SSH_IDENTIFY_FILE="/root/.ssh/id_rsa"
+ENV GPG_PASS_PHRASE=""
+ENV SSH_PORT="22"
 ENV S3_ENDPOINT=https://s3.amazonaws.com
 ARG DEBIAN_FRONTEND=noninteractive
 ENV VERSION="v0.6"
@@ -26,7 +33,7 @@ LABEL authors="Jonas Kaninda"
 
 RUN apt-get update -qq
 
-RUN apt install s3fs postgresql-client postgresql-client-common libpq-dev supervisor cron -y
+RUN apt install postgresql-client postgresql-client-common supervisor cron openssh-client -y
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -45,4 +52,5 @@ ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 
 RUN mkdir /backup
-WORKDIR /backup
+RUN mkdir /tmp/pg-bkup
+WORKDIR /root

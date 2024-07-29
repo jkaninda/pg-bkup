@@ -21,13 +21,34 @@ func StartRestore(cmd *cobra.Command) {
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	executionMode, _ = cmd.Flags().GetString("mode")
+	bucket := os.Getenv("BUCKET_NAME")
 
-	if storage == "s3" {
+	switch storage {
+	case "s3":
 		utils.Info("Restore database from s3")
-		s3Restore(file, s3Path)
-	} else {
+		err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
+		if err != nil {
+			utils.Fatal("Error download file from s3 ", file, err)
+		}
+		RestoreDatabase(file)
+	case "local":
+		utils.Info("Restore database from local")
+		copyTmp(storagePath, file)
+		RestoreDatabase(file)
+	case "ssh":
+		fmt.Println("x is 2")
+	case "ftp":
+		fmt.Println("x is 3")
+	default:
 		utils.Info("Restore database from local")
 		RestoreDatabase(file)
+	}
+}
+func copyTmp(sourcePath string, backupFileName string) {
+	//Copy backup from tmp folder to storage destination
+	err := utils.CopyFile(filepath.Join(sourcePath, backupFileName), filepath.Join(tmpPath, backupFileName))
+	if err != nil {
+		utils.Fatal("Error copying file ", backupFileName, err)
 
 	}
 }
@@ -39,7 +60,7 @@ func RestoreDatabase(file string) {
 	dbUserName = os.Getenv("DB_USERNAME")
 	dbName = os.Getenv("DB_NAME")
 	dbPort = os.Getenv("DB_PORT")
-	storagePath = os.Getenv("STORAGE_PATH")
+	//storagePath = os.Getenv("STORAGE_PATH")
 	if file == "" {
 		utils.Fatal("Error, file required")
 	}
@@ -48,7 +69,7 @@ func RestoreDatabase(file string) {
 		utils.Fatal("Please make sure all required environment variables are set")
 	} else {
 
-		if utils.FileExists(fmt.Sprintf("%s/%s", storagePath, file)) {
+		if utils.FileExists(fmt.Sprintf("%s/%s", tmpPath, file)) {
 
 			err := os.Setenv("PGPASSWORD", dbPassword)
 			if err != nil {
@@ -56,10 +77,10 @@ func RestoreDatabase(file string) {
 			}
 			utils.TestDatabaseConnection()
 
-			extension := filepath.Ext(fmt.Sprintf("%s/%s", storagePath, file))
+			extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
 			// Restore from compressed file / .sql.gz
 			if extension == ".gz" {
-				str := "zcat " + fmt.Sprintf("%s/%s", storagePath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+				str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
 				_, err := exec.Command("bash", "-c", str).Output()
 				if err != nil {
 					utils.Fatal("Error, in restoring the database")
@@ -68,7 +89,7 @@ func RestoreDatabase(file string) {
 
 			} else if extension == ".sql" {
 				//Restore from sql file
-				str := "cat " + fmt.Sprintf("%s/%s", storagePath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+				str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
 				_, err := exec.Command("bash", "-c", str).Output()
 				if err != nil {
 					utils.Fatal("Error in restoring the database", err)
@@ -79,12 +100,13 @@ func RestoreDatabase(file string) {
 			}
 
 		} else {
-			utils.Fatal("File not found in ", fmt.Sprintf("%s/%s", storagePath, file))
+			utils.Fatal("File not found in ", fmt.Sprintf("%s/%s", tmpPath, file))
 		}
 	}
 }
-func s3Restore(file, s3Path string) {
-	// Restore database from S3
-	MountS3Storage(s3Path)
-	RestoreDatabase(file)
-}
+
+//func s3Restore(file, s3Path string) {
+//	// Restore database from S3
+//	MountS3Storage(s3Path)
+//	RestoreDatabase(file)
+//}
