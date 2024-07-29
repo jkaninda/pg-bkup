@@ -33,7 +33,7 @@ func StartRestore(cmd *cobra.Command) {
 		RestoreDatabase(file)
 	case "local":
 		utils.Info("Restore database from local")
-		copyTmp(storagePath, file)
+		copyToTmp(storagePath, file)
 		RestoreDatabase(file)
 	case "ssh":
 		fmt.Println("x is 2")
@@ -44,14 +44,6 @@ func StartRestore(cmd *cobra.Command) {
 		RestoreDatabase(file)
 	}
 }
-func copyTmp(sourcePath string, backupFileName string) {
-	//Copy backup from tmp folder to storage destination
-	err := utils.CopyFile(filepath.Join(sourcePath, backupFileName), filepath.Join(tmpPath, backupFileName))
-	if err != nil {
-		utils.Fatal("Error copying file ", backupFileName, err)
-
-	}
-}
 
 // RestoreDatabase restore database
 func RestoreDatabase(file string) {
@@ -60,9 +52,25 @@ func RestoreDatabase(file string) {
 	dbUserName = os.Getenv("DB_USERNAME")
 	dbName = os.Getenv("DB_NAME")
 	dbPort = os.Getenv("DB_PORT")
+	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
 	//storagePath = os.Getenv("STORAGE_PATH")
 	if file == "" {
 		utils.Fatal("Error, file required")
+	}
+	extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
+	if extension == ".gpg" {
+		if gpgPassphrase == "" {
+			utils.Fatal("Error, GPG_PASSPHRASE environment variable required, you need to set the GPG_PASSPHRASE")
+		} else {
+			//Decrypt file
+			err := Decrypt(filepath.Join(tmpPath, file), gpgPassphrase)
+			if err != nil {
+				utils.Fatal("Error decrypting file ", file, err)
+			}
+			//Update file name
+			file = RemoveLastExtension(file)
+		}
+
 	}
 
 	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" || file == "" {
@@ -83,7 +91,7 @@ func RestoreDatabase(file string) {
 				str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
 				_, err := exec.Command("bash", "-c", str).Output()
 				if err != nil {
-					utils.Fatal("Error, in restoring the database")
+					utils.Fatal("Error, in restoring the database ", err)
 				}
 				utils.Done("Database has been restored")
 
@@ -104,9 +112,3 @@ func RestoreDatabase(file string) {
 		}
 	}
 }
-
-//func s3Restore(file, s3Path string) {
-//	// Restore database from S3
-//	MountS3Storage(s3Path)
-//	RestoreDatabase(file)
-//}

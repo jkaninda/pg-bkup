@@ -3,8 +3,10 @@ package pkg
 const s3MountPath string = "/s3mnt"
 const s3fsPasswdFile string = "/etc/passwd-s3fs"
 const cronLogFile = "/var/log/pg-bkup.log"
-const tmpPath = "/tmp/pg-bkup"
+const tmpPath = "/tmp/backup"
 const backupCronFile = "/usr/local/bin/backup_cron.sh"
+const algorithm = "aes256"
+const gpgExtension = "gpg"
 
 var (
 	storage            = "local"
@@ -18,4 +20,5 @@ var (
 	executionMode      = "default"
 	storagePath        = "/backup"
 	disableCompression = false
+	encryption         = false
 )

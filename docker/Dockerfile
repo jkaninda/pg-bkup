@@ -33,7 +33,7 @@ LABEL authors="Jonas Kaninda"
 
 RUN apt-get update -qq
 
-RUN apt install postgresql-client postgresql-client-common supervisor cron openssh-client -y
+RUN apt install postgresql-client postgresql-client-common supervisor cron openssh-client gnupg -y
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -52,5 +52,5 @@ ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 
 RUN mkdir /backup
-RUN mkdir /tmp/pg-bkup
+RUN mkdir /tmp/backup
 WORKDIR /root

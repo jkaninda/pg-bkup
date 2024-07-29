@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // CreateSession creates a new AWS session
@@ -81,7 +83,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 	if err != nil {
 		return err
 	}
-
+	Info("Download backup from S3 storage...")
 	file, err := os.Create(filepath.Join(destinationPath, key))
 	if err != nil {
 		fmt.Println("Failed to create file", err)
@@ -101,7 +103,49 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 		fmt.Println("Failed to download file", err)
 		return err
 	}
-	fmt.Println("Bytes size", numBytes)
-	Info("Backup downloaded to ", file.Name())
+	Info("Backup downloaded: ", file.Name())
+	Info("Bytes size: ", numBytes)
+
+	return nil
+}
+func DeleteOldBackup(bucket, prefix string, retention int) error {
+	sess, err := CreateSession()
+	if err != nil {
+		return err
+	}
+
+	svc := s3.New(sess)
+
+	// Get the current time and the time threshold for 7 days ago
+	now := time.Now()
+	backupRetentionDays := now.AddDate(0, 0, -retention)
+
+	// List objects in the bucket
+	listObjectsInput := &s3.ListObjectsV2Input{
+		Bucket: aws.String(bucket),
+		Prefix: aws.String(prefix),
+	}
+	err = svc.ListObjectsV2Pages(listObjectsInput, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+		for _, object := range page.Contents {
+			if object.LastModified.Before(backupRetentionDays) {
+				// Object is older than retention days, delete it
+				_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+					Bucket: aws.String(bucket),
+					Key:    object.Key,
+				})
+				if err != nil {
+					log.Printf("Failed to delete object %s: %v", *object.Key, err)
+				} else {
+					fmt.Printf("Deleted object %s\n", *object.Key)
+				}
+			}
+		}
+		return !lastPage
+	})
+	if err != nil {
+		log.Fatalf("Failed to list objects: %v", err)
+	}
+
+	fmt.Println("Finished deleting old files.")
 	return nil
 }
