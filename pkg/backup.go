@@ -54,7 +54,7 @@ func StartBackup(cmd *cobra.Command) {
 		case "ssh":
 			sshBackup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
 		case "ftp":
-			fmt.Println("x is 3")
+			utils.Fatalf("Not supported storage type: %s", storage)
 		default:
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		}
@@ -241,8 +241,35 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 	}
 	utils.Done("Database has been backed up and uploaded to s3 ")
 }
-func sshBackup(backupFileName string, s3Path string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
+func sshBackup(backupFileName string, remotePath string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
+	utils.Info("Backup database to Remote server")
+	//Backup database
+	BackupDatabase(backupFileName, disableCompression)
+	finalFileName := backupFileName
+	if encrypt {
+		encryptBackup(backupFileName)
+		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
+	}
+	utils.Info("Uploading backup file to S3 storage...")
+	utils.Info("Backup name is ", backupFileName)
+	err := CopyToRemote(filepath.Join(tmpPath, finalFileName), remotePath)
+	if err != nil {
+		utils.Fatalf("Error uploading file to S3: %s ", err)
 
+	}
+	//Delete backup file from tmp folder
+	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		fmt.Println("Error deleting file:", err)
+
+	}
+	if prune {
+		//TODO: Delete old backup from remote server
+		utils.Info("Deleting old backup from a remote server is not implemented yet")
+
+	}
+
+	utils.Done("Database has been backed up and uploaded to remote server ")
 }
 
 func encryptBackup(backupFileName string) {
