@@ -29,7 +29,7 @@ func moveToBackup(backupFileName string, destinationPath string) {
 		fmt.Println("Error deleting file:", err)
 
 	}
-	utils.Done("Database has been backed up and copied to destination ")
+	utils.Done("Database has been backed up and copied to  ", filepath.Join(destinationPath, backupFileName))
 }
 func deleteOldBackup(retentionDays int) {
 	utils.Info("Deleting old backups...")

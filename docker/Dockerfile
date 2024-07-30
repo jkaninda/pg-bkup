@@ -19,17 +19,21 @@ ENV STORAGE=local
 ENV BUCKET_NAME=""
 ENV ACCESS_KEY=""
 ENV SECRET_KEY=""
-ENV REGION=""
+ENV AWS_REGION="us-west-2"
+ENV AWS_DISABLE_SSL="false"
+ENV GPG_PASSPHRASE=""
 ENV SSH_USER=""
 ENV SSH_PASSWORD=""
 ENV SSH_HOST_NAME=""
 ENV SSH_IDENTIFY_FILE="/root/.ssh/id_rsa"
-ENV GPG_PASS_PHRASE=""
 ENV SSH_PORT="22"
 ENV S3_ENDPOINT=https://s3.amazonaws.com
 ARG DEBIAN_FRONTEND=noninteractive
-ENV VERSION="v0.6"
-LABEL authors="Jonas Kaninda"
+ENV VERSION="v0.8"
+ARG WORKDIR="/app"
+ARG BACKUPDIR="/backup"
+ARG BACKUP_TMP_DIR="/tmp/backup"
+LABEL author="Jonas Kaninda"
 
 RUN apt-get update -qq
 
@@ -38,10 +42,12 @@ RUN apt install postgresql-client postgresql-client-common supervisor cron opens
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /s3mnt
-RUN mkdir /tmp/s3cache
-RUN chmod 777 /s3mnt
-RUN chmod 777 /tmp/s3cache
+RUN mkdir $WORKDIR
+RUN mkdir $BACKUPDIR
+RUN mkdir -p $BACKUP_TMP_DIR
+RUN chmod 777 $WORKDIR
+RUN chmod 777 $BACKUPDIR
+RUN chmod 777 $BACKUP_TMP_DIR
 
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
 RUN chmod +x /usr/local/bin/pg-bkup
@@ -50,7 +56,4 @@ RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
-
-RUN mkdir /backup
-RUN mkdir /tmp/backup
-WORKDIR /root
+WORKDIR $WORKDIR

@@ -7,11 +7,13 @@ package utils
 * @link      https://github.com/jkaninda/mysql-bkup
 **/
 import (
+	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 )
 
 func Info(v ...any) {
@@ -105,8 +107,46 @@ func IsDirEmpty(name string) (bool, error) {
 
 // TestDatabaseConnection  tests the database connection
 func TestDatabaseConnection() {
-	Info("Testing database connection...")
-	// Test database connection
+	dbHost := os.Getenv("DB_HOST")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbUserName := os.Getenv("DB_USERNAME")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
+
+	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" {
+		Fatal("Please make sure all required database environment variables are set")
+	} else {
+		Info("Connecting to database ...")
+		// Test database connection
+		query := "SELECT version();"
+
+		// Set the environment variable for the database password
+		err := os.Setenv("PGPASSWORD", dbPassword)
+		if err != nil {
+			return
+		}
+		// Prepare the psql command
+		cmd := exec.Command("psql",
+			"-U", dbUserName, // database user
+			"-d", dbName, // database name
+			"-h", dbHost, // host
+			"-p", dbPort, // port
+			"-c", query, // SQL command to execute
+		)
+		// Capture the output
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &out
+
+		// Run the command and capture any errors
+		err = cmd.Run()
+		if err != nil {
+			fmt.Printf("Error running psql command: %v\nOutput: %s\n", err, out.String())
+			return
+		}
+		Info("Successfully connected to database")
+
+	}
 }
 func GetEnv(cmd *cobra.Command, flagName, envName string) string {
 	value, _ := cmd.Flags().GetString(flagName)

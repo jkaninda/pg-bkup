@@ -74,5 +74,5 @@ bkup backup --dbname %s --port %s %v
 	if err := crontabCmd.Run(); err != nil {
 		utils.Fatal("Error updating crontab: ", err)
 	}
-	utils.Info("Starting backup in scheduled mode")
+	utils.Info("Backup job created.")
 }

@@ -12,25 +12,27 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
 // CreateSession creates a new AWS session
 func CreateSession() (*session.Session, error) {
 
-	//key := aws.String("testobject")
 	endPoint := os.Getenv("S3_ENDPOINT")
-	//bucket := os.Getenv("BUCKET_NAME")
-	region := os.Getenv("REGION")
 	accessKey := os.Getenv("ACCESS_KEY")
 	secretKey := os.Getenv("SECRET_KEY")
-
+	region := os.Getenv("AWS_REGION")
+	awsDisableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
+	if err != nil {
+		Fatalf("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+	}
 	// Configure to use MinIO Server
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(accessKey, secretKey, ""),
 		Endpoint:         aws.String(endPoint),
 		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(false),
+		DisableSSL:       aws.Bool(awsDisableSsl),
 		S3ForcePathStyle: aws.Bool(true),
 	}
 	return session.NewSession(s3Config)

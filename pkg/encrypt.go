@@ -9,7 +9,7 @@ import (
 )
 
 func Decrypt(inputFile string, passphrase string) error {
-	utils.Info("Decrypting backup...")
+	utils.Info("Decrypting backup file: " + inputFile + " ...")
 	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--output", RemoveLastExtension(inputFile), "--decrypt", inputFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

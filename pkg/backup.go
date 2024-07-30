@@ -48,17 +48,14 @@ func StartBackup(cmd *cobra.Command) {
 	if executionMode == "default" {
 		switch storage {
 		case "s3":
-			utils.Info("Backup database to s3 storage")
 			s3Backup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
 		case "local":
-			utils.Info("Backup database to local storage")
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		case "ssh":
 			fmt.Println("x is 2")
 		case "ftp":
 			fmt.Println("x is 3")
 		default:
-			utils.Info("Backup database to local storage")
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		}
 
@@ -94,7 +91,7 @@ func scheduledMode() {
 	if err != nil {
 		utils.Fatal("Failed to start supervisord: %v", err)
 	}
-	utils.Info("Starting backup job...")
+	utils.Info("Backup job started")
 	defer func() {
 		if err := cmd.Process.Kill(); err != nil {
 			utils.Info("Failed to kill supervisord process: %v", err)
@@ -203,6 +200,7 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, gpgExtension)
 	}
+	utils.Info("Backup name is ", finalFileName)
 	moveToBackup(finalFileName, storagePath)
 	//Delete old backup
 	if prune {
@@ -213,6 +211,7 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 func s3Backup(backupFileName string, s3Path string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
 	bucket := os.Getenv("BUCKET_NAME")
 	storagePath = os.Getenv("STORAGE_PATH")
+	utils.Info("Backup database to s3 storage")
 	//Backup database
 	BackupDatabase(backupFileName, disableCompression)
 	finalFileName := backupFileName
@@ -220,7 +219,8 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
-	utils.Info("Uploading file to S3 storage")
+	utils.Info("Uploading backup file to S3 storage...")
+	utils.Info("Backup name is ", backupFileName)
 	err := utils.UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
 	if err != nil {
 		utils.Fatalf("Error uploading file to S3: %s ", err)
