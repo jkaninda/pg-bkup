@@ -17,20 +17,20 @@ docker-build:
 	docker build -f docker/Dockerfile  -t jkaninda/pg-bkup:latest .
 
 docker-run: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --prune --keep-last 2
+	docker run --rm --network internal --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --prune --keep-last 2
 docker-restore: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}"  -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup restore -f ${FILE_NAME}
+	docker run --rm --network internal --user 1000:1000 --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}"  -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup restore -f ${FILE_NAME}
 
 
 docker-run-scheduled: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --mode scheduled --period "* * * * *"
+	docker run --rm --network internal --user 1000:1000 --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --mode scheduled --period "* * * * *"
 
 
 docker-run-scheduled-s3: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --storage s3 --mode scheduled --path /custom-path --period "* * * * *"
+	docker run --rm --network internal --user 1000:1000 --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --storage s3 --mode scheduled --path /custom-path --period "* * * * *"
 
 docker-run-s3: docker-build
-	docker run --rm --network internal --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" -e "AWS_REGION=eu2" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --storage s3  --path /custom-path
+	docker run --rm --network internal --name pg-bkup -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" -e "AWS_REGION=eu2" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" jkaninda/pg-bkup  bkup backup --storage s3  --path /custom-path
 
 
 docker-restore-s3: docker-build

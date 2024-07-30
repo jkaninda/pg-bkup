@@ -19,9 +19,9 @@ import (
 // CreateSession creates a new AWS session
 func CreateSession() (*session.Session, error) {
 
-	endPoint := os.Getenv("S3_ENDPOINT")
-	accessKey := os.Getenv("ACCESS_KEY")
-	secretKey := os.Getenv("SECRET_KEY")
+	endPoint := GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
+	accessKey := GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
+	secretKey := GetEnvVariable("AWS_SECRET_KEY", "SECRET_KEY")
 	region := os.Getenv("AWS_REGION")
 	awsDisableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
 	if err != nil {

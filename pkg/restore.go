@@ -21,8 +21,7 @@ func StartRestore(cmd *cobra.Command) {
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	executionMode, _ = cmd.Flags().GetString("mode")
-	bucket := os.Getenv("BUCKET_NAME")
-
+	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 	switch storage {
 	case "s3":
 		utils.Info("Restore database from s3")

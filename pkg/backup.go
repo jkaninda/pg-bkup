@@ -52,7 +52,7 @@ func StartBackup(cmd *cobra.Command) {
 		case "local":
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		case "ssh":
-			fmt.Println("x is 2")
+			sshBackup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
 		case "ftp":
 			fmt.Println("x is 3")
 		default:
@@ -209,8 +209,7 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 }
 
 func s3Backup(backupFileName string, s3Path string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
-	bucket := os.Getenv("BUCKET_NAME")
-	storagePath = os.Getenv("STORAGE_PATH")
+	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 	utils.Info("Backup database to s3 storage")
 	//Backup database
 	BackupDatabase(backupFileName, disableCompression)
@@ -241,6 +240,9 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 		}
 	}
 	utils.Done("Database has been backed up and uploaded to s3 ")
+}
+func sshBackup(backupFileName string, s3Path string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
+
 }
 
 func encryptBackup(backupFileName string) {

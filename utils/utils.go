@@ -178,6 +178,15 @@ func SetEnv(key, value string) {
 		return
 	}
 }
-
+func GetEnvVariable(envName, oldEnvName string) string {
+	value := os.Getenv(envName)
+	if value == "" {
+		value = os.Getenv(oldEnvName)
+		if value != "" {
+			fmt.Printf("%s is deprecated, please use %s instead!\n", oldEnvName, envName)
+		}
+	}
+	return value
+}
 func ShowHistory() {
 }
