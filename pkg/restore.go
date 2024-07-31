@@ -17,31 +17,44 @@ func StartRestore(cmd *cobra.Command) {
 	utils.GetEnv(cmd, "port", "DB_PORT")
 
 	//Get flag value and set env
-	s3Path = utils.GetEnv(cmd, "path", "S3_PATH")
+	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
+	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	executionMode, _ = cmd.Flags().GetString("mode")
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 	switch storage {
 	case "s3":
-		utils.Info("Restore database from s3")
-		err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
-		if err != nil {
-			utils.Fatal("Error download file from s3 ", file, err)
-		}
-		RestoreDatabase(file)
+		restoreFromS3(file, bucket, s3Path)
 	case "local":
 		utils.Info("Restore database from local")
 		copyToTmp(storagePath, file)
 		RestoreDatabase(file)
 	case "ssh":
-		fmt.Println("x is 2")
+		restoreFromRemote(file, remotePath)
 	case "ftp":
-		fmt.Println("x is 3")
+		utils.Fatalf("Restore from FTP is not yet supported")
 	default:
 		utils.Info("Restore database from local")
 		RestoreDatabase(file)
 	}
+}
+
+func restoreFromS3(file, bucket, s3Path string) {
+	utils.Info("Restore database from s3")
+	err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
+	if err != nil {
+		utils.Fatal("Error download file from s3 ", file, err)
+	}
+	RestoreDatabase(file)
+}
+func restoreFromRemote(file, remotePath string) {
+	utils.Info("Restore database from remote server")
+	err := CopyFromRemote(file, remotePath)
+	if err != nil {
+		utils.Fatal("Error download file from remote server: ", filepath.Join(remotePath, file), err)
+	}
+	RestoreDatabase(file)
 }
 
 // RestoreDatabase restore database
@@ -52,7 +65,6 @@ func RestoreDatabase(file string) {
 	dbName = os.Getenv("DB_NAME")
 	dbPort = os.Getenv("DB_PORT")
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
-	//storagePath = os.Getenv("STORAGE_PATH")
 	if file == "" {
 		utils.Fatal("Error, file required")
 	}

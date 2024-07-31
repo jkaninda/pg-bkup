@@ -25,7 +25,8 @@ func StartBackup(cmd *cobra.Command) {
 	utils.GetEnv(cmd, "period", "SCHEDULE_PERIOD")
 
 	//Get flag value and set env
-	s3Path = utils.GetEnv(cmd, "path", "S3_PATH")
+	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
+	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	backupRetention, _ := cmd.Flags().GetInt("keep-last")
@@ -52,7 +53,7 @@ func StartBackup(cmd *cobra.Command) {
 		case "local":
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		case "ssh":
-			sshBackup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
+			sshBackup(backupFileName, remotePath, disableCompression, prune, backupRetention, encryption)
 		case "ftp":
 			utils.Fatalf("Not supported storage type: %s", storage)
 		default:
@@ -241,7 +242,7 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 	}
 	utils.Done("Database has been backed up and uploaded to s3 ")
 }
-func sshBackup(backupFileName string, remotePath string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
+func sshBackup(backupFileName, remotePath string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
 	utils.Info("Backup database to Remote server")
 	//Backup database
 	BackupDatabase(backupFileName, disableCompression)
@@ -250,9 +251,9 @@ func sshBackup(backupFileName string, remotePath string, disableCompression bool
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
-	utils.Info("Uploading backup file to S3 storage...")
+	utils.Info("Uploading backup file to remote server...")
 	utils.Info("Backup name is ", backupFileName)
-	err := CopyToRemote(filepath.Join(tmpPath, finalFileName), remotePath)
+	err := CopyToRemote(finalFileName, remotePath)
 	if err != nil {
 		utils.Fatalf("Error uploading file to S3: %s ", err)
 

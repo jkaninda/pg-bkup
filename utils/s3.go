@@ -59,7 +59,8 @@ func UploadFileToS3(filePath, key, bucket, prefix string) error {
 		return err
 	}
 
-	objectKey := fmt.Sprintf("%s/%s", prefix, key)
+	objectKey := filepath.Join(prefix, key)
+	//fmt.Sprintf("%s/%s", prefix, key)
 
 	buffer := make([]byte, fileInfo.Size())
 	file.Read(buffer)
@@ -93,7 +94,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 	}
 	defer file.Close()
 
-	objectKey := fmt.Sprintf("%s/%s", prefix, key)
+	objectKey := filepath.Join(prefix, key)
 
 	downloader := s3manager.NewDownloader(sess)
 	numBytes, err := downloader.Download(file,

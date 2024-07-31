@@ -9,6 +9,7 @@ import (
 	"github.com/jkaninda/pg-bkup/utils"
 	"golang.org/x/crypto/ssh"
 	"os"
+	"path/filepath"
 )
 
 func CopyToRemote(fileName, remotePath string) error {
@@ -39,14 +40,14 @@ func CopyToRemote(fileName, remotePath string) error {
 	}
 
 	// Open a file
-	file, _ := os.Open(fileName)
+	file, _ := os.Open(filepath.Join(tmpPath, fileName))
 
 	// Close client connection after the file has been copied
 	defer client.Close()
 	// Close the file after it has been copied
 	defer file.Close()
 	// the context can be adjusted to provide time-outs or inherit from other contexts if this is embedded in a larger application.
-	err = client.CopyFromFile(context.Background(), *file, remotePath, "0655")
+	err = client.CopyFromFile(context.Background(), *file, filepath.Join(remotePath, fileName), "0655")
 	if err != nil {
 		fmt.Println("Error while copying file ")
 		return err
@@ -72,9 +73,9 @@ func CopyFromRemote(fileName, remotePath string) error {
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
-
 	// Create a new SCP client
 	client := scp.NewClient(fmt.Sprintf("%s:%s", sshHostName, sshPort), &clientConfig)
+
 	// Connect to the remote server
 	err := client.Connect()
 	if err != nil {

@@ -4,6 +4,7 @@ Copyright © 2024 Jonas Kaninda
 */
 package pkg
 
+/*
 import (
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
@@ -78,3 +79,5 @@ func MountS3Storage(s3Path string) {
 
 	}
 }
+
+*/

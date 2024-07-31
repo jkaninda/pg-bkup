@@ -11,7 +11,6 @@ const gpgExtension = "gpg"
 var (
 	storage            = "local"
 	file               = ""
-	s3Path             = "/pg-bkup"
 	dbPassword         = ""
 	dbUserName         = ""
 	dbName             = ""
