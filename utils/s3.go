@@ -60,7 +60,6 @@ func UploadFileToS3(filePath, key, bucket, prefix string) error {
 	}
 
 	objectKey := filepath.Join(prefix, key)
-	//fmt.Sprintf("%s/%s", prefix, key)
 
 	buffer := make([]byte, fileInfo.Size())
 	file.Read(buffer)
@@ -106,8 +105,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 		fmt.Println("Failed to download file", err)
 		return err
 	}
-	Info("Backup downloaded: ", file.Name())
-	Info("Bytes size: ", numBytes)
+	Info("Backup downloaded: ", file.Name(), " bytes size ", numBytes)
 
 	return nil
 }

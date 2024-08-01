@@ -52,7 +52,7 @@ func StartBackup(cmd *cobra.Command) {
 			s3Backup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
 		case "local":
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
-		case "ssh":
+		case "ssh", "remote":
 			sshBackup(backupFileName, remotePath, disableCompression, prune, backupRetention, encryption)
 		case "ftp":
 			utils.Fatalf("Not supported storage type: %s", storage)
@@ -220,7 +220,7 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup file to S3 storage...")
-	utils.Info("Backup name is ", backupFileName)
+	utils.Info("Backup name is ", finalFileName)
 	err := utils.UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
 	if err != nil {
 		utils.Fatalf("Error uploading file to S3: %s ", err)
@@ -255,9 +255,10 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 	utils.Info("Backup name is ", backupFileName)
 	err := CopyToRemote(finalFileName, remotePath)
 	if err != nil {
-		utils.Fatalf("Error uploading file to S3: %s ", err)
+		utils.Fatalf("Error uploading file to the remote server: %s ", err)
 
 	}
+
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
@@ -275,7 +276,6 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 
 func encryptBackup(backupFileName string) {
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
-
 	err := Encrypt(filepath.Join(tmpPath, backupFileName), gpgPassphrase)
 	if err != nil {
 		utils.Fatalf("Error during encrypting backup %s", err)

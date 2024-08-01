@@ -27,6 +27,7 @@ func CopyToRemote(fileName, remotePath string) error {
 		if sshPassword == "" {
 			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
 		}
+		utils.Info("Accessing the remote server using password, private key is recommended\n")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
@@ -70,6 +71,7 @@ func CopyFromRemote(fileName, remotePath string) error {
 		if sshPassword == "" {
 			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
 		}
+		utils.Info("Accessing the remote server using password, private key is recommended\n")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
@@ -83,14 +85,14 @@ func CopyFromRemote(fileName, remotePath string) error {
 	}
 	// Close client connection after the file has been copied
 	defer client.Close()
-	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0777)
+	file, err := os.OpenFile(filepath.Join(tmpPath, fileName), os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil {
 		fmt.Println("Couldn't open the output file")
 	}
 	defer file.Close()
 
 	// the context can be adjusted to provide time-outs or inherit from other contexts if this is embedded in a larger application.
-	err = client.CopyFromRemote(context.Background(), file, remotePath)
+	err = client.CopyFromRemote(context.Background(), file, filepath.Join(remotePath, fileName))
 
 	if err != nil {
 		fmt.Println("Error while copying file ", err)

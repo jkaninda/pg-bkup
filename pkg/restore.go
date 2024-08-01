@@ -71,7 +71,8 @@ func RestoreDatabase(file string) {
 	extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
 	if extension == ".gpg" {
 		if gpgPassphrase == "" {
-			utils.Fatal("Error, GPG_PASSPHRASE environment variable required, you need to set the GPG_PASSPHRASE")
+			utils.Fatal("Error: GPG passphrase is required, your file seems to be a GPG file.\nYou need to provide GPG keys. GPG_PASSPHRASE environment variable is required.")
+
 		} else {
 			//Decrypt file
 			err := Decrypt(filepath.Join(tmpPath, file), gpgPassphrase)
