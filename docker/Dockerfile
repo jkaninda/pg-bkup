@@ -16,25 +16,45 @@ ENV DB_USERNAME=""
 ENV DB_PASSWORD=""
 ENV DB_PORT="5432"
 ENV STORAGE=local
-ENV BUCKET_NAME=""
-ENV ACCESS_KEY=""
-ENV SECRET_KEY=""
-ENV S3_ENDPOINT=https://s3.amazonaws.com
+ENV AWS_S3_ENDPOINT=""
+ENV AWS_S3_BUCKET_NAME=""
+ENV AWS_ACCESS_KEY=""
+ENV AWS_SECRET_KEY=""
+ENV AWS_REGION="us-west-2"
+ENV AWS_DISABLE_SSL="false"
+ENV GPG_PASSPHRASE=""
+ENV SSH_USER=""
+ENV SSH_REMOTE_PATH=""
+ENV SSH_PASSWORD=""
+ENV SSH_HOST_NAME=""
+ENV SSH_IDENTIFY_FILE=""
+ENV SSH_PORT="22"
 ARG DEBIAN_FRONTEND=noninteractive
-ENV VERSION="v0.6"
-LABEL authors="Jonas Kaninda"
+ENV VERSION="v1.0"
+ARG WORKDIR="/app"
+ARG BACKUPDIR="/backup"
+ARG BACKUP_TMP_DIR="/tmp/backup"
+ARG BACKUP_CRON="/etc/cron.d/backup_cron"
+ARG BACKUP_CRON_SCRIPT="/usr/local/bin/backup_cron.sh"
+LABEL author="Jonas Kaninda"
 
 RUN apt-get update -qq
 
-RUN apt install s3fs postgresql-client postgresql-client-common libpq-dev supervisor cron -y
+RUN apt install postgresql-client postgresql-client-common supervisor cron gnupg -y
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /s3mnt
-RUN mkdir /tmp/s3cache
-RUN chmod 777 /s3mnt
-RUN chmod 777 /tmp/s3cache
+RUN mkdir $WORKDIR
+RUN mkdir $BACKUPDIR
+RUN mkdir -p $BACKUP_TMP_DIR
+RUN chmod 777 $WORKDIR
+RUN chmod 777 $BACKUPDIR
+RUN chmod 777 $BACKUP_TMP_DIR
+RUN touch $BACKUP_CRON && \
+    touch $BACKUP_CRON_SCRIPT && \
+    chmod 777 $BACKUP_CRON && \
+    chmod 777 $BACKUP_CRON_SCRIPT
 
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
 RUN chmod +x /usr/local/bin/pg-bkup
@@ -43,6 +63,4 @@ RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
-
-RUN mkdir /backup
-WORKDIR /backup
+WORKDIR $WORKDIR

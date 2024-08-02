@@ -1,3 +1,20 @@
+---
+title: Restore database from AWS S3
+layout: default
+parent: How Tos
+nav_order: 5
+---
+
+# Restore database from S3 storage
+
+To restore the database, you need to add `restore` subcommand to `pg-bkup` or `bkup` and specify the file to restore by adding `--file store_20231219_022941.sql.gz`.
+
+{: .note }
+It supports __.sql__ and __.sql.gz__ compressed file.
+
+### Restore
+
+```yml
 services:
   pg-bkup:
     # In production, it is advised to lock your image tag to a proper
@@ -9,7 +26,9 @@ services:
     command:
       - /bin/sh
       - -c
-      - pg-bkup backup --storage s3 -d my-database"
+      - pg-bkup restore --storage s3 -d my-database -f store_20231219_022941.sql.gz --path /my-custom-path
+    volumes:
+      - ./backup:/backup
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
@@ -24,8 +43,9 @@ services:
       - AWS_SECRET_KEY=xxxxx
       ## In case you are using S3 alternative such as Minio and your Minio instance is not secured, you change it to true
       - AWS_DISABLE_SSL="false"
-      # pg-bkup container must be connected to the same network with your database
+    # pg-bkup container must be connected to the same network with your database
     networks:
       - web
 networks:
   web:
+```
