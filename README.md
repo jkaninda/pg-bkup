@@ -1,5 +1,12 @@
 # PostgreSQL Backup
-PostgreSQL Backup and Restoration tool. Backup database to AWS S3 storage or any S3 Alternatives for Object Storage.
+pg-bkup it's a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+It also supports __encrypting__ your backups using GPG.
+
+---
+The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image can be deployed on Docker, Docker Swarm and Kubernetes.
+It handles __recurring__ backups of postgres database on Docker and can be deployed as __CronJob on Kubernetes__ using local, AWS S3 or SSH compatible storage.
+
+It also supports __encrypting__ your backups using GPG.
 
 [![Build](https://github.com/jkaninda/pg-bkup/actions/workflows/build.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/build.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/pg-bkup)
@@ -19,283 +26,95 @@ PostgreSQL Backup and Restoration tool. Backup database to AWS S3 storage or any
 - [MySQL](https://github.com/jkaninda/mysql-bkup)
 
 ## Storage:
-- local
-- s3
-- Object storage
+- Local
+- AWS S3 or any S3 Alternatives for Object Storage
+- SSH
 
-## Volumes:
+## Documentation is found at <https://jkaninda.github.io/pg-bkup>
+## Quickstart
 
-- /s3mnt => S3 mounting path 
-- /backup => local storage mounting path
+### Simple backup using Docker CLI
 
-### Usage
+To run a one time backup, bind your local volume to `/backup` in the container and run the `pg-bkup backup` command:
 
-| Options               | Shorts | Usage                                                                  |
-|-----------------------|--------|------------------------------------------------------------------------|
-| pg-bkup               | bkup   | CLI utility                                                            |
-| backup                |        | Backup database operation                                              |
-| restore               |        | Restore database operation                                             |
-| history               |        | Show the history of backup                                             |
-| --storage             | -s     | Set storage. local or s3 (default: local)                              |
-| --file                | -f     | Set file name for restoration                                          |
-| --path                |        | Set s3 path without file name. eg: /custom_path                        |
-| --dbname              | -d     | Set database name                                                      |
-| --port                | -p     | Set database port (default: 5432)                                      |
-| --mode                | -m     | Set execution mode. default or scheduled (default: default)            |
-| --disable-compression |        | Disable database backup compression                                    |
-| --prune               |        | Delete old backup, default disabled                                    |
-| --keep-last           |        | Delete old backup created more than specified days ago, default 7 days |
-| --period              |        | Set crontab period for scheduled mode only. (default: "0 1 * * *")     |
-| --timeout             | -t     | Set timeout (default: 60s)                                             |
-| --help                | -h     | Print this help message and exit                                       |
-| --version             | -V     | Print version information and exit                                     |
-
-
-## Environment variables
-
-| Name        | Requirement                                      | Description                                          |
-|-------------|--------------------------------------------------|------------------------------------------------------|
-| DB_PORT     | Optional, default 5432                           | Database port number                                 |
-| DB_HOST     | Required                                         | Database host                                        |
-| DB_NAME     | Optional if it was provided from the -d flag     | Database name                                        |
-| DB_USERNAME | Required                                         | Database user name                                   |
-| DB_PASSWORD | Required                                         | Database password                                    |
-| ACCESS_KEY  | Optional, required for S3 storage                | AWS S3 Access Key                                    |
-| SECRET_KEY  | Optional, required for S3 storage                | AWS S3 Secret Key                                    |
-| BUCKET_NAME | Optional, required for S3 storage                | AWS S3 Bucket Name                                   |
-| S3_ENDPOINT | Optional, required for S3 storage                | AWS S3 Endpoint                                      |
-| FILE_NAME   | Optional if it was provided from the --file flag | Database file to restore (extensions: .sql, .sql.gz) |
-
-
-## Note:
-
-Creating a user for backup tasks who has read-only access is recommended!
-
-> create read-only user
-
-
-## Backup database :
-
-Simple backup usage
-
-```sh
-bkup backup
+```shell
+ docker run --rm --network your_network_name \
+ -v $PWD/backup:/backup/ \
+ -e "DB_HOST=dbhost" \
+ -e "DB_USERNAME=username" \
+ -e "DB_PASSWORD=password" \
+ jkaninda/pg-bkup  pg-bkup backup -d database_name
 ```
 
-### S3
+Alternatively, pass a `--env-file` in order to use a full config as described below.
 
-```sh
-pg-bkup backup --storage s3
-```
-## Docker run:
 
-```sh
-docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  pg-bkup backup -d database_name
-```
 
-## Docker compose file:
+Add a `backup` service to your compose setup and mount the volumes you would like to see backed up:
+
+### Simple backup in docker compose file
+
 ```yaml
-version: '3'
 services:
-  postgres:
-    image: postgres:14.5
-    container_name: postgres
-    restart: unless-stopped
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: bkup
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: bkup
   pg-bkup:
+    # In production, it is advised to lock your image tag to a proper
+    # release version instead of using `latest`.
+    # Check https://github.com/jkaninda/pg-bkup/releases
+    # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    depends_on:
-      - postgres
     command:
       - /bin/sh
       - -c
-      - pg-bkup backup -d bkup
+      - pg-bkup backup
     volumes:
       - ./backup:/backup
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
-      - DB_NAME=bkup
-      - DB_USERNAME=bkup
+      - DB_NAME=foo
+      - DB_USERNAME=bar
       - DB_PASSWORD=password
-```
-## Restore database :
-
-Simple database restore operation usage
-
-```sh
-pg-bkup restore --file database_20231217_115621.sql  --dbname database_name
+    # pg-bkup container must be connected to the same network with your database
+    networks:
+       - web
+networks:
+  web:
 ```
 
-```sh
-pg-bkup restore -f database_20231217_115621.sql -d database_name
-```
-### S3
+## Available image registries
 
-```sh
-pg-bkup restore --storage s3 --file database_20231217_115621.sql --dbname database_name
-```
-
-## Docker run:
-
-```sh
-docker run --rm --network your_network_name --name pg-bkup -v $PWD/backup:/backup/ -e "DB_HOST=database_host_name" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" jkaninda/pg-bkup  pg-bkup restore -d database_name -f napata_20231219_022941.sql.gz
-```
-
-## Docker compose file:
-
-```yaml
-version: '3'
-services:
-  pg-bkup:
-    image: jkaninda/pg-bkup
-    container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup restore --file database_20231217_115621.sql -d database_name
-    volumes:
-      - ./backup:/backup
-    environment:
-      #- FILE_NAME=database_20231217_040238.sql.gz # Optional if file name is set from command
-      - DB_PORT=5432
-      - DB_HOST=postgres
-      - DB_USERNAME=user_name
-      - DB_PASSWORD=password
-```
-## Run 
-
-```sh
-docker-compose up -d
-```
-## Backup to S3
-
-```sh
-docker run --rm --privileged --device /dev/fuse --name pg-bkup -e "DB_HOST=db_hostname" -e "DB_USERNAME=username" -e "DB_PASSWORD=password" -e "ACCESS_KEY=your_access_key" -e "SECRET_KEY=your_secret_key" -e "BUCKETNAME=your_bucket_name" -e "S3_ENDPOINT=https://s3.us-west-2.amazonaws.com" jkaninda/pg-bkup  pg-bkup backup -s s3 -d database_name
-```
-> To change s3 backup path add this flag : --path /my_customPath . default path is /pg-bkup
-
-Simple S3 backup usage
-
-```sh
-pg-bkup backup --storage s3 --dbname mydatabase 
-```
-```yaml
-  pg-bkup:
-    image: jkaninda/pg-bkup
-    container_name: pg-bkup
-    privileged: true
-    devices:
-    - "/dev/fuse"
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup restore --storage s3 -f database_20231217_115621.sql.gz --dbname database_name
-    environment:
-      - DB_PORT=5432
-      - DB_HOST=postgress
-      - DB_USERNAME=user_name
-      - DB_PASSWORD=password
-      - ACCESS_KEY=${ACCESS_KEY}
-      - SECRET_KEY=${SECRET_KEY}
-      - BUCKET_NAME=${BUCKET_NAME}
-      - S3_ENDPOINT=${S3_ENDPOINT}
+This Docker image is published to both Docker Hub and the GitHub container registry.
+Depending on your preferences and needs, you can reference both `jkaninda/pg-bkup` as well as `ghcr.io/jkaninda/pg-bkup`:
 
 ```
-## Run in Scheduled mode
-
-This tool can be run as CronJob in Kubernetes for a regular backup which makes deployment on Kubernetes easy as Kubernetes has CronJob resources.
-For Docker, you need to run it in scheduled mode by adding `--mode scheduled` flag and specify the periodical backup time by adding `--period "0 1 * * *"` flag.
-
-Make an automated backup on Docker
-
-## Syntax of crontab (field description)
-
-The syntax is:
-
-- 1: Minute (0-59)
-- 2: Hours (0-23)
-- 3: Day (0-31)
-- 4: Month (0-12 [12 == December])
-- 5: Day of the week(0-7 [7 or 0 == sunday])
-
-Easy to remember format:
-
-```conf
-* * * * * command to be executed
+docker pull jkaninda/pg-bkup:v1.0
+docker pull ghcr.io/jkaninda/pg-bkup:v1.0
 ```
 
-```conf
-- - - - -
-| | | | |
-| | | | ----- Day of week (0 - 7) (Sunday=0 or 7)
-| | | ------- Month (1 - 12)
-| | --------- Day of month (1 - 31)
-| ----------- Hour (0 - 23)
-------------- Minute (0 - 59)
-```
+Documentation references Docker Hub, but all examples will work using ghcr.io just as well.
 
-> At every 30th minute
+## Supported Engines
 
-```conf
-*/30 * * * *
-```
-> “At minute 0.” every hour
-```conf
-0 * * * *
-```
+This image is developed and tested against the Docker CE engine and Kubernetes exclusively.
+While it may work against different implementations, there are no guarantees about support for non-Docker engines.
 
-> “At 01:00.” every day
+## References
 
-```conf
-0 1 * * *
-```
+We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
 
-## Example of scheduled mode
+- The original image is based on `ubuntu` and requires additional tools, making it heavy.
+- This image is written in Go.
+- `arm64` and `arm/v7` architectures are supported.
+- Docker in Swarm mode is supported.
+- Kubernetes is supported.
 
-> Docker run :
 
-```sh
-docker run --rm --name pg-bkup -v $BACKUP_DIR:/backup/ -e "DB_HOST=$DB_HOST" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" jkaninda/pg-bkup  pg-bkup backup --dbname $DB_NAME --mode scheduled --period "0 1 * * *"
-```
+## Deploy on Kubernetes
 
-> With Docker compose
+For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as CronJob.
 
-```yaml
-version: "3"
-services:
-  pg-bkup:
-    image: jkaninda/pg-bkup
-    container_name: pg-bkup
-    privileged: true
-    devices:
-    - "/dev/fuse"
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --storage s3 --path /mys3_custom_path --dbname database_name --mode scheduled --period "*/30 * * * *"
-    environment:
-      - DB_PORT=5432
-      - DB_HOST=postgreshost
-      - DB_USERNAME=userName
-      - DB_PASSWORD=${DB_PASSWORD}
-      - ACCESS_KEY=${ACCESS_KEY}
-      - SECRET_KEY=${SECRET_KEY}
-      - BUCKET_NAME=${BUCKET_NAME}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-```
-
-## Kubernetes CronJob
-
-For Kubernetes, you don't need to run it in scheduled mode.
-
-Simple Kubernetes CronJob usage:
+### Simple Kubernetes CronJob usage:
 
 ```yaml
 apiVersion: batch/v1
@@ -311,8 +130,6 @@ spec:
           containers:
           - name: pg-bkup
             image: jkaninda/pg-bkup
-            securityContext:
-              privileged: true
             command:
             - /bin/sh
             - -c
@@ -331,13 +148,19 @@ spec:
                 value: ""
               - name: ACCESS_KEY
                 value: ""
-              - name: SECRET_KEY
-                value: ""
-              - name: BUCKET_NAME
-                value: ""
-              - name: S3_ENDPOINT
-                value: "https://s3.us-west-2.amazonaws.com"
-          restartPolicy: Never
+              - name: AWS_S3_ENDPOINT
+                value: "https://s3.amazonaws.com"
+              - name: AWS_S3_BUCKET_NAME
+                value: "xxx"
+              - name: AWS_REGION
+                value: "us-west-2"    
+              - name: AWS_ACCESS_KEY
+                value: "xxxx"        
+              - name: AWS_SECRET_KEY
+                value: "xxxx"    
+              - name: AWS_DISABLE_SSL
+                value: "false"
+          restartPolicy: OnFailure
 ```
 ## License
 
