@@ -45,6 +45,6 @@ jobs:
           file: "./docker/Dockerfile"
           platforms: linux/amd64,linux/arm64
           tags: |
-           "${{env.BUILDKIT_IMAGE}}:v1.0"
-           "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{TAG}}"
+           "${{env.BUILDKIT_IMAGE}}:${{env.TAG}}"
+           "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{env.TAG}}"
 
