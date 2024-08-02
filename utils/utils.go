@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 	"io"
 	"io/fs"
 	"os"
@@ -18,6 +19,9 @@ import (
 
 func Info(v ...any) {
 	fmt.Println("⒤ ", fmt.Sprint(v...))
+}
+func Worn(msg string, v ...any) {
+	slog.Warn(fmt.Sprintf(msg, v))
 }
 func Done(v ...any) {
 	fmt.Println("✔ ", fmt.Sprint(v...))
@@ -183,7 +187,8 @@ func GetEnvVariable(envName, oldEnvName string) string {
 	if value == "" {
 		value = os.Getenv(oldEnvName)
 		if value != "" {
-			fmt.Printf("%s is deprecated, please use %s instead!\n", oldEnvName, envName)
+			slog.Warn(fmt.Sprintf("%s is deprecated, please use %s instead!\n", oldEnvName, envName))
+
 		}
 	}
 	return value

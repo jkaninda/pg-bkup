@@ -1,7 +1,7 @@
-apiVersion: batch/v1
+piVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pg-bkup-job
+  name: bkup-job
 spec:
   schedule: "0 1 * * *"
   jobTemplate:
@@ -9,32 +9,36 @@ spec:
       template:
         spec:
           containers:
-          - name: pg-bkup
-            image: jkaninda/pg-bkup
-            securityContext:
-              privileged: true
-            command:
-            - /bin/sh
-            - -c
-            - pg-bkup backup --storage s3 --path /custom_path
-            env:
-              - name: DB_PORT
-                value: "5432" 
-              - name: DB_HOST
-                value: ""
-              - name: DB_NAME
-                value: ""
-              - name: DB_USERNAME
-                value: ""
-              # Please use secret!
-              - name: DB_PASSWORD
-                value: "password"
-              - name: ACCESS_KEY
-                value: ""
-              - name: SECRET_KEY
-                value: ""
-              - name: BUCKETNAME
-                value: ""
-              - name: S3_ENDPOINT
-                value: "https://s3.us-west-2.amazonaws.com"
-          restartPolicy: Never
+            - name: pg-bkup
+              image: jkaninda/pg-bkup
+              command:
+                - /bin/sh
+                - -c
+                - pg-bkup backup -s s3 --path /custom_path
+              env:
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_HOST
+                  value: ""
+                - name: DB_NAME
+                  value: ""
+                - name: DB_USERNAME
+                  value: ""
+                # Please use secret!
+                - name: DB_PASSWORD
+                  value: ""
+                - name: ACCESS_KEY
+                  value: ""
+                - name: AWS_S3_ENDPOINT
+                  value: "https://s3.amazonaws.com"
+                - name: AWS_S3_BUCKET_NAME
+                  value: "xxx"
+                - name: AWS_REGION
+                  value: "us-west-2"
+                - name: AWS_ACCESS_KEY
+                  value: "xxxx"
+                - name: AWS_SECRET_KEY
+                  value: "xxxx"
+                - name: AWS_DISABLE_SSL
+                  value: "false"
+          restartPolicy: OnFailure

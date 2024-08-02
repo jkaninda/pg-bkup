@@ -40,7 +40,7 @@ LABEL author="Jonas Kaninda"
 
 RUN apt-get update -qq
 
-RUN apt install postgresql-client postgresql-client-common supervisor cron openssh-client gnupg -y
+RUN apt install postgresql-client postgresql-client-common supervisor cron gnupg -y
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

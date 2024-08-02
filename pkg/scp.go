@@ -8,6 +8,7 @@ import (
 	"github.com/bramvdbogaerde/go-scp/auth"
 	"github.com/jkaninda/pg-bkup/utils"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/exp/slog"
 	"os"
 	"path/filepath"
 )
@@ -27,7 +28,7 @@ func CopyToRemote(fileName, remotePath string) error {
 		if sshPassword == "" {
 			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
 		}
-		utils.Info("Accessing the remote server using password, private key is recommended\n")
+		slog.Warn("Accessing the remote server using password, password is not recommended\n")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
@@ -71,7 +72,7 @@ func CopyFromRemote(fileName, remotePath string) error {
 		if sshPassword == "" {
 			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
 		}
-		utils.Info("Accessing the remote server using password, private key is recommended\n")
+		slog.Warn("Accessing the remote server using password, password is not recommended\n")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
