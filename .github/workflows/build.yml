@@ -1,7 +1,7 @@
 name: Build
 on:
   push:
-    branches: [ "main"]
+    branches: [ "main","v1.0"]
   workflow_dispatch:
       inputs:
         docker_tag:
@@ -43,9 +43,8 @@ jobs:
         with:
           push: true
           file: "./docker/Dockerfile"
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           tags: |
-           "${{env.BUILDKIT_IMAGE}}:${{env.TAG}}"
-        #   "${{env.BUILDKIT_IMAGE}}:latest"
+           "${{env.BUILDKIT_IMAGE}}:v1.0"
            "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{TAG}}"
-       #    "ghcr.io/${{env.BUILDKIT_IMAGE}}:latest"
+
