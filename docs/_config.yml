@@ -13,10 +13,11 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Postgres Backup
+title: Postgres database backup
 email: hi@jonaskaninda.com
 description: >- # this means to ignore newlines until "baseurl:"
-  PostgreSQL Backup and Restoration tool. Backup database to AWS S3 storage or any S3 Alternatives for Object Storage.
+  PostgreSQL Backup and Restore Docker container image. Backup database to AWS S3 storage or SSH remote server.
+
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "jkaninda.github.io/pg-bkup/" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: jonaskaninda
