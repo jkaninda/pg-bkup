@@ -1,5 +1,5 @@
 # PostgreSQL Backup
-pg-bkup it's a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+pg-bkup is a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
 It also supports __encrypting__ your backups using GPG.
 
 ---

@@ -11,6 +11,14 @@ The image supports encrypting backups using GPG out of the box. In case a `GPG_P
 {: .warning }
 To restore an encrypted backup, you need to provide the same GPG passphrase used during backup process.
 
+To decrypt manually, you need to install gpg
+
+```shell
+gpg --batch --passphrase "my-passphrase" \
+--output database_20240730_044201.sql.gz \
+--decrypt database_20240730_044201.sql.gz.gpg
+```
+
 ### Backup
 
 ```yml
