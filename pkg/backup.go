@@ -55,7 +55,7 @@ func StartBackup(cmd *cobra.Command) {
 		case "ssh", "remote":
 			sshBackup(backupFileName, remotePath, disableCompression, prune, backupRetention, encryption)
 		case "ftp":
-			utils.Fatalf("Not supported storage type: %s", storage)
+			utils.Fatal("Not supported storage type: %s", storage)
 		default:
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		}
@@ -76,7 +76,7 @@ func scheduledMode() {
 	fmt.Println("     Starting PostgreSQL Bkup...   ")
 	fmt.Println("***********************************")
 	utils.Info("Running in Scheduled mode")
-	utils.Info("Execution period ", os.Getenv("SCHEDULE_PERIOD"))
+	utils.Info("Execution period %s ", os.Getenv("SCHEDULE_PERIOD"))
 
 	//Test database connexion
 	utils.TestDatabaseConnection()
@@ -93,6 +93,7 @@ func scheduledMode() {
 		utils.Fatal("Failed to start supervisord: %v", err)
 	}
 	utils.Info("Backup job started")
+
 	defer func() {
 		if err := cmd.Process.Kill(); err != nil {
 			utils.Info("Failed to kill supervisord process: %v", err)
@@ -105,13 +106,14 @@ func scheduledMode() {
 	}
 	t, err := tail.TailFile(cronLogFile, tail.Config{Follow: true})
 	if err != nil {
-		utils.Fatalf("Failed to tail file: %v", err)
+		utils.Fatal("Failed to tail file: %v", err)
 	}
 
 	// Read and print new lines from the log file
 	for line := range t.Lines {
 		fmt.Println(line.Text)
 	}
+
 }
 
 // BackupDatabase backup database
@@ -124,73 +126,75 @@ func BackupDatabase(backupFileName string, disableCompression bool) {
 	storagePath = os.Getenv("STORAGE_PATH")
 
 	utils.Info("Starting database backup...")
-	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" {
-		utils.Fatal("Please make sure all required environment variables for database are set")
-	} else {
-		err := os.Setenv("PGPASSWORD", dbPassword)
+
+	err := utils.CheckEnvVars(dbHVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for database are set")
+		utils.Fatal("Error checking environment variables: %s", err)
+	}
+
+	err = os.Setenv("PGPASSWORD", dbPassword)
+	if err != nil {
+		return
+	}
+	utils.TestDatabaseConnection()
+	// Backup Database database
+	utils.Info("Backing up database...")
+
+	// Verify is compression is disabled
+	if disableCompression {
+		// Execute pg_dump
+		cmd := exec.Command("pg_dump",
+			"-h", dbHost,
+			"-p", dbPort,
+			"-U", dbUserName,
+			"-d", dbName,
+		)
+		output, err := cmd.Output()
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
-		utils.TestDatabaseConnection()
-		// Backup Database database
-		utils.Info("Backing up database...")
-
-		// Verify is compression is disabled
-		if disableCompression {
-			// Execute pg_dump
-			cmd := exec.Command("pg_dump",
-				"-h", dbHost,
-				"-p", dbPort,
-				"-U", dbUserName,
-				"-d", dbName,
-			)
-			output, err := cmd.Output()
-			if err != nil {
-				log.Fatal(err)
-			}
-			// save output
-			file, err := os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer file.Close()
-
-			_, err = file.Write(output)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-		} else {
-			// Execute pg_dump
-			cmd := exec.Command("pg_dump",
-				"-h", dbHost,
-				"-p", dbPort,
-				"-U", dbUserName,
-				"-d", dbName,
-			)
-			stdout, err := cmd.StdoutPipe()
-			if err != nil {
-				log.Fatal(err)
-			}
-			gzipCmd := exec.Command("gzip")
-			gzipCmd.Stdin = stdout
-			// save output
-			gzipCmd.Stdout, err = os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
-			gzipCmd.Start()
-			if err != nil {
-				log.Fatal(err)
-			}
-			if err := cmd.Run(); err != nil {
-				log.Fatal(err)
-			}
-			if err := gzipCmd.Wait(); err != nil {
-				log.Fatal(err)
-			}
-
+		// save output
+		file, err := os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
+		if err != nil {
+			log.Fatal(err)
 		}
-		utils.Info("Database has been backed up")
+		defer file.Close()
+
+		_, err = file.Write(output)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		// Execute pg_dump
+		cmd := exec.Command("pg_dump",
+			"-h", dbHost,
+			"-p", dbPort,
+			"-U", dbUserName,
+			"-d", dbName,
+		)
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			log.Fatal(err)
+		}
+		gzipCmd := exec.Command("gzip")
+		gzipCmd.Stdin = stdout
+		// save output
+		gzipCmd.Stdout, err = os.Create(fmt.Sprintf("%s/%s", tmpPath, backupFileName))
+		gzipCmd.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := cmd.Run(); err != nil {
+			log.Fatal(err)
+		}
+		if err := gzipCmd.Wait(); err != nil {
+			log.Fatal(err)
+		}
 
 	}
+	utils.Info("Database has been backed up")
 
 }
 func localBackup(backupFileName string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
@@ -201,7 +205,7 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, gpgExtension)
 	}
-	utils.Info("Backup name is ", finalFileName)
+	utils.Info("Backup name is %s", finalFileName)
 	moveToBackup(finalFileName, storagePath)
 	//Delete old backup
 	if prune {
@@ -220,24 +224,24 @@ func s3Backup(backupFileName string, s3Path string, disableCompression bool, pru
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup file to S3 storage...")
-	utils.Info("Backup name is ", finalFileName)
+	utils.Info("Backup name is %s", finalFileName)
 	err := utils.UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
 	if err != nil {
-		utils.Fatalf("Error uploading file to S3: %s ", err)
+		utils.Fatal("Error uploading file to S3: %s ", err)
 
 	}
 
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, backupFileName))
 	if err != nil {
-		fmt.Println("Error deleting file:", err)
+		fmt.Println("Error deleting file: ", err)
 
 	}
 	// Delete old backup
 	if prune {
 		err := utils.DeleteOldBackup(bucket, s3Path, backupRetention)
 		if err != nil {
-			utils.Fatalf("Error deleting old backup from S3: %s ", err)
+			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
 	}
 	utils.Done("Database has been backed up and uploaded to s3 ")
@@ -255,14 +259,14 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 	utils.Info("Backup name is ", backupFileName)
 	err := CopyToRemote(finalFileName, remotePath)
 	if err != nil {
-		utils.Fatalf("Error uploading file to the remote server: %s ", err)
+		utils.Fatal("Error uploading file to the remote server: %s ", err)
 
 	}
 
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
-		fmt.Println("Error deleting file:", err)
+		utils.Error("Error deleting file:", err)
 
 	}
 	if prune {
@@ -278,7 +282,7 @@ func encryptBackup(backupFileName string) {
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
 	err := Encrypt(filepath.Join(tmpPath, backupFileName), gpgPassphrase)
 	if err != nil {
-		utils.Fatalf("Error during encrypting backup %s", err)
+		utils.Fatal("Error during encrypting backup %s", err)
 	}
 
 }

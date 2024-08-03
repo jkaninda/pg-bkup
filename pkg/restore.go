@@ -33,7 +33,7 @@ func StartRestore(cmd *cobra.Command) {
 	case "ssh":
 		restoreFromRemote(file, remotePath)
 	case "ftp":
-		utils.Fatalf("Restore from FTP is not yet supported")
+		utils.Fatal("Restore from FTP is not yet supported")
 	default:
 		utils.Info("Restore database from local")
 		RestoreDatabase(file)
@@ -44,7 +44,7 @@ func restoreFromS3(file, bucket, s3Path string) {
 	utils.Info("Restore database from s3")
 	err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
 	if err != nil {
-		utils.Fatal("Error download file from s3 ", file, err)
+		utils.Fatal("Error download file from s3 %s %v ", file, err)
 	}
 	RestoreDatabase(file)
 }
@@ -52,7 +52,7 @@ func restoreFromRemote(file, remotePath string) {
 	utils.Info("Restore database from remote server")
 	err := CopyFromRemote(file, remotePath)
 	if err != nil {
-		utils.Fatal("Error download file from remote server: ", filepath.Join(remotePath, file), err)
+		utils.Fatal("Error download file from remote server: %s %v", filepath.Join(remotePath, file), err)
 	}
 	RestoreDatabase(file)
 }
@@ -77,7 +77,7 @@ func RestoreDatabase(file string) {
 			//Decrypt file
 			err := Decrypt(filepath.Join(tmpPath, file), gpgPassphrase)
 			if err != nil {
-				utils.Fatal("Error decrypting file ", file, err)
+				utils.Fatal("Error decrypting file %s %v", file, err)
 			}
 			//Update file name
 			file = RemoveLastExtension(file)
@@ -85,42 +85,43 @@ func RestoreDatabase(file string) {
 
 	}
 
-	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" || file == "" {
-		utils.Fatal("Please make sure all required environment variables are set")
-	} else {
+	err := utils.CheckEnvVars(dbHVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for database are set")
+		utils.Fatal("Error checking environment variables: %s", err)
+	}
 
-		if utils.FileExists(fmt.Sprintf("%s/%s", tmpPath, file)) {
+	if utils.FileExists(fmt.Sprintf("%s/%s", tmpPath, file)) {
 
-			err := os.Setenv("PGPASSWORD", dbPassword)
-			if err != nil {
-				return
-			}
-			utils.TestDatabaseConnection()
-
-			extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
-			// Restore from compressed file / .sql.gz
-			if extension == ".gz" {
-				str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
-				_, err := exec.Command("bash", "-c", str).Output()
-				if err != nil {
-					utils.Fatal("Error, in restoring the database ", err)
-				}
-				utils.Done("Database has been restored")
-
-			} else if extension == ".sql" {
-				//Restore from sql file
-				str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
-				_, err := exec.Command("bash", "-c", str).Output()
-				if err != nil {
-					utils.Fatal("Error in restoring the database", err)
-				}
-				utils.Done("Database has been restored")
-			} else {
-				utils.Fatal("Unknown file extension ", extension)
-			}
-
-		} else {
-			utils.Fatal("File not found in ", fmt.Sprintf("%s/%s", tmpPath, file))
+		err := os.Setenv("PGPASSWORD", dbPassword)
+		if err != nil {
+			return
 		}
+		utils.TestDatabaseConnection()
+
+		extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
+		// Restore from compressed file / .sql.gz
+		if extension == ".gz" {
+			str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+			_, err := exec.Command("bash", "-c", str).Output()
+			if err != nil {
+				utils.Fatal("Error, in restoring the database %v", err)
+			}
+			utils.Done("Database has been restored")
+
+		} else if extension == ".sql" {
+			//Restore from sql file
+			str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+			_, err := exec.Command("bash", "-c", str).Output()
+			if err != nil {
+				utils.Fatal("Error in restoring the database %v", err)
+			}
+			utils.Done("Database has been restored")
+		} else {
+			utils.Fatal("Unknown file extension: %s", extension)
+		}
+
+	} else {
+		utils.Fatal("File not found in %s", fmt.Sprintf("%s/%s", tmpPath, file))
 	}
 }

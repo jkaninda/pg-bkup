@@ -10,30 +10,11 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slog"
 	"io"
 	"io/fs"
 	"os"
 	"os/exec"
 )
-
-func Info(v ...any) {
-	fmt.Println("⒤ ", fmt.Sprint(v...))
-}
-func Worn(msg string, v ...any) {
-	slog.Warn(fmt.Sprintf(msg, v))
-}
-func Done(v ...any) {
-	fmt.Println("✔ ", fmt.Sprint(v...))
-}
-func Fatal(v ...any) {
-	fmt.Println("✘ ", fmt.Sprint(v...))
-	os.Exit(1)
-}
-func Fatalf(msg string, v ...any) {
-	fmt.Printf("✘ "+msg, v...)
-	os.Exit(1)
-}
 
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
@@ -91,7 +72,7 @@ func CopyFile(src, dst string) error {
 }
 func ChangePermission(filePath string, mod int) {
 	if err := os.Chmod(filePath, fs.FileMode(mod)); err != nil {
-		Fatalf("Error changing permissions of %s: %v\n", filePath, err)
+		Fatal("Error changing permissions of %s: %v\n", filePath, err)
 	}
 
 }
@@ -145,7 +126,7 @@ func TestDatabaseConnection() {
 		// Run the command and capture any errors
 		err = cmd.Run()
 		if err != nil {
-			fmt.Printf("Error running psql command: %v\nOutput: %s\n", err, out.String())
+			Error("Error running psql command: %v\nOutput: %s\n", err, out.String())
 			return
 		}
 		Info("Successfully connected to database")
@@ -187,11 +168,29 @@ func GetEnvVariable(envName, oldEnvName string) string {
 	if value == "" {
 		value = os.Getenv(oldEnvName)
 		if value != "" {
-			slog.Warn(fmt.Sprintf("%s is deprecated, please use %s instead!\n", oldEnvName, envName))
-
+			err := os.Setenv(envName, value)
+			if err != nil {
+				return value
+			}
+			Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
 		}
 	}
 	return value
 }
-func ShowHistory() {
+
+// CheckEnvVars checks if all the specified environment variables are set
+func CheckEnvVars(vars []string) error {
+	missingVars := []string{}
+
+	for _, v := range vars {
+		if os.Getenv(v) == "" {
+			missingVars = append(missingVars, v)
+		}
+	}
+
+	if len(missingVars) > 0 {
+		return fmt.Errorf("missing environment variables: %v", missingVars)
+	}
+
+	return nil
 }

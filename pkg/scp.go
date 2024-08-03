@@ -8,7 +8,6 @@ import (
 	"github.com/bramvdbogaerde/go-scp/auth"
 	"github.com/jkaninda/pg-bkup/utils"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/exp/slog"
 	"os"
 	"path/filepath"
 )
@@ -20,15 +19,20 @@ func CopyToRemote(fileName, remotePath string) error {
 	sshPort := os.Getenv("SSH_PORT")
 	sshIdentifyFile := os.Getenv("SSH_IDENTIFY_FILE")
 
+	err := utils.CheckEnvVars(sshVars)
+	if err != nil {
+		utils.Fatal(fmt.Sprintf("Error checking environment variables\n: %s", err))
+	}
+
 	clientConfig, _ := auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 	if sshIdentifyFile != "" && utils.FileExists(sshIdentifyFile) {
 		clientConfig, _ = auth.PrivateKey(sshUser, sshIdentifyFile, ssh.InsecureIgnoreHostKey())
 
 	} else {
 		if sshPassword == "" {
-			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
+			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty")
 		}
-		slog.Warn("Accessing the remote server using password, password is not recommended\n")
+		utils.Warn("Accessing the remote server using password, password is not recommended")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
@@ -36,9 +40,9 @@ func CopyToRemote(fileName, remotePath string) error {
 	client := scp.NewClient(fmt.Sprintf("%s:%s", sshHostName, sshPort), &clientConfig)
 
 	// Connect to the remote server
-	err := client.Connect()
+	err = client.Connect()
 	if err != nil {
-		return errors.New("Couldn't establish a connection to the remote server\n")
+		return errors.New("couldn't establish a connection to the remote server")
 	}
 
 	// Open a file
@@ -64,6 +68,11 @@ func CopyFromRemote(fileName, remotePath string) error {
 	sshPort := os.Getenv("SSH_PORT")
 	sshIdentifyFile := os.Getenv("SSH_IDENTIFY_FILE")
 
+	err := utils.CheckEnvVars(sshVars)
+	if err != nil {
+		utils.Fatal("Error checking environment variables\n: %s", err)
+	}
+
 	clientConfig, _ := auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 	if sshIdentifyFile != "" && utils.FileExists(sshIdentifyFile) {
 		clientConfig, _ = auth.PrivateKey(sshUser, sshIdentifyFile, ssh.InsecureIgnoreHostKey())
@@ -72,7 +81,7 @@ func CopyFromRemote(fileName, remotePath string) error {
 		if sshPassword == "" {
 			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
 		}
-		slog.Warn("Accessing the remote server using password, password is not recommended\n")
+		utils.Warn("Accessing the remote server using password, password is not recommended\n")
 		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
 
 	}
@@ -80,7 +89,7 @@ func CopyFromRemote(fileName, remotePath string) error {
 	client := scp.NewClient(fmt.Sprintf("%s:%s", sshHostName, sshPort), &clientConfig)
 
 	// Connect to the remote server
-	err := client.Connect()
+	err = client.Connect()
 	if err != nil {
 		return errors.New("Couldn't establish a connection to the remote server\n")
 	}
@@ -96,7 +105,7 @@ func CopyFromRemote(fileName, remotePath string) error {
 	err = client.CopyFromRemote(context.Background(), file, filepath.Join(remotePath, fileName))
 
 	if err != nil {
-		fmt.Println("Error while copying file ", err)
+		utils.Error("Error while copying file %s ", err)
 		return err
 	}
 	return nil
