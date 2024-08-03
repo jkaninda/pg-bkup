@@ -45,10 +45,6 @@ To run a one time backup, bind your local volume to `/backup` in the container a
 
 Alternatively, pass a `--env-file` in order to use a full config as described below.
 
-
-
-Add a `backup` service to your compose setup and mount the volumes you would like to see backed up:
-
 ### Simple backup in docker compose file
 
 ```yaml
