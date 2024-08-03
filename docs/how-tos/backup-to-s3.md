@@ -123,8 +123,6 @@ spec:
               # Please use secret!
               - name: DB_PASSWORD
                 value: ""
-              - name: ACCESS_KEY
-                value: ""
               - name: AWS_S3_ENDPOINT
                 value: "https://s3.amazonaws.com"
               - name: AWS_S3_BUCKET_NAME
