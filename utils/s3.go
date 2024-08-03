@@ -2,13 +2,11 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -19,13 +17,32 @@ import (
 // CreateSession creates a new AWS session
 func CreateSession() (*session.Session, error) {
 
+	// AwsVars Required environment variables for AWS S3 storage
+	var awsVars = []string{
+		"AWS_S3_ENDPOINT",
+		"AWS_S3_BUCKET_NAME",
+		"AWS_ACCESS_KEY",
+		"AWS_SECRET_KEY",
+		"AWS_REGION",
+		"AWS_REGION",
+		"AWS_REGION",
+	}
+
 	endPoint := GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
 	accessKey := GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
 	secretKey := GetEnvVariable("AWS_SECRET_KEY", "SECRET_KEY")
+	_ = GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
+
 	region := os.Getenv("AWS_REGION")
 	awsDisableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
 	if err != nil {
-		Fatalf("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+		Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+	}
+
+	err = CheckEnvVars(awsVars)
+	if err != nil {
+		Error("Error checking environment variables\n: %s", err)
+		os.Exit(1)
 	}
 	// Configure to use MinIO Server
 	s3Config := &aws.Config{
@@ -88,7 +105,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 	Info("Download backup from S3 storage...")
 	file, err := os.Create(filepath.Join(destinationPath, key))
 	if err != nil {
-		fmt.Println("Failed to create file", err)
+		Error("Failed to create file", err)
 		return err
 	}
 	defer file.Close()
@@ -102,7 +119,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 			Key:    aws.String(objectKey),
 		})
 	if err != nil {
-		fmt.Println("Failed to download file", err)
+		Error("Failed to download file", err)
 		return err
 	}
 	Info("Backup downloaded: ", file.Name(), " bytes size ", numBytes)
@@ -135,18 +152,18 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 					Key:    object.Key,
 				})
 				if err != nil {
-					log.Printf("Failed to delete object %s: %v", *object.Key, err)
+					Info("Failed to delete object %s: %v", *object.Key, err)
 				} else {
-					fmt.Printf("Deleted object %s\n", *object.Key)
+					Info("Deleted object %s\n", *object.Key)
 				}
 			}
 		}
 		return !lastPage
 	})
 	if err != nil {
-		log.Fatalf("Failed to list objects: %v", err)
+		Error("Failed to list objects: %v", err)
 	}
 
-	fmt.Println("Finished deleting old files.")
+	Info("Finished deleting old files.")
 	return nil
 }

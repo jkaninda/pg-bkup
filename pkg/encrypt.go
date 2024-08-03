@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"os"
 	"os/exec"
@@ -9,14 +8,13 @@ import (
 )
 
 func Decrypt(inputFile string, passphrase string) error {
-	utils.Info("Decrypting backup file: " + inputFile + " ...")
+	utils.Info("Decrypting backup file: %s...", inputFile)
 	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--output", RemoveLastExtension(inputFile), "--decrypt", inputFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		return err
 	}
 
@@ -32,7 +30,6 @@ func Encrypt(inputFile string, passphrase string) error {
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		return err
 	}
 

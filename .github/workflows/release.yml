@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     tags:
-     - v**
+      - v1.**
 env:
   BUILDKIT_IMAGE: jkaninda/pg-bkup
 jobs:
@@ -12,13 +12,13 @@ jobs:
       packages: write
       contents: read
     steps:
-      - 
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      - 
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - 
+      -
         name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -31,6 +31,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
+        name: Get the tag name
+        id: get_tag_name
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      -
         name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -38,8 +42,8 @@ jobs:
           file: "./docker/Dockerfile"
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: |
-           "${{env.BUILDKIT_IMAGE}}:${{env.GITHUB_REF_NAME}}"
-           "${{env.BUILDKIT_IMAGE}}:latest"
-           "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{env.GITHUB_REF_NAME}}"
-           "ghcr.io/${{env.BUILDKIT_IMAGE}}:latest"
+            "${{env.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
+            "${{env.BUILDKIT_IMAGE}}:latest"
+            "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
+            "ghcr.io/${{env.BUILDKIT_IMAGE}}:latest"
 

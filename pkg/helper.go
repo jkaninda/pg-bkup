@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"os"
 	"path/filepath"
@@ -12,7 +11,7 @@ func copyToTmp(sourcePath string, backupFileName string) {
 	//Copy backup from storage to /tmp
 	err := utils.CopyFile(filepath.Join(sourcePath, backupFileName), filepath.Join(tmpPath, backupFileName))
 	if err != nil {
-		utils.Fatal("Error copying file ", backupFileName, err)
+		utils.Fatal("Error copying file %s %v", backupFileName, err)
 
 	}
 }
@@ -20,16 +19,16 @@ func moveToBackup(backupFileName string, destinationPath string) {
 	//Copy backup from tmp folder to storage destination
 	err := utils.CopyFile(filepath.Join(tmpPath, backupFileName), filepath.Join(destinationPath, backupFileName))
 	if err != nil {
-		utils.Fatal("Error copying file ", backupFileName, err)
+		utils.Fatal("Error copying file %s %v", backupFileName, err)
 
 	}
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, backupFileName))
 	if err != nil {
-		fmt.Println("Error deleting file:", err)
+		utils.Error("Error deleting file: %s", err)
 
 	}
-	utils.Done("Database has been backed up and copied to  ", filepath.Join(destinationPath, backupFileName))
+	utils.Done("Database has been backed up and copied to  %s", filepath.Join(destinationPath, backupFileName))
 }
 func deleteOldBackup(retentionDays int) {
 	utils.Info("Deleting old backups...")
@@ -44,7 +43,7 @@ func deleteOldBackup(retentionDays int) {
 		if err != nil {
 			utils.Fatal("Error:", err)
 		} else {
-			utils.Done("File ", filePath, " deleted successfully")
+			utils.Done("File %s deleted successfully", filePath)
 		}
 		return err
 	}

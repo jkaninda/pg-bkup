@@ -21,3 +21,19 @@ var (
 	disableCompression = false
 	encryption         = false
 )
+
+// dbHVars Required environment variables for database
+var dbHVars = []string{
+	"DB_HOST",
+	"DB_PASSWORD",
+	"DB_USERNAME",
+	"DB_NAME",
+}
+
+// sshVars Required environment variables for SSH remote server storage
+var sshVars = []string{
+	"SSH_USER",
+	"SSH_REMOTE_PATH",
+	"SSH_HOST_NAME",
+	"SSH_PORT",
+}
