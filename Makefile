@@ -29,7 +29,7 @@ docker-run-scheduled: docker-build
 
 
 docker-run-scheduled-s3: docker-build
-	docker run --rm --network web  --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${S3_ENDPOINT}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}"  ${IMAGE_NAME}  bkup backup --storage s3 --mode scheduled --path /custom-path --period "* * * * *"
+	docker run --rm --network web  --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "BUCKET_NAME=${BUCKET_NAME}" -e "S3_ENDPOINT=${AWS_S3_ENDPOINT}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}"  ${IMAGE_NAME} backup --storage s3 --mode scheduled --path /custom-path --period "* * * * *"
 
 docker-run-s3: docker-build
 	docker run --rm --network web --name pg-bkup -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "ACCESS_KEY=${ACCESS_KEY}" -e "SECRET_KEY=${SECRET_KEY}" -e "AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}" -e "S3_ENDPOINT=${AWS_S3_ENDPOINT}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}"  ${IMAGE_NAME}  bkup backup --storage s3 --mode scheduled --path custom-path  --period "* * * * *"
