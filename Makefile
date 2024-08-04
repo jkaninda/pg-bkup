@@ -1,6 +1,5 @@
 BINARY_NAME=pg-bkup
 IMAGE_NAME=jkaninda/pg-bkup
-#IMAGE_NAME=ghcr.io/jkaninda/pg-bkup:v1.0
 include .env
 export
 run:

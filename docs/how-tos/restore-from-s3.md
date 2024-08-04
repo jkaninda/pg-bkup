@@ -26,7 +26,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - pg-bkup restore --storage s3 -d my-database -f store_20231219_022941.sql.gz --path /my-custom-path
+      - bkup restore --storage s3 -d my-database -f store_20231219_022941.sql.gz --path /my-custom-path
     volumes:
       - ./backup:/backup
     environment:
@@ -48,4 +48,50 @@ services:
       - web
 networks:
   web:
+```
+## Restore on Kubernetes
+
+Simple Kubernetes restore Job:
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restore-db
+spec:
+  template:
+    spec:
+      containers:
+        - name: pg-bkup
+          image: jkaninda/pg-bkup
+          command:
+            - /bin/sh
+            - -c
+            - bkup restore -s s3 --path /custom_path -f store_20231219_022941.sql.gz
+          env:
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_HOST
+              value: ""
+            - name: DB_NAME
+              value: ""
+            - name: DB_USERNAME
+              value: ""
+            # Please use secret!
+            - name: DB_PASSWORD
+              value: ""
+            - name: AWS_S3_ENDPOINT
+              value: "https://s3.amazonaws.com"
+            - name: AWS_S3_BUCKET_NAME
+              value: "xxx"
+            - name: AWS_REGION
+              value: "us-west-2"
+            - name: AWS_ACCESS_KEY
+              value: "xxxx"
+            - name: AWS_SECRET_KEY
+              value: "xxxx"
+            - name: AWS_DISABLE_SSL
+              value: "false"
+      restartPolicy: Never
+  backoffLimit: 4
 ```
