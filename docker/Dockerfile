@@ -20,6 +20,7 @@ ENV AWS_S3_ENDPOINT=""
 ENV AWS_S3_BUCKET_NAME=""
 ENV AWS_ACCESS_KEY=""
 ENV AWS_SECRET_KEY=""
+ENV AWS_S3_PATH=""
 ENV AWS_REGION="us-west-2"
 ENV AWS_DISABLE_SSL="false"
 ENV GPG_PASSPHRASE=""
@@ -64,3 +65,4 @@ RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 WORKDIR $WORKDIR
+#ENTRYPOINT ["/usr/local/bin/pg-bkup"]
