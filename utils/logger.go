@@ -55,4 +55,5 @@ func Fatal(msg string, args ...any) {
 		fmt.Printf("%s ERROR: %s\n", currentTime, formattedMessage)
 	}
 	os.Exit(1)
+	os.Kill.Signal()
 }

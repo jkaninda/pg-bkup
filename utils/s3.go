@@ -24,8 +24,6 @@ func CreateSession() (*session.Session, error) {
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
 		"AWS_REGION",
-		"AWS_REGION",
-		"AWS_REGION",
 	}
 
 	endPoint := GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
@@ -41,8 +39,7 @@ func CreateSession() (*session.Session, error) {
 
 	err = CheckEnvVars(awsVars)
 	if err != nil {
-		Error("Error checking environment variables\n: %s", err)
-		os.Exit(1)
+		Fatal("Error checking environment variables\n: %s", err)
 	}
 	// Configure to use MinIO Server
 	s3Config := &aws.Config{

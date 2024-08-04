@@ -25,7 +25,6 @@ func StartBackup(cmd *cobra.Command) {
 	utils.GetEnv(cmd, "period", "SCHEDULE_PERIOD")
 
 	//Get flag value and set env
-	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
@@ -35,6 +34,8 @@ func StartBackup(cmd *cobra.Command) {
 	executionMode, _ = cmd.Flags().GetString("mode")
 	dbName = os.Getenv("DB_NAME")
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
+	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
+
 	//
 	if gpgPassphrase != "" {
 		encryption = true
@@ -49,7 +50,7 @@ func StartBackup(cmd *cobra.Command) {
 	if executionMode == "default" {
 		switch storage {
 		case "s3":
-			s3Backup(backupFileName, s3Path, disableCompression, prune, backupRetention, encryption)
+			s3Backup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		case "local":
 			localBackup(backupFileName, disableCompression, prune, backupRetention, encryption)
 		case "ssh", "remote":
@@ -61,7 +62,7 @@ func StartBackup(cmd *cobra.Command) {
 		}
 
 	} else if executionMode == "scheduled" {
-		scheduledMode()
+		scheduledMode(storage)
 	} else {
 		utils.Fatal("Error, unknown execution mode!")
 	}
@@ -69,7 +70,7 @@ func StartBackup(cmd *cobra.Command) {
 }
 
 // Run in scheduled mode
-func scheduledMode() {
+func scheduledMode(storage string) {
 
 	fmt.Println()
 	fmt.Println("**********************************")
@@ -77,6 +78,7 @@ func scheduledMode() {
 	fmt.Println("***********************************")
 	utils.Info("Running in Scheduled mode")
 	utils.Info("Execution period %s ", os.Getenv("SCHEDULE_PERIOD"))
+	utils.Info("Storage type %s ", storage)
 
 	//Test database connexion
 	utils.TestDatabaseConnection()
@@ -101,8 +103,9 @@ func scheduledMode() {
 			utils.Info("Supervisor stopped.")
 		}
 	}()
+
 	if _, err := os.Stat(cronLogFile); os.IsNotExist(err) {
-		utils.Fatal("Log file %s does not exist.", cronLogFile)
+		utils.Fatal(fmt.Sprintf("Log file %s does not exist.", cronLogFile))
 	}
 	t, err := tail.TailFile(cronLogFile, tail.Config{Follow: true})
 	if err != nil {
@@ -213,8 +216,9 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 	}
 }
 
-func s3Backup(backupFileName string, s3Path string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
+func s3Backup(backupFileName string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
+	s3Path := utils.GetEnvVariable("AWS_S3_PATH", "S3_PATH")
 	utils.Info("Backup database to s3 storage")
 	//Backup database
 	BackupDatabase(backupFileName, disableCompression)
@@ -256,7 +260,7 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup file to remote server...")
-	utils.Info("Backup name is ", backupFileName)
+	utils.Info("Backup name is %s", backupFileName)
 	err := CopyToRemote(finalFileName, remotePath)
 	if err != nil {
 		utils.Fatal("Error uploading file to the remote server: %s ", err)
@@ -266,7 +270,7 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
-		utils.Error("Error deleting file:", err)
+		utils.Error("Error deleting file: %v", err)
 
 	}
 	if prune {
@@ -282,7 +286,7 @@ func encryptBackup(backupFileName string) {
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
 	err := Encrypt(filepath.Join(tmpPath, backupFileName), gpgPassphrase)
 	if err != nil {
-		utils.Fatal("Error during encrypting backup %s", err)
+		utils.Fatal("Error during encrypting backup %v", err)
 	}
 
 }

@@ -24,17 +24,10 @@ func CreateCrontabScript(disableCompression bool, storage string) {
 
 	var scriptContent string
 
-	if storage == "s3" {
-		scriptContent = fmt.Sprintf(`#!/usr/bin/env bash
+	scriptContent = fmt.Sprintf(`#!/usr/bin/env bash
 set -e
-bkup backup --dbname %s --port %s --storage s3 --path %s %v
-`, os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), os.Getenv("S3_PATH"), disableC)
-	} else {
-		scriptContent = fmt.Sprintf(`#!/usr/bin/env bash
-set -e
-bkup backup --dbname %s --port %s %v
-`, os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), disableC)
-	}
+bkup backup --dbname %s --port %s --storage %s %v
+`, os.Getenv("DB_NAME"), os.Getenv("DB_PORT"), storage, disableC)
 
 	if err := utils.WriteToFile(backupCronFile, scriptContent); err != nil {
 		utils.Fatal("Error writing to %s: %v\n", backupCronFile, err)

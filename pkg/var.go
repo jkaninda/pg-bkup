@@ -1,7 +1,5 @@
 package pkg
 
-const s3MountPath string = "/s3mnt"
-const s3fsPasswdFile string = "/etc/passwd-s3fs"
 const cronLogFile = "/var/log/pg-bkup.log"
 const tmpPath = "/tmp/backup"
 const backupCronFile = "/usr/local/bin/backup_cron.sh"
@@ -36,4 +34,13 @@ var sshVars = []string{
 	"SSH_REMOTE_PATH",
 	"SSH_HOST_NAME",
 	"SSH_PORT",
+}
+
+// AwsVars Required environment variables for AWS S3 storage
+var awsVars = []string{
+	"AWS_S3_ENDPOINT",
+	"AWS_S3_BUCKET_NAME",
+	"AWS_ACCESS_KEY",
+	"AWS_SECRET_KEY",
+	"AWS_REGION",
 }
