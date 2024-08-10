@@ -65,4 +65,4 @@ RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 WORKDIR $WORKDIR
-#ENTRYPOINT ["/usr/local/bin/pg-bkup"]
+ENTRYPOINT ["/usr/local/bin/pg-bkup"]

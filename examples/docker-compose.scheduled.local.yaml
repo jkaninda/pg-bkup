@@ -3,10 +3,7 @@ services:
   pg-bkup:
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --dbname database_name --mode scheduled --period "0 1 * * *"
+    command: backup --dbname database_name --mode scheduled --period "0 1 * * *"
     volumes:
       - ./backup:/backup
     environment:

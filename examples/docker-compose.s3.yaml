@@ -6,10 +6,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --storage s3 -d my-database"
+    command: backup --storage s3 -d my-database"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres

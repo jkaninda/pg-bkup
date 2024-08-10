@@ -1,5 +1,5 @@
 # PostgreSQL Backup
-pg-bkup is a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+PostgreSQL Backup is a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
 It also supports __encrypting__ your backups using GPG.
 
 The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image can be deployed on Docker, Docker Swarm and Kubernetes.
@@ -13,6 +13,7 @@ It also supports __encrypting__ your backups using GPG.
 ![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/pg-bkup?style=flat-square)
 
 - Docker
+- Docker Swarm
 - Kubernetes
 
 ## Documentation is found at <https://jkaninda.github.io/pg-bkup>
@@ -44,7 +45,7 @@ To run a one time backup, bind your local volume to `/backup` in the container a
  -e "DB_HOST=dbhost" \
  -e "DB_USERNAME=username" \
  -e "DB_PASSWORD=password" \
- jkaninda/pg-bkup  pg-bkup backup -d database_name
+ jkaninda/pg-bkup backup -d database_name
 ```
 
 Alternatively, pass a `--env-file` in order to use a full config as described below.
@@ -61,10 +62,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup
+    command: backup
     volumes:
       - ./backup:/backup
     environment:
@@ -89,7 +87,7 @@ For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: bkup-job
+  name: backup-job
 spec:
   schedule: "0 1 * * *"
   jobTemplate:
@@ -100,9 +98,11 @@ spec:
           - name: pg-bkup
             image: jkaninda/pg-bkup
             command:
-            - /bin/sh
-            - -c
-            - pg-bkup backup -s s3 --path /custom_path
+              - bkup
+              - backup
+              - --storage
+              - s3
+              - --disable-compression
             env:
               - name: DB_PORT
                 value: "5432" 

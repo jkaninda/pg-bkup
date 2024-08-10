@@ -22,10 +22,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --storage s3 -d database --path /my-custom-path
+    command: backup --storage s3 -d database --path /my-custom-path
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
@@ -62,10 +59,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --storage s3 -d my-database --mode scheduled --period "0 1 * * *"
+    command: backup --storage s3 -d my-database --mode scheduled --period "0 1 * * *"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres

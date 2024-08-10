@@ -7,7 +7,7 @@ nav_order: 5
 
 # Restore database from S3 storage
 
-To restore the database, you need to add `restore` subcommand to `pg-bkup` or `bkup` and specify the file to restore by adding `--file store_20231219_022941.sql.gz`.
+To restore the database, you need to add `restore` command and specify the file to restore by adding `--file store_20231219_022941.sql.gz`.
 
 {: .note }
 It supports __.sql__ and __.sql.gz__ compressed file.
@@ -23,10 +23,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - bkup restore --storage s3 -d my-database -f store_20231219_022941.sql.gz --path /my-custom-path
+    command: restore --storage s3 -d my-database -f store_20231219_022941.sql.gz --path /my-custom-path
     volumes:
       - ./backup:/backup
     environment:
