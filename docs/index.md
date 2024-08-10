@@ -32,7 +32,7 @@ Code and documentation for `v1` version on [this branch][v1-branch].
 
 ### Simple backup using Docker CLI
 
-To run a one time backup, bind your local volume to `/backup` in the container and run the `pg-bkup backup` command:
+To run a one time backup, bind your local volume to `/backup` in the container and run the `backup` command:
 
 ```shell
  docker run --rm --network your_network_name \

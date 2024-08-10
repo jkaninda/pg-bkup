@@ -37,7 +37,7 @@ It also supports __encrypting__ your backups using GPG.
 
 ### Simple backup using Docker CLI
 
-To run a one time backup, bind your local volume to `/backup` in the container and run the `pg-bkup backup` command:
+To run a one time backup, bind your local volume to `/backup` in the container and run the `backup` command:
 
 ```shell
  docker run --rm --network your_network_name \
