@@ -23,10 +23,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup --storage remote -d database
+    command: backup --storage remote -d database
     volumes:
       - ./id_ed25519:/tmp/id_ed25519"
     environment:

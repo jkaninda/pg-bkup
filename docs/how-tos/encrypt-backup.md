@@ -30,10 +30,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup -d database
+    command: backup -d database
     volumes:
       - ./backup:/backup
     environment:

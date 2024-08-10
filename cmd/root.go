@@ -35,7 +35,6 @@ func init() {
 	rootCmd.PersistentFlags().StringP("dbname", "d", "", "Database name")
 	rootCmd.PersistentFlags().IntP("port", "p", 5432, "Database port")
 	rootCmd.PersistentFlags().StringVarP(&operation, "operation", "o", "", "Set operation, for old version only")
-
 	rootCmd.AddCommand(VersionCmd)
 	rootCmd.AddCommand(BackupCmd)
 	rootCmd.AddCommand(RestoreCmd)

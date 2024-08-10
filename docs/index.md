@@ -6,7 +6,7 @@ nav_order: 1
 
 # About pg-bkup
 {:.no_toc}
-pg-bkup is a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+PostreSQL Backup is a Docker container image that can be used to backup and restore Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
 It also supports __encrypting__ your backups using GPG.
 
 We are open to receiving stars, PRs, and issues!
@@ -32,7 +32,7 @@ Code and documentation for `v1` version on [this branch][v1-branch].
 
 ### Simple backup using Docker CLI
 
-To run a one time backup, bind your local volume to `/backup` in the container and run the `pg-bkup backup` command:
+To run a one time backup, bind your local volume to `/backup` in the container and run the `backup` command:
 
 ```shell
  docker run --rm --network your_network_name \
@@ -40,7 +40,7 @@ To run a one time backup, bind your local volume to `/backup` in the container a
  -e "DB_HOST=dbhost" \
  -e "DB_USERNAME=username" \
  -e "DB_PASSWORD=password" \
- jkaninda/pg-bkup  pg-bkup backup -d database_name
+ jkaninda/pg-bkup backup -d database_name
 ```
 
 Alternatively, pass a `--env-file` in order to use a full config as described below.
@@ -56,10 +56,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup
+    command: backup
     volumes:
       - ./backup:/backup
     environment:
@@ -81,8 +78,8 @@ This Docker image is published to both Docker Hub and the GitHub container regis
 Depending on your preferences and needs, you can reference both `jkaninda/pg-bkup` as well as `ghcr.io/jkaninda/pg-bkup`:
 
 ```
-docker pull jkaninda/pg-bkup:v1.2.0
-docker pull ghcr.io/jkaninda/pg-bkup:v1.2.0
+docker pull jkaninda/pg-bkup
+docker pull ghcr.io/jkaninda/pg-bkup
 ```
 
 Documentation references Docker Hub, but all examples will work using ghcr.io just as well.

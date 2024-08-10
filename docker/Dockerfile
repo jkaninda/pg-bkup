@@ -31,7 +31,7 @@ ENV SSH_HOST_NAME=""
 ENV SSH_IDENTIFY_FILE=""
 ENV SSH_PORT="22"
 ARG DEBIAN_FRONTEND=noninteractive
-ENV VERSION="v1.2.0"
+ENV VERSION="v1.2.1"
 ARG WORKDIR="/app"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
@@ -65,4 +65,4 @@ RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 
 WORKDIR $WORKDIR
-#ENTRYPOINT ["/usr/local/bin/pg-bkup"]
+ENTRYPOINT ["/usr/local/bin/pg-bkup"]
