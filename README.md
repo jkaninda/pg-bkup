@@ -139,8 +139,8 @@ This Docker image is published to both Docker Hub and the GitHub container regis
 Depending on your preferences and needs, you can reference both `jkaninda/pg-bkup` as well as `ghcr.io/jkaninda/pg-bkup`:
 
 ```
-docker pull jkaninda/pg-bkup:v1.2.0
-docker pull ghcr.io/jkaninda/pg-bkup:v1.2.0
+docker pull jkaninda/pg-bkup
+docker pull ghcr.io/jkaninda/pg-bkup
 ```
 
 Documentation references Docker Hub, but all examples will work using ghcr.io just as well.
