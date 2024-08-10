@@ -23,6 +23,10 @@ spec:
     spec:
       containers:
       - name: pg-bkup
+        # In production, it is advised to lock your image tag to a proper
+        # release version instead of using `latest`.
+        # Check https://github.com/jkaninda/pg-bkup/releases
+        # for a list of available releases.
         image: jkaninda/pg-bkup
         command:
         - bkup
@@ -75,6 +79,10 @@ spec:
     spec:
       containers:
       - name: pg-bkup
+        # In production, it is advised to lock your image tag to a proper
+        # release version instead of using `latest`.
+        # Check https://github.com/jkaninda/pg-bkup/releases
+        # for a list of available releases.
         image: jkaninda/pg-bkup
         command:
         - bkup
@@ -129,6 +137,10 @@ spec:
         spec:
           containers:
           - name: pg-bkup
+            # In production, it is advised to lock your image tag to a proper
+            # release version instead of using `latest`.
+            # Check https://github.com/jkaninda/pg-bkup/releases
+            # for a list of available releases.
             image: jkaninda/pg-bkup
             command:
             - bkup
@@ -188,6 +200,10 @@ spec:
             fsGroup: 2000
           containers:
             - name: pg-bkup
+              # In production, it is advised to lock your image tag to a proper
+              # release version instead of using `latest`.
+              # Check https://github.com/jkaninda/pg-bkup/releases
+              # for a list of available releases.
               image: jkaninda/pg-bkup
               command:
                 - bkup
