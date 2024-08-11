@@ -47,7 +47,7 @@ Alternatively, pass a `--env-file` in order to use a full config as described be
 
 ```yaml
  docker run --rm --network your_network_name \
- --env-file your-env-file
+ --env-file your-env-file \
  -v $PWD/backup:/backup/ \
  jkaninda/pg-bkup backup -d database_name
 ```
