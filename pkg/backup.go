@@ -214,6 +214,8 @@ func localBackup(backupFileName string, disableCompression bool, prune bool, bac
 	if prune {
 		deleteOldBackup(backupRetention)
 	}
+	//Delete temp
+	deleteTemp()
 }
 
 func s3Backup(backupFileName string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
@@ -227,11 +229,12 @@ func s3Backup(backupFileName string, disableCompression bool, prune bool, backup
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
-	utils.Info("Uploading backup file to S3 storage...")
+	utils.Info("Uploading backup archive to remote storage S3 ... ")
+
 	utils.Info("Backup name is %s", finalFileName)
 	err := utils.UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
 	if err != nil {
-		utils.Fatal("Error uploading file to S3: %s ", err)
+		utils.Fatal("Error uploading backup archive to S3: %s ", err)
 
 	}
 
@@ -248,7 +251,9 @@ func s3Backup(backupFileName string, disableCompression bool, prune bool, backup
 			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
 	}
-	utils.Done("Database has been backed up and uploaded to s3 ")
+	utils.Done("Uploading backup archive to remote storage S3 ... done ")
+	//Delete temp
+	deleteTemp()
 }
 func sshBackup(backupFileName, remotePath string, disableCompression bool, prune bool, backupRetention int, encrypt bool) {
 	utils.Info("Backup database to Remote server")
@@ -259,8 +264,8 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 		encryptBackup(backupFileName)
 		finalFileName = fmt.Sprintf("%s.%s", backupFileName, "gpg")
 	}
-	utils.Info("Uploading backup file to remote server...")
-	utils.Info("Backup name is %s", backupFileName)
+	utils.Info("Uploading backup archive to remote storage ... ")
+	utils.Info("Backup name is %s", finalFileName)
 	err := CopyToRemote(finalFileName, remotePath)
 	if err != nil {
 		utils.Fatal("Error uploading file to the remote server: %s ", err)
@@ -279,7 +284,9 @@ func sshBackup(backupFileName, remotePath string, disableCompression bool, prune
 
 	}
 
-	utils.Done("Database has been backed up and uploaded to remote server ")
+	utils.Done("Uploading backup archive to remote storage ... done ")
+	//Delete temp
+	deleteTemp()
 }
 
 func encryptBackup(backupFileName string) {

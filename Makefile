@@ -18,7 +18,7 @@ docker-build:
 	docker build -f docker/Dockerfile  -t  ${IMAGE_NAME}:latest .
 
 docker-run: docker-build
-	docker run --rm --network web --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" ${IMAGE_NAME} backup --prune --keep-last 2
+	docker run --rm --network web --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}" ${IMAGE_NAME}  backup --prune --keep-last 2
 docker-restore: docker-build
 	docker run --rm --network web --user 1000:1000 --name pg-bkup -v "./backup:/backup" -e "DB_HOST=${DB_HOST}" -e "DB_NAME=${DB_NAME}" -e "DB_USERNAME=${DB_USERNAME}" -e "DB_PASSWORD=${DB_PASSWORD}"  -e "GPG_PASSPHRASE=${GPG_PASSPHRASE}"  ${IMAGE_NAME} restore -f ${FILE_NAME}
 

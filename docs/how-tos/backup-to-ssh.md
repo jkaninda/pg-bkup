@@ -7,7 +7,7 @@ nav_order: 3
 # Backup to SSH remote server
 
 
-As described for s3 backup section, to change the storage of you backup and use S3 as storage. You need to add `--storage ssh` or `--storage remote`.
+As described for s3 backup section, to change the storage of your backup and use SSH Remote server as storage. You need to add `--storage ssh` or `--storage remote`.
 You need to add the full remote path by adding `--path /home/jkaninda/backups` flag or using `SSH_REMOTE_PATH` environment variable.
 
 {: .note }

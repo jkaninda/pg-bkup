@@ -45,6 +45,13 @@ To run a one time backup, bind your local volume to `/backup` in the container a
 
 Alternatively, pass a `--env-file` in order to use a full config as described below.
 
+```yaml
+ docker run --rm --network your_network_name \
+ --env-file your-env-file
+ -v $PWD/backup:/backup/ \
+ jkaninda/pg-bkup backup -d database_name
+```
+
 ### Simple backup in docker compose file
 
 ```yaml
