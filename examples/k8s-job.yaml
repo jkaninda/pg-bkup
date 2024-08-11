@@ -1,19 +1,17 @@
-piVersion: batch/v1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: bkup-job
 spec:
-  schedule: "0 1 * * *"
+  schedule: "* * * * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: pg-bkup
-              image: jkaninda/pg-bkup
+              image: jkaninda/pg-bkup:v1.2.1
               command:
-                - /bin/sh
-                - -c
                 - pg-bkup backup -s s3 --path /custom_path
               env:
                 - name: DB_PORT
