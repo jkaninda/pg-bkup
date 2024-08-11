@@ -98,6 +98,7 @@ func RestoreDatabase(file string) {
 			return
 		}
 		utils.TestDatabaseConnection()
+		utils.Info("Restoring database...")
 
 		extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
 		// Restore from compressed file / .sql.gz
@@ -107,7 +108,10 @@ func RestoreDatabase(file string) {
 			if err != nil {
 				utils.Fatal("Error, in restoring the database %v", err)
 			}
+			utils.Info("Restoring database... done")
 			utils.Done("Database has been restored")
+			//Delete temp
+			deleteTemp()
 
 		} else if extension == ".sql" {
 			//Restore from sql file
@@ -116,7 +120,10 @@ func RestoreDatabase(file string) {
 			if err != nil {
 				utils.Fatal("Error in restoring the database %v", err)
 			}
+			utils.Info("Restoring database... done")
 			utils.Done("Database has been restored")
+			//Delete temp
+			deleteTemp()
 		} else {
 			utils.Fatal("Unknown file extension: %s", extension)
 		}

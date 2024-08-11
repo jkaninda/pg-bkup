@@ -70,4 +70,27 @@ func deleteOldBackup(retentionDays int) {
 		utils.Fatal("Error:", err)
 		return
 	}
+	utils.Done("Deleting old backups...done")
+}
+func deleteTemp() {
+	utils.Info("Deleting %s ...", tmpPath)
+	err := filepath.Walk(tmpPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Check if the current item is a file
+		if !info.IsDir() {
+			// Delete the file
+			err = os.Remove(path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		utils.Error("Error deleting files: %v", err)
+	} else {
+		utils.Info("Deleting %s ... done", tmpPath)
+	}
 }
