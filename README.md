@@ -79,59 +79,61 @@ networks:
 ```
 ## Deploy on Kubernetes
 
-For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as CronJob.
+For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as Job or CronJob.
 
-### Simple Kubernetes CronJob usage:
+### Simple Kubernetes backup Job :
 
 ```yaml
 apiVersion: batch/v1
-kind: CronJob
+kind: Job
 metadata:
-  name: backup-job
+  name: backup
 spec:
-  schedule: "0 1 * * *"
-  jobTemplate:
+  template:
     spec:
-      template:
-        spec:
-          containers:
-          - name: pg-bkup
-            # In production, it is advised to lock your image tag to a proper
-            # release version instead of using `latest`.
-            # Check https://github.com/jkaninda/pg-bkup/releases
-            # for a list of available releases.
-            image: jkaninda/pg-bkup
-            command:
-              - bkup
-              - backup
-              - --storage
-              - s3
-              - --disable-compression
-            env:
-              - name: DB_PORT
-                value: "5432" 
-              - name: DB_HOST
-                value: ""
-              - name: DB_NAME
-                value: ""
-              - name: DB_USERNAME
-                value: ""
-              # Please use secret!
-              - name: DB_PASSWORD
-                value: ""
-              - name: AWS_S3_ENDPOINT
-                value: "https://s3.amazonaws.com"
-              - name: AWS_S3_BUCKET_NAME
-                value: "xxx"
-              - name: AWS_REGION
-                value: "us-west-2"    
-              - name: AWS_ACCESS_KEY
-                value: "xxxx"        
-              - name: AWS_SECRET_KEY
-                value: "xxxx"    
-              - name: AWS_DISABLE_SSL
-                value: "false"
-          restartPolicy: Never
+      containers:
+      - name: pg-bkup
+        # In production, it is advised to lock your image tag to a proper
+        # release version instead of using `latest`.
+        # Check https://github.com/jkaninda/pg-bkup/releases
+        # for a list of available releases.
+        image: jkaninda/pg-bkup
+        command:
+        - bkup
+        - backup
+        - --storage
+        - ssh
+        - --disable-compression
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+          - name: DB_PORT
+            value: "5432"
+          - name: DB_HOST
+            value: ""
+          - name: DB_NAME
+            value: "dbname"
+          - name: DB_USERNAME
+            value: "postgres"
+          # Please use secret!
+          - name: DB_PASSWORD
+            value: ""
+          - name: SSH_HOST_NAME
+            value: "xxx"
+          - name: SSH_PORT
+            value: "22"
+          - name: SSH_USER
+            value: "xxx"
+          - name: SSH_PASSWORD
+            value: "xxxx"
+          - name: SSH_REMOTE_PATH
+            value: "/home/toto/backup"
+          # Optional, required if you want to encrypt your backup
+          - name: GPG_PASSPHRASE
+            value: "xxxx"
+      restartPolicy: Never
 ```
 ## Available image registries
 
