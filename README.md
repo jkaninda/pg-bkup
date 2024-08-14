@@ -101,9 +101,6 @@ spec:
         command:
         - bkup
         - backup
-        - --storage
-        - ssh
-        - --disable-compression
         resources:
           limits:
             memory: "128Mi"
@@ -120,19 +117,6 @@ spec:
           # Please use secret!
           - name: DB_PASSWORD
             value: ""
-          - name: SSH_HOST_NAME
-            value: "xxx"
-          - name: SSH_PORT
-            value: "22"
-          - name: SSH_USER
-            value: "xxx"
-          - name: SSH_PASSWORD
-            value: "xxxx"
-          - name: SSH_REMOTE_PATH
-            value: "/home/toto/backup"
-          # Optional, required if you want to encrypt your backup
-          - name: GPG_PASSPHRASE
-            value: "xxxx"
       restartPolicy: Never
 ```
 ## Available image registries
