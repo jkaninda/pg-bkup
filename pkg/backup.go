@@ -22,7 +22,7 @@ func StartBackup(cmd *cobra.Command) {
 	utils.SetEnv("STORAGE_PATH", storagePath)
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	utils.GetEnv(cmd, "port", "DB_PORT")
-	utils.GetEnv(cmd, "period", "SCHEDULE_PERIOD")
+	utils.GetEnv(cmd, "period", "BACKUP_CRON_EXPRESSION")
 
 	//Get flag value and set env
 	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
@@ -77,7 +77,7 @@ func scheduledMode(storage string) {
 	fmt.Println("     Starting PostgreSQL Bkup...   ")
 	fmt.Println("***********************************")
 	utils.Info("Running in Scheduled mode")
-	utils.Info("Execution period %s ", os.Getenv("SCHEDULE_PERIOD"))
+	utils.Info("Execution period %s ", os.Getenv("BACKUP_CRON_EXPRESSION"))
 	utils.Info("Storage type %s ", storage)
 
 	//Test database connexion
