@@ -12,9 +12,11 @@ It also supports __encrypting__ your backups using GPG.
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/pg-bkup?style=flat-square)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/pg-bkup?style=flat-square)
 
+Successfully tested on:
 - Docker
-- Docker Swarm
+- Docker in Swarm mode
 - Kubernetes
+- Openshift
 
 ## Documentation is found at <https://jkaninda.github.io/pg-bkup>
 
@@ -50,6 +52,12 @@ To run a one time backup, bind your local volume to `/backup` in the container a
 
 Alternatively, pass a `--env-file` in order to use a full config as described below.
 
+```yaml
+ docker run --rm --network your_network_name \
+ --env-file your-env-file \
+ -v $PWD/backup:/backup/ \
+ jkaninda/pg-bkup backup -d database_name
+```
 
 ### Simple backup in docker compose file
 
