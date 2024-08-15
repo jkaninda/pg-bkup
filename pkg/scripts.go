@@ -56,7 +56,7 @@ set -e
 	}
 
 	cronContent := fmt.Sprintf(`%s root exec /bin/bash -c ". /run/supervisord.env; /usr/local/bin/backup_cron.sh >> %s"
-`, os.Getenv("SCHEDULE_PERIOD"), cronLogFile)
+`, os.Getenv("BACKUP_CRON_EXPRESSION"), cronLogFile)
 
 	if err := utils.WriteToFile(cronJob, cronContent); err != nil {
 		utils.Fatal("Error writing to %s: %v\n", cronJob, err)

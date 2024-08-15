@@ -85,7 +85,7 @@ networks:
 
 For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as CronJob.
 
-### Simple Kubernetes CronJob usage:
+### Simple Kubernetes backup  CronJob:
 
 ```yaml
 apiVersion: batch/v1
