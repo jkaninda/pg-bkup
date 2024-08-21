@@ -33,7 +33,7 @@ Successfully tested on:
 ## Storage:
 - Local
 - AWS S3 or any S3 Alternatives for Object Storage
-- SSH
+- SSH remote server
 
 ## Quickstart
 
