@@ -16,7 +16,7 @@ Successfully tested on:
 - Docker
 - Docker in Swarm mode
 - Kubernetes
-- Openshift
+- OpenShift
 
 ## Documentation is found at <https://jkaninda.github.io/pg-bkup>
 
