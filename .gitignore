@@ -8,3 +8,4 @@ test.md
 pg-bkup
 /.idea
 bin
+Makefile
