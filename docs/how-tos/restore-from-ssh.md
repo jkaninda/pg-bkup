@@ -84,8 +84,6 @@ spec:
               value: "xxx"
             - name: SSH_REMOTE_PATH
               value: "/home/jkaninda/backups"
-            - name: AWS_ACCESS_KEY
-              value: "xxxx"
             - name: SSH_IDENTIFY_FILE
               value: "/tmp/id_ed25519"
       restartPolicy: Never
