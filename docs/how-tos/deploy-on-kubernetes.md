@@ -28,6 +28,8 @@ spec:
         # for a list of available releases.
         image: jkaninda/pg-bkup
         command:
+        - /bin/sh
+        - -c
         - bkup
         - backup
         - --storage
@@ -82,6 +84,8 @@ spec:
         # for a list of available releases.
         image: jkaninda/pg-bkup
         command:
+        - /bin/sh
+        - -c
         - bkup
         - backup
         - --storage
@@ -138,6 +142,8 @@ spec:
         # for a list of available releases.
         image: jkaninda/pg-bkup
         command:
+        - /bin/sh
+        - -c
         - bkup
         - restore
         - --storage
@@ -196,6 +202,8 @@ spec:
             # for a list of available releases.
             image: jkaninda/pg-bkup
             command:
+            - /bin/sh
+            - -c
             - bkup
             - backup
             - --storage
@@ -262,6 +270,8 @@ spec:
               # for a list of available releases.
               image: jkaninda/pg-bkup
               command:
+                - /bin/sh
+                - -c
                 - bkup
                 - backup
                 - --storage
