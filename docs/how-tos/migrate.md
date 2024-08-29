@@ -12,8 +12,8 @@ To migrate the database, you need to add `migrate` command.
 {: .note }
 The pg backup has another great feature: migrating your database from a source database to another.
 
-As you know, to restore a database from a source to a target database, you need 2 operations: to start by backing up the source database and then restoring the source backed database to the target database.
-Instead of proceeding like that, you can use the integrated feature `(migrate)` that will help you to migrate your database by doing only one operation.
+As you know, to restore a database from a source to a target database, you need 2 operations: which is to start by backing up the source database and then restoring the source backed database to the target database.
+Instead of proceeding like that, you can use the integrated feature `(migrate)`, which will help you migrate your database by doing only one operation.
 
 
 ### Docker compose
