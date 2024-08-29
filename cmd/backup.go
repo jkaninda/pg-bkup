@@ -21,6 +21,8 @@ var BackupCmd = &cobra.Command{
 
 func init() {
 	//Backup
+	BackupCmd.PersistentFlags().StringP("storage", "s", "local", "Storage. local or s3")
+	BackupCmd.PersistentFlags().StringP("path", "P", "", "AWS S3 path without file name. eg: /custom_path or ssh remote path `/home/foo/backup`")
 	BackupCmd.PersistentFlags().StringP("mode", "m", "default", "Execution mode. default or scheduled")
 	BackupCmd.PersistentFlags().StringP("period", "", "0 1 * * *", "Schedule period time")
 	BackupCmd.PersistentFlags().BoolP("prune", "", false, "Delete old backup, default disabled")

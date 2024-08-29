@@ -1,8 +1,10 @@
 package pkg
 
 import (
+	"bytes"
 	"github.com/jkaninda/pg-bkup/utils"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -93,4 +95,39 @@ func deleteTemp() {
 	} else {
 		utils.Info("Deleting %s ... done", tmpPath)
 	}
+}
+
+// TestDatabaseConnection  tests the database connection
+func testDatabaseConnection(db *dbConfig) {
+
+	utils.Info("Connecting to %s database ...", db.dbName)
+	// Test database connection
+	query := "SELECT version();"
+
+	// Set the environment variable for the database password
+	err := os.Setenv("PGPASSWORD", db.dbPassword)
+	if err != nil {
+		return
+	}
+	// Prepare the psql command
+	cmd := exec.Command("psql",
+		"-U", db.dbUserName, // database user
+		"-d", db.dbName, // database name
+		"-h", db.dbHost, // host
+		"-p", db.dbPort, // port
+		"-c", query, // SQL command to execute
+	)
+	// Capture the output
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+
+	// Run the command and capture any errors
+	err = cmd.Run()
+	if err != nil {
+		utils.Error("Error running psql command: %v\nOutput: %s\n", err, out.String())
+		return
+	}
+	utils.Info("Successfully connected to %s database", db.dbName)
+
 }
