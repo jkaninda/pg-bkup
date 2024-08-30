@@ -51,7 +51,8 @@ networks:
 
 ### Migrate database using Docker CLI
 
-```env
+
+```
 ## Target database
 DB_PORT=5432
 DB_HOST=postgres
