@@ -6,7 +6,7 @@ nav_order: 2
 
 # Configuration reference
 
-Backup and restore targets, schedule and retention are configured using environment variables or flags.
+Backup, restore and migrate targets, schedule and retention are configured using environment variables or flags.
 
 
 
@@ -19,6 +19,7 @@ Backup and restore targets, schedule and retention are configured using environm
 | pg-bkup               | bkup   | CLI utility                                                                            |
 | backup                |        | Backup database operation                                                              |
 | restore               |        | Restore database operation                                                             |
+| migrate               |        | Migrate database from one instance to another one                                      |
 | --storage             | -s     | Storage. local or s3 (default: local)                                                  |
 | --file                | -f     | File name for restoration                                                              |
 | --path                |        | AWS S3 path without file name. eg: /custom_path  or ssh remote path `/home/foo/backup` |
@@ -34,27 +35,34 @@ Backup and restore targets, schedule and retention are configured using environm
 
 ## Environment variables
 
-| Name              | Requirement                                      | Description                                          |
-|-------------------|--------------------------------------------------|------------------------------------------------------|
-| DB_PORT           | Optional, default 5432                           | Database port number                                 |
-| DB_HOST           | Required                                         | Database host                                        |
-| DB_NAME           | Optional if it was provided from the -d flag     | Database name                                        |
-| DB_USERNAME       | Required                                         | Database user name                                   |
-| DB_PASSWORD       | Required                                         | Database password                                    |
-| AWS_ACCESS_KEY    | Optional, required for S3 storage                | AWS S3 Access Key                                    |
-| AWS_SECRET_KEY    | Optional, required for S3 storage                | AWS S3 Secret Key                                    |
-| AWS_BUCKET_NAME   | Optional, required for S3 storage                | AWS S3 Bucket Name                                   |
-| AWS_BUCKET_NAME   | Optional, required for S3 storage                | AWS S3 Bucket Name                                   |
-| AWS_REGION        | Optional, required for S3 storage                | AWS Region                                           |
-| AWS_DISABLE_SSL   | Optional, required for S3 storage                | Disable SSL                                          |
-| FILE_NAME         | Optional if it was provided from the --file flag | Database file to restore (extensions: .sql, .sql.gz) |
-| GPG_PASSPHRASE    | Optional, required to encrypt and restore backup | GPG passphrase                                       |
-| SSH_HOST_NAME     | Optional, required for SSH storage               | ssh remote hostname or ip                            |
-| SSH_USER          | Optional, required for SSH storage               | ssh remote user                                      |
-| SSH_PASSWORD      | Optional, required for SSH storage               | ssh remote user's password                           |
-| SSH_IDENTIFY_FILE | Optional, required for SSH storage               | ssh remote user's private key                        |
-| SSH_PORT          | Optional, required for SSH storage               | ssh remote server port                               |
-| SSH_REMOTE_PATH   | Optional, required for SSH storage               | ssh remote path (/home/toto/backup)                  |
+| Name                   | Requirement                                        | Description                                          |
+|------------------------|----------------------------------------------------|------------------------------------------------------|
+| DB_PORT                | Optional, default 5432                             | Database port number                                 |
+| DB_HOST                | Required                                           | Database host                                        |
+| DB_NAME                | Optional if it was provided from the -d flag       | Database name                                        |
+| DB_USERNAME            | Required                                           | Database user name                                   |
+| DB_PASSWORD            | Required                                           | Database password                                    |
+| AWS_ACCESS_KEY         | Optional, required for S3 storage                  | AWS S3 Access Key                                    |
+| AWS_SECRET_KEY         | Optional, required for S3 storage                  | AWS S3 Secret Key                                    |
+| AWS_BUCKET_NAME        | Optional, required for S3 storage                  | AWS S3 Bucket Name                                   |
+| AWS_BUCKET_NAME        | Optional, required for S3 storage                  | AWS S3 Bucket Name                                   |
+| AWS_REGION             | Optional, required for S3 storage                  | AWS Region                                           |
+| AWS_DISABLE_SSL        | Optional, required for S3 storage                  | Disable SSL                                          |
+| FILE_NAME              | Optional if it was provided from the --file flag   | Database file to restore (extensions: .sql, .sql.gz) |
+| GPG_PASSPHRASE         | Optional, required to encrypt and restore backup   | GPG passphrase                                       |
+| BACKUP_CRON_EXPRESSION | Optional if it was provided from the --period flag | Backup cron expression for docker in scheduled mode  |
+| SSH_HOST_NAME          | Optional, required for SSH storage                 | ssh remote hostname or ip                            |
+| SSH_USER               | Optional, required for SSH storage                 | ssh remote user                                      |
+| SSH_PASSWORD           | Optional, required for SSH storage                 | ssh remote user's password                           |
+| SSH_IDENTIFY_FILE      | Optional, required for SSH storage                 | ssh remote user's private key                        |
+| SSH_PORT               | Optional, required for SSH storage                 | ssh remote server port                               |
+| SSH_REMOTE_PATH        | Optional, required for SSH storage                 | ssh remote path (/home/toto/backup)                  |
+| SOURCE_DB_HOST         | Optional, required for database migration          | Source database host                                 |
+| SOURCE_DB_PORT         | Optional, required for database migration          | Source database port                                 |
+| SOURCE_DB_NAME         | Optional, required for database migration          | Source database name                                 |
+| SOURCE_DB_USERNAME     | Optional, required for database migration          | Source database username                             |
+| SOURCE_DB_PASSWORD     | Optional, required for database migration          | Source database password                             |
+
 
 ---
 ## Run in Scheduled mode
