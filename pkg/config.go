@@ -27,7 +27,6 @@ type dbSourceConfig struct {
 func getDbConfig(cmd *cobra.Command) *dbConfig {
 	//Set env
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
-	utils.GetEnv(cmd, "port", "DB_PORT")
 	dConf := dbConfig{}
 	dConf.dbHost = os.Getenv("DB_HOST")
 	dConf.dbPort = os.Getenv("DB_PORT")
