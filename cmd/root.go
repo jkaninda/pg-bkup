@@ -18,7 +18,6 @@ var rootCmd = &cobra.Command{
 	Example: utils.MainExample,
 	Version: appVersion,
 }
-var operation = ""
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -30,12 +29,10 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("storage", "s", "local", "Storage. local or s3")
-	rootCmd.PersistentFlags().StringP("path", "P", "", "AWS S3 path without file name. eg: /custom_path or ssh remote path `/home/foo/backup`")
 	rootCmd.PersistentFlags().StringP("dbname", "d", "", "Database name")
 	rootCmd.PersistentFlags().IntP("port", "p", 5432, "Database port")
-	rootCmd.PersistentFlags().StringVarP(&operation, "operation", "o", "", "Set operation, for old version only")
 	rootCmd.AddCommand(VersionCmd)
 	rootCmd.AddCommand(BackupCmd)
 	rootCmd.AddCommand(RestoreCmd)
+	rootCmd.AddCommand(MigrateCmd)
 }

@@ -24,5 +24,7 @@ var RestoreCmd = &cobra.Command{
 func init() {
 	//Restore
 	RestoreCmd.PersistentFlags().StringP("file", "f", "", "File name of database")
+	RestoreCmd.PersistentFlags().StringP("storage", "s", "local", "Storage. local or s3")
+	RestoreCmd.PersistentFlags().StringP("path", "P", "", "AWS S3 path without file name. eg: /custom_path or ssh remote path `/home/foo/backup`")
 
 }

@@ -13,8 +13,6 @@ func StartRestore(cmd *cobra.Command) {
 
 	//Set env
 	utils.SetEnv("STORAGE_PATH", storagePath)
-	utils.GetEnv(cmd, "dbname", "DB_NAME")
-	utils.GetEnv(cmd, "port", "DB_PORT")
 
 	//Get flag value and set env
 	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
@@ -23,47 +21,46 @@ func StartRestore(cmd *cobra.Command) {
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	executionMode, _ = cmd.Flags().GetString("mode")
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
+
+	dbConf = getDbConfig(cmd)
+
 	switch storage {
 	case "s3":
-		restoreFromS3(file, bucket, s3Path)
+		restoreFromS3(dbConf, file, bucket, s3Path)
 	case "local":
 		utils.Info("Restore database from local")
 		copyToTmp(storagePath, file)
-		RestoreDatabase(file)
+		RestoreDatabase(dbConf, file)
 	case "ssh":
-		restoreFromRemote(file, remotePath)
+		restoreFromRemote(dbConf, file, remotePath)
 	case "ftp":
 		utils.Fatal("Restore from FTP is not yet supported")
 	default:
 		utils.Info("Restore database from local")
-		RestoreDatabase(file)
+		copyToTmp(storagePath, file)
+		RestoreDatabase(dbConf, file)
 	}
 }
 
-func restoreFromS3(file, bucket, s3Path string) {
+func restoreFromS3(db *dbConfig, file, bucket, s3Path string) {
 	utils.Info("Restore database from s3")
 	err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
 	if err != nil {
 		utils.Fatal("Error download file from s3 %s %v ", file, err)
 	}
-	RestoreDatabase(file)
+	RestoreDatabase(db, file)
 }
-func restoreFromRemote(file, remotePath string) {
+func restoreFromRemote(db *dbConfig, file, remotePath string) {
 	utils.Info("Restore database from remote server")
 	err := CopyFromRemote(file, remotePath)
 	if err != nil {
 		utils.Fatal("Error download file from remote server: %s %v", filepath.Join(remotePath, file), err)
 	}
-	RestoreDatabase(file)
+	RestoreDatabase(db, file)
 }
 
 // RestoreDatabase restore database
-func RestoreDatabase(file string) {
-	dbHost = os.Getenv("DB_HOST")
-	dbPassword = os.Getenv("DB_PASSWORD")
-	dbUserName = os.Getenv("DB_USERNAME")
-	dbName = os.Getenv("DB_NAME")
-	dbPort = os.Getenv("DB_PORT")
+func RestoreDatabase(db *dbConfig, file string) {
 	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
 	if file == "" {
 		utils.Fatal("Error, file required")
@@ -93,17 +90,17 @@ func RestoreDatabase(file string) {
 
 	if utils.FileExists(fmt.Sprintf("%s/%s", tmpPath, file)) {
 
-		err := os.Setenv("PGPASSWORD", dbPassword)
+		err := os.Setenv("PGPASSWORD", db.dbPassword)
 		if err != nil {
 			return
 		}
-		utils.TestDatabaseConnection()
+		testDatabaseConnection(db)
 		utils.Info("Restoring database...")
 
 		extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
 		// Restore from compressed file / .sql.gz
 		if extension == ".gz" {
-			str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+			str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
 			_, err := exec.Command("bash", "-c", str).Output()
 			if err != nil {
 				utils.Fatal("Error, in restoring the database %v", err)
@@ -115,7 +112,7 @@ func RestoreDatabase(file string) {
 
 		} else if extension == ".sql" {
 			//Restore from sql file
-			str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + os.Getenv("DB_HOST") + " -p " + os.Getenv("DB_PORT") + " -U " + os.Getenv("DB_USERNAME") + " -v -d " + os.Getenv("DB_NAME")
+			str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
 			_, err := exec.Command("bash", "-c", str).Output()
 			if err != nil {
 				utils.Fatal("Error in restoring the database %v", err)

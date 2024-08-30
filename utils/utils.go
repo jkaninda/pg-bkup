@@ -1,19 +1,17 @@
 package utils
 
 /*****
-*   MySQL Backup & Restore
+*   PostgreSQL Backup & Restore
 * @author    Jonas Kaninda
 * @license   MIT License <https://opensource.org/licenses/MIT>
-* @link      https://github.com/jkaninda/mysql-bkup
+* @link      https://github.com/jkaninda/pg-bkup
 **/
 import (
-	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 )
 
 func FileExists(filename string) bool {
@@ -90,49 +88,6 @@ func IsDirEmpty(name string) (bool, error) {
 	return true, nil
 }
 
-// TestDatabaseConnection  tests the database connection
-func TestDatabaseConnection() {
-	dbHost := os.Getenv("DB_HOST")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbUserName := os.Getenv("DB_USERNAME")
-	dbName := os.Getenv("DB_NAME")
-	dbPort := os.Getenv("DB_PORT")
-
-	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USERNAME") == "" || os.Getenv("DB_PASSWORD") == "" {
-		Fatal("Please make sure all required database environment variables are set")
-	} else {
-		Info("Connecting to database ...")
-		// Test database connection
-		query := "SELECT version();"
-
-		// Set the environment variable for the database password
-		err := os.Setenv("PGPASSWORD", dbPassword)
-		if err != nil {
-			return
-		}
-		// Prepare the psql command
-		cmd := exec.Command("psql",
-			"-U", dbUserName, // database user
-			"-d", dbName, // database name
-			"-h", dbHost, // host
-			"-p", dbPort, // port
-			"-c", query, // SQL command to execute
-		)
-		// Capture the output
-		var out bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Stderr = &out
-
-		// Run the command and capture any errors
-		err = cmd.Run()
-		if err != nil {
-			Error("Error running psql command: %v\nOutput: %s\n", err, out.String())
-			return
-		}
-		Info("Successfully connected to database")
-
-	}
-}
 func GetEnv(cmd *cobra.Command, flagName, envName string) string {
 	value, _ := cmd.Flags().GetString(flagName)
 	if value != "" {
@@ -192,5 +147,23 @@ func CheckEnvVars(vars []string) error {
 		return fmt.Errorf("missing environment variables: %v", missingVars)
 	}
 
+	return nil
+}
+
+// MakeDir create directory
+func MakeDir(dirPath string) error {
+	err := os.Mkdir(dirPath, 0700)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MakeDirAll create directory
+func MakeDirAll(dirPath string) error {
+	err := os.MkdirAll(dirPath, 0700)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -30,10 +30,7 @@ spec:
         command:
         - /bin/sh
         - -c
-        - bkup
-        - backup
-        - --storage
-        - s3
+        - backup --storage s3
         resources:
           limits:
             memory: "128Mi"
@@ -87,10 +84,7 @@ spec:
         - /bin/sh
         - -c
         - bkup
-        - backup
-        - --storage
-        - ssh
-        - --disable-compression
+        - backup --storage ssh --disable-compression
         resources:
           limits:
             memory: "128Mi"
@@ -145,10 +139,7 @@ spec:
         - /bin/sh
         - -c
         - bkup
-        - restore
-        - --storage
-        - ssh
-        - --file store_20231219_022941.sql.gz
+        - restore --storage ssh --file store_20231219_022941.sql.gz
         resources:
           limits:
             memory: "128Mi"
@@ -205,10 +196,7 @@ spec:
             - /bin/sh
             - -c
             - bkup
-            - backup
-            - --storage
-            - ssh
-            - --disable-compression
+            - backup --storage ssh --disable-compression
             resources:
               limits:
                 memory: "128Mi"
@@ -272,11 +260,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - bkup
-                - backup
-                - --storage
-                - ssh
-                - --disable-compression
+                - backup --storage ssh --disable-compression
               resources:
                 limits:
                   memory: "128Mi"
