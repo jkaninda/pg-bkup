@@ -63,7 +63,6 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | SOURCE_DB_USERNAME     | Optional, required for database migration          | Source database username                             |
 | SOURCE_DB_PASSWORD     | Optional, required for database migration          | Source database password                             |
 
-
 ---
 ## Run in Scheduled mode
 
