@@ -73,3 +73,50 @@ SOURCE_DB_PASSWORD=password
  -v $PWD/backup:/backup/ \
  jkaninda/pg-bkup migrate -d database_name
 ```
+
+## Kubernetes
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-db
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: pg-bkup
+        # In production, it is advised to lock your image tag to a proper
+        # release version instead of using `latest`.
+        # Check https://github.com/jkaninda/pg-bkup/releases
+        # for a list of available releases.
+        image: jkaninda/pg-bkup
+        command:
+        - /bin/sh
+        - -c
+        - migrate -d targetdb
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        ## Target DB
+          - name: DB_HOST
+            value: "postgres-target"
+          - name: DB_USERNAME
+            value: "postgres"
+          - name: DB_PASSWORD
+            value: "password"
+          ## Source DB
+          - name: SOURCE_DB_HOST
+            value: "postgres-source"
+          - name: SOURCE_DB_NAME
+            value: "sourcedb"
+          - name: SOURCE_DB_USERNAME
+            value: "postgres"
+          # Please use secret!
+          - name: SOURCE_DB_PASSWORD
+            value: "password"
+      restartPolicy: Never
+```

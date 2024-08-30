@@ -9,11 +9,17 @@ import (
 
 func Decrypt(inputFile string, passphrase string) error {
 	utils.Info("Decrypting backup file: %s...", inputFile)
+	//Create gpg home dir
+	err := utils.MakeDir(gpgHome)
+	if err != nil {
+		return err
+	}
+	utils.SetEnv("GNUPGHOME", gpgHome)
 	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--output", RemoveLastExtension(inputFile), "--decrypt", inputFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return err
 	}
@@ -24,11 +30,17 @@ func Decrypt(inputFile string, passphrase string) error {
 
 func Encrypt(inputFile string, passphrase string) error {
 	utils.Info("Encrypting backup...")
+	//Create gpg home dir
+	err := utils.MakeDir(gpgHome)
+	if err != nil {
+		return err
+	}
+	utils.SetEnv("GNUPGHOME", gpgHome)
 	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--symmetric", "--cipher-algo", algorithm, inputFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return err
 	}

@@ -149,3 +149,21 @@ func CheckEnvVars(vars []string) error {
 
 	return nil
 }
+
+// MakeDir create directory
+func MakeDir(dirPath string) error {
+	err := os.Mkdir(dirPath, 0700)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// MakeDirAll create directory
+func MakeDirAll(dirPath string) error {
+	err := os.MkdirAll(dirPath, 0700)
+	if err != nil {
+		return err
+	}
+	return nil
+}

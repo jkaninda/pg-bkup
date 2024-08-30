@@ -38,7 +38,6 @@ ENV SOURCE_DB_PASSWORD=""
 ARG DEBIAN_FRONTEND=noninteractive
 ENV VERSION="v1.2.3"
 ENV BACKUP_CRON_EXPRESSION=""
-ENV GNUPGHOME="/tmp/gnupg"
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
@@ -55,25 +54,21 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
-RUN mkdir -p $BACKUP_TMP_DIR && \
-  mkdir -p $GNUPGHOME
+RUN mkdir -p $BACKUP_TMP_DIR
 RUN chmod 777 $WORKDIR
 RUN chmod 777 $BACKUPDIR
 RUN chmod 777 $BACKUP_TMP_DIR
 RUN touch $BACKUP_CRON && \
     touch $BACKUP_CRON_SCRIPT && \
+    chmod 777 $WORKDIR && \
     chmod 777 $BACKUP_CRON && \
-    chmod 777 $BACKUP_CRON_SCRIPT && \
-    chmod 777 $GNUPGHOME
-
+    chmod 777 $BACKUP_CRON_SCRIPT
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
 RUN chmod +x /usr/local/bin/pg-bkup
 
 RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 
 ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
-
-WORKDIR $WORKDIR
 # Create the backup script and make it executable
 RUN echo '#!/bin/sh\n/usr/local/bin/pg-bkup backup "$@"' > /usr/local/bin/backup && \
     chmod +x /usr/local/bin/backup
@@ -84,4 +79,7 @@ RUN echo '#!/bin/sh\n/usr/local/bin/pg-bkup restore "$@"' > /usr/local/bin/resto
 # Create the migrate script and make it executable
 RUN echo '#!/bin/sh\n/usr/local/bin/pg-bkup migrate "$@"' > /usr/local/bin/migrate && \
     chmod +x /usr/local/bin/migrate
+
+WORKDIR $WORKDIR
 ENTRYPOINT ["/usr/local/bin/pg-bkup"]
+
