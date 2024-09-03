@@ -11,21 +11,23 @@ func StartMigration(cmd *cobra.Command) {
 	utils.Info("Starting database migration...")
 	//Get DB config
 	dbConf = getDbConfig(cmd)
-	sDbConf = getSourceDbConfig()
+	targetDbConf = getTargetDbConfig()
+
+	//Defining the target database variables
+	newDbConfig := dbConfig{}
+	newDbConfig.dbHost = targetDbConf.targetDbHost
+	newDbConfig.dbPort = targetDbConf.targetDbPort
+	newDbConfig.dbName = targetDbConf.targetDbName
+	newDbConfig.dbUserName = targetDbConf.targetDbUserName
+	newDbConfig.dbPassword = targetDbConf.targetDbPassword
 
 	//Generate file name
-	backupFileName := fmt.Sprintf("%s_%s.sql", sDbConf.sourceDbName, time.Now().Format("20060102_150405"))
-	//Backup Source Database
-	newDbConfig := dbConfig{}
-	newDbConfig.dbHost = sDbConf.sourceDbHost
-	newDbConfig.dbPort = sDbConf.sourceDbPort
-	newDbConfig.dbName = sDbConf.sourceDbName
-	newDbConfig.dbUserName = sDbConf.sourceDbUserName
-	newDbConfig.dbPassword = sDbConf.sourceDbPassword
-	BackupDatabase(&newDbConfig, backupFileName, true)
+	backupFileName := fmt.Sprintf("%s_%s.sql", dbConf.dbName, time.Now().Format("20060102_150405"))
+	//Backup source Database
+	BackupDatabase(dbConf, backupFileName, true)
 	//Restore source database into target database
-	utils.Info("Restoring [%s] database into [%s] database...", sDbConf.sourceDbName, dbConf.dbName)
-	RestoreDatabase(dbConf, backupFileName)
-	utils.Info("[%s] database has been restored into [%s] database", sDbConf.sourceDbName, dbConf.dbName)
-	utils.Info("Database migration completed!")
+	utils.Info("Restoring [%s] database into [%s] database...", dbConf.dbName, targetDbConf.targetDbName)
+	RestoreDatabase(&newDbConfig, backupFileName)
+	utils.Info("[%s] database has been restored into [%s] database", dbConf.dbName, targetDbConf.targetDbName)
+	utils.Info("Database migration completed.")
 }

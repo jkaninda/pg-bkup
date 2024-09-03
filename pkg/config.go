@@ -16,12 +16,12 @@ type dbConfig struct {
 	dbUserName string
 	dbPassword string
 }
-type dbSourceConfig struct {
-	sourceDbHost     string
-	sourceDbPort     string
-	sourceDbUserName string
-	sourceDbPassword string
-	sourceDbName     string
+type targetDbConfig struct {
+	targetDbHost     string
+	targetDbPort     string
+	targetDbUserName string
+	targetDbPassword string
+	targetDbName     string
 }
 
 func getDbConfig(cmd *cobra.Command) *dbConfig {
@@ -41,18 +41,18 @@ func getDbConfig(cmd *cobra.Command) *dbConfig {
 	}
 	return &dConf
 }
-func getSourceDbConfig() *dbSourceConfig {
-	sdbConfig := dbSourceConfig{}
-	sdbConfig.sourceDbHost = os.Getenv("SOURCE_DB_HOST")
-	sdbConfig.sourceDbPort = os.Getenv("SOURCE_DB_PORT")
-	sdbConfig.sourceDbName = os.Getenv("SOURCE_DB_NAME")
-	sdbConfig.sourceDbUserName = os.Getenv("SOURCE_DB_USERNAME")
-	sdbConfig.sourceDbPassword = os.Getenv("SOURCE_DB_PASSWORD")
+func getTargetDbConfig() *targetDbConfig {
+	tdbConfig := targetDbConfig{}
+	tdbConfig.targetDbHost = os.Getenv("TARGET_DB_HOST")
+	tdbConfig.targetDbPort = os.Getenv("TARGET_DB_PORT")
+	tdbConfig.targetDbName = os.Getenv("TARGET_DB_NAME")
+	tdbConfig.targetDbUserName = os.Getenv("TARGET_DB_USERNAME")
+	tdbConfig.targetDbPassword = os.Getenv("TARGET_DB_PASSWORD")
 
-	err := utils.CheckEnvVars(sdbRVars)
+	err := utils.CheckEnvVars(tdbRVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for source database are set")
-		utils.Fatal("Error checking environment variables: %s", err)
+		utils.Error("Please make sure all required environment variables for the target database are set")
+		utils.Fatal("Error checking target database environment variables: %s", err)
 	}
-	return &sdbConfig
+	return &tdbConfig
 }

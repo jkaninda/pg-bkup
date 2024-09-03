@@ -57,11 +57,11 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | SSH_IDENTIFY_FILE      | Optional, required for SSH storage                 | ssh remote user's private key                        |
 | SSH_PORT               | Optional, required for SSH storage                 | ssh remote server port                               |
 | SSH_REMOTE_PATH        | Optional, required for SSH storage                 | ssh remote path (/home/toto/backup)                  |
-| SOURCE_DB_HOST         | Optional, required for database migration          | Source database host                                 |
-| SOURCE_DB_PORT         | Optional, required for database migration          | Source database port                                 |
-| SOURCE_DB_NAME         | Optional, required for database migration          | Source database name                                 |
-| SOURCE_DB_USERNAME     | Optional, required for database migration          | Source database username                             |
-| SOURCE_DB_PASSWORD     | Optional, required for database migration          | Source database password                             |
+| TARGET_DB_HOST         | Optional, required for database migration          | Target database host                                 |
+| TARGET_DB_PORT         | Optional, required for database migration          | Target database port                                 |
+| TARGET_DB_NAME         | Optional, required for database migration          | Target database name                                 |
+| TARGET_DB_USERNAME     | Optional, required for database migration          | Target database username                             |
+| TARGET_DB_PASSWORD     | Optional, required for database migration          | Target database password                             |
 
 ---
 ## Run in Scheduled mode
