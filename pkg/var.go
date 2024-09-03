@@ -23,16 +23,16 @@ var dbHVars = []string{
 	"DB_USERNAME",
 	"DB_NAME",
 }
-var sdbRVars = []string{
-	"SOURCE_DB_HOST",
-	"SOURCE_DB_PORT",
-	"SOURCE_DB_NAME",
-	"SOURCE_DB_USERNAME",
-	"SOURCE_DB_PASSWORD",
+var tdbRVars = []string{
+	"TARGET_DB_HOST",
+	"TARGET_DB_PORT",
+	"TARGET_DB_NAME",
+	"TARGET_DB_USERNAME",
+	"TARGET_DB_PASSWORD",
 }
 
 var dbConf *dbConfig
-var sDbConf *dbSourceConfig
+var targetDbConf *targetDbConfig
 
 // sshVars Required environment variables for SSH remote server storage
 var sshVars = []string{

@@ -119,7 +119,7 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 		Error("Failed to download file", err)
 		return err
 	}
-	Info("Backup downloaded: ", file.Name(), " bytes size ", numBytes)
+	Info("Backup downloaded:  %s bytes size %s ", file.Name(), numBytes)
 
 	return nil
 }
