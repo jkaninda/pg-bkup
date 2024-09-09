@@ -114,7 +114,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - pg-bkup backup -s ssh --path /custom_path
+            - backup -s ssh
             env:
               - name: DB_PORT
                 value: "5432" 
