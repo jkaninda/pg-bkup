@@ -104,7 +104,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - pg-bkup backup -s s3 --path /custom_path
+            - backup -s s3 --path /custom_path
             env:
               - name: DB_PORT
                 value: "5432" 

@@ -83,7 +83,6 @@ spec:
         command:
         - /bin/sh
         - -c
-        - bkup
         - backup --storage ssh --disable-compression
         resources:
           limits:
@@ -138,7 +137,6 @@ spec:
         command:
         - /bin/sh
         - -c
-        - bkup
         - restore --storage ssh --file store_20231219_022941.sql.gz
         resources:
           limits:
