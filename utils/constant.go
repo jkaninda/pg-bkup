@@ -1,3 +1,9 @@
+// Package utils /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package utils
 
 const RestoreExample = "pg-bkup restore --dbname database --file db_20231219_022941.sql.gz\n" +

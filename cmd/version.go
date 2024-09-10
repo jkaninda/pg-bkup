@@ -1,8 +1,10 @@
+// Package cmd /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package cmd
-
-/*
-Copyright © 2024 Jonas Kaninda
-*/
 
 import (
 	"fmt"

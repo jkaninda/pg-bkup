@@ -1,17 +1,18 @@
+// Package utils /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package utils
 
-/*****
-*   PostgreSQL Backup & Restore
-* @author    Jonas Kaninda
-* @license   MIT License <https://opensource.org/licenses/MIT>
-* @link      https://github.com/jkaninda/pg-bkup
-**/
 import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
 	"os"
+	"strconv"
 )
 
 func FileExists(filename string) bool {
@@ -149,6 +150,13 @@ func CheckEnvVars(vars []string) error {
 
 	return nil
 }
+func Welcome() {
+	fmt.Println()
+	fmt.Println("**********************************")
+	fmt.Println("        PostgreSQL Backup          ")
+	fmt.Println(" @Copyright © 2024 jkaninda ")
+	fmt.Println("***********************************")
+}
 
 // MakeDir create directory
 func MakeDir(dirPath string) error {
@@ -166,4 +174,15 @@ func MakeDirAll(dirPath string) error {
 		return err
 	}
 	return nil
+}
+func GetIntEnv(envName string) int {
+	val := os.Getenv(envName)
+	if val == "" {
+		return 0
+	}
+	ret, err := strconv.Atoi(val)
+	if err != nil {
+		Error("Error: %v", err)
+	}
+	return ret
 }
