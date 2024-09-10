@@ -62,6 +62,8 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | TARGET_DB_NAME         | Optional, required for database migration          | Target database name                                 |
 | TARGET_DB_USERNAME     | Optional, required for database migration          | Target database username                             |
 | TARGET_DB_PASSWORD     | Optional, required for database migration          | Target database password                             |
+| TG_TOKEN               | Optional, required for Telegram notification       | Telegram token                                       |
+| TG_CHAT_ID             | Optional, required for Telegram notification       | Telegram Chat ID                                     |
 
 ---
 ## Run in Scheduled mode

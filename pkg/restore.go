@@ -1,3 +1,9 @@
+// Package pkg /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package pkg
 
 import (
@@ -10,7 +16,7 @@ import (
 )
 
 func StartRestore(cmd *cobra.Command) {
-
+	utils.Welcome()
 	//Set env
 	utils.SetEnv("STORAGE_PATH", storagePath)
 

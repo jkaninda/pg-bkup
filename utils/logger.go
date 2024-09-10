@@ -1,3 +1,9 @@
+// Package utils /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package utils
 
 import (
@@ -51,9 +57,13 @@ func Fatal(msg string, args ...any) {
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		fmt.Printf("%s ERROR: %s\n", currentTime, msg)
+		NotifyError(msg)
 	} else {
 		fmt.Printf("%s ERROR: %s\n", currentTime, formattedMessage)
+		NotifyError(formattedMessage)
+
 	}
+
 	os.Exit(1)
 	os.Kill.Signal()
 }

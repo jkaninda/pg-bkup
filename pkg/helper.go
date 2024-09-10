@@ -1,3 +1,9 @@
+// Package pkg /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package pkg
 
 import (
@@ -125,7 +131,7 @@ func testDatabaseConnection(db *dbConfig) {
 	// Run the command and capture any errors
 	err = cmd.Run()
 	if err != nil {
-		utils.Error("Error running psql command: %v\nOutput: %s\n", err, out.String())
+		utils.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
 		return
 	}
 	utils.Info("Successfully connected to %s database", db.dbName)

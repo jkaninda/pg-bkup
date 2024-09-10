@@ -1,3 +1,9 @@
+// Package pkg /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package pkg
 
 import (
@@ -8,6 +14,7 @@ import (
 )
 
 func StartMigration(cmd *cobra.Command) {
+	utils.Welcome()
 	utils.Info("Starting database migration...")
 	//Get DB config
 	dbConf = getDbConfig(cmd)

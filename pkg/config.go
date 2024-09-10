@@ -1,3 +1,9 @@
+// Package pkg /
+/*****
+@author    Jonas Kaninda
+@license   MIT License <https://opensource.org/licenses/MIT>
+@Copyright © 2024 Jonas Kaninda
+**/
 package pkg
 
 import (
@@ -22,6 +28,10 @@ type targetDbConfig struct {
 	targetDbUserName string
 	targetDbPassword string
 	targetDbName     string
+}
+type TgConfig struct {
+	Token  string
+	ChatId string
 }
 
 func getDbConfig(cmd *cobra.Command) *dbConfig {
