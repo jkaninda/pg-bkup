@@ -16,7 +16,7 @@ import (
 )
 
 func StartRestore(cmd *cobra.Command) {
-	utils.Welcome()
+	intro()
 	//Set env
 	utils.SetEnv("STORAGE_PATH", storagePath)
 

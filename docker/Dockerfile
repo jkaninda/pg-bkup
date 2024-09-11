@@ -38,12 +38,15 @@ ENV TARGET_DB_PASSWORD=""
 ARG DEBIAN_FRONTEND=noninteractive
 ENV VERSION="v1.2.5"
 ENV BACKUP_CRON_EXPRESSION=""
+ENV TG_TOKEN=""
+ENV TG_CHAT_ID=""
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
 ARG BACKUP_CRON="/etc/cron.d/backup_cron"
 ARG BACKUP_CRON_SCRIPT="/usr/local/bin/backup_cron.sh"
 LABEL author="Jonas Kaninda"
+
 
 RUN apt-get update -qq
 
