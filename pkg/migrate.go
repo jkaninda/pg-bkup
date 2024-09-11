@@ -14,7 +14,7 @@ import (
 )
 
 func StartMigration(cmd *cobra.Command) {
-	utils.Welcome()
+	intro()
 	utils.Info("Starting database migration...")
 	//Get DB config
 	dbConf = getDbConfig(cmd)
