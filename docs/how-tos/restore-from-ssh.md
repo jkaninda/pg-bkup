@@ -63,7 +63,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - bkup restore -s ssh -f store_20231219_022941.sql.gz
+            - restore -s ssh -f store_20231219_022941.sql.gz
           env:
             - name: DB_PORT
               value: "5432"
