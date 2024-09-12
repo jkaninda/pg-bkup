@@ -120,11 +120,8 @@ func scheduledMode(db *dbConfig, storage string) {
 
 }
 func intro() {
-	fmt.Println()
-	fmt.Println("**********************************")
-	fmt.Println("        PostgreSQL Backup          ")
-	fmt.Println(" @Copyright © 2024 jkaninda ")
-	fmt.Println("***********************************")
+	utils.Info("Starting PostgreSQL Backup...")
+	utils.Info("Copyright © 2024 Jonas Kaninda ")
 }
 
 // BackupDatabase backup database
