@@ -3,7 +3,7 @@ services:
   pg-bkup:
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command: backup --dbname database_name --mode scheduled --period "0 1 * * *"
+    command: backup --dbname database_name
     volumes:
       - ./backup:/backup
     environment:
@@ -11,3 +11,4 @@ services:
       - DB_HOST=postgress
       - DB_USERNAME=userName
       - DB_PASSWORD=${DB_PASSWORD}
+      - BACKUP_CRON_EXPRESSION=0 1 * * *

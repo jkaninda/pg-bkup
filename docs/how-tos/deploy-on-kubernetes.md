@@ -193,7 +193,6 @@ spec:
             command:
             - /bin/sh
             - -c
-            - bkup
             - backup --storage ssh --disable-compression
             resources:
               limits:

@@ -123,7 +123,7 @@ You may use one of several pre-defined schedules in place of a cron expression.
 | @hourly                | Run once an hour, beginning of hour        | 0 * * * *     |
 
 ### Intervals
-You may also schedule a job to execute at fixed intervals, starting at the time it's added or cron is run. This is supported by formatting the cron spec like this:
+You may also schedule backup task at fixed intervals, starting at the time it's added or cron is run. This is supported by formatting the cron spec like this:
 
 @every <duration>
 where "duration" is a string accepted by time.
