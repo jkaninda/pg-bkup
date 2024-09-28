@@ -8,8 +8,8 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/hpcloud/tail"
 	"github.com/jkaninda/pg-bkup/utils"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -20,104 +20,67 @@ import (
 
 func StartBackup(cmd *cobra.Command) {
 	intro()
-	//Set env
-	utils.SetEnv("STORAGE_PATH", storagePath)
-	utils.GetEnv(cmd, "period", "BACKUP_CRON_EXPRESSION")
+	dbConf = initDbConfig(cmd)
+	//Initialize backup configs
+	config := initBackupConfig(cmd)
 
-	//Get flag value and set env
-	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
-	storage = utils.GetEnv(cmd, "storage", "STORAGE")
-	file = utils.GetEnv(cmd, "file", "FILE_NAME")
-	backupRetention, _ := cmd.Flags().GetInt("keep-last")
-	prune, _ := cmd.Flags().GetBool("prune")
-	disableCompression, _ = cmd.Flags().GetBool("disable-compression")
-	executionMode, _ = cmd.Flags().GetString("mode")
-	gpgPassphrase := os.Getenv("GPG_PASSPHRASE")
-	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
-
-	dbConf = getDbConfig(cmd)
-
-	//
-	if gpgPassphrase != "" {
-		encryption = true
-	}
-
-	//Generate file name
-	backupFileName := fmt.Sprintf("%s_%s.sql.gz", dbConf.dbName, time.Now().Format("20060102_150405"))
-	if disableCompression {
-		backupFileName = fmt.Sprintf("%s_%s.sql", dbConf.dbName, time.Now().Format("20060102_150405"))
-	}
-
-	if executionMode == "default" {
-		switch storage {
-		case "s3":
-			s3Backup(dbConf, backupFileName, disableCompression, prune, backupRetention, encryption)
-		case "local":
-			localBackup(dbConf, backupFileName, disableCompression, prune, backupRetention, encryption)
-		case "ssh", "remote":
-			sshBackup(dbConf, backupFileName, remotePath, disableCompression, prune, backupRetention, encryption)
-		case "ftp":
-			utils.Fatal("Not supported storage type: %s", storage)
-		default:
-			localBackup(dbConf, backupFileName, disableCompression, prune, backupRetention, encryption)
-		}
-
-	} else if executionMode == "scheduled" {
-		scheduledMode(dbConf, storage)
+	if config.cronExpression == "" {
+		BackupTask(dbConf, config)
 	} else {
-		utils.Fatal("Error, unknown execution mode!")
+		if utils.IsValidCronExpression(config.cronExpression) {
+			scheduledMode(dbConf, config)
+		} else {
+			utils.Fatal("Cron expression is not valid: %s", config.cronExpression)
+		}
 	}
 
 }
 
 // Run in scheduled mode
-func scheduledMode(db *dbConfig, storage string) {
-
-	fmt.Println()
-	fmt.Println("**********************************")
-	fmt.Println("     Starting PostgreSQL Bkup...   ")
-	fmt.Println("***********************************")
+func scheduledMode(db *dbConfig, config *BackupConfig) {
 	utils.Info("Running in Scheduled mode")
-	utils.Info("Execution period %s ", os.Getenv("BACKUP_CRON_EXPRESSION"))
-	utils.Info("Storage type %s ", storage)
+	utils.Info("Backup cron expression:  %s", config.cronExpression)
+	utils.Info("Storage type %s ", config.storage)
 
 	//Test database connexion
 	testDatabaseConnection(db)
 
-	utils.Info("Creating backup job...")
-	CreateCrontabScript(disableCompression, storage)
+	utils.Info("Creating cron job...")
+	// Create a new cron instance
+	c := cron.New()
 
-	supervisorConfig := "/etc/supervisor/supervisord.conf"
-
-	// Start Supervisor
-	cmd := exec.Command("supervisord", "-c", supervisorConfig)
-	err := cmd.Start()
+	_, err := c.AddFunc(config.cronExpression, func() {
+		BackupTask(db, config)
+	})
 	if err != nil {
-		utils.Fatal("Failed to start supervisord: %v", err)
+		return
 	}
-	utils.Info("Backup job started")
-
-	defer func() {
-		if err := cmd.Process.Kill(); err != nil {
-			utils.Info("Failed to kill supervisord process: %v", err)
-		} else {
-			utils.Info("Supervisor stopped.")
-		}
-	}()
-
-	if _, err := os.Stat(cronLogFile); os.IsNotExist(err) {
-		utils.Fatal(fmt.Sprintf("Log file %s does not exist.", cronLogFile))
+	// Start the cron scheduler
+	c.Start()
+	utils.Info("Creating cron job...done")
+	defer c.Stop()
+	select {}
+}
+func BackupTask(db *dbConfig, config *BackupConfig) {
+	utils.Info("Starting backup task...")
+	//Generate file name
+	backupFileName := fmt.Sprintf("%s_%s.sql.gz", db.dbName, time.Now().Format("20240102_150405"))
+	if config.disableCompression {
+		backupFileName = fmt.Sprintf("%s_%s.sql", db.dbName, time.Now().Format("20240102_150405"))
 	}
-	t, err := tail.TailFile(cronLogFile, tail.Config{Follow: true})
-	if err != nil {
-		utils.Fatal("Failed to tail file: %v", err)
+	config.backupFileName = backupFileName
+	switch config.storage {
+	case "s3":
+		s3Backup(db, config.backupFileName, config.disableCompression, config.prune, config.backupRetention, config.encryption)
+	case "local":
+		localBackup(db, config.backupFileName, config.disableCompression, config.prune, config.backupRetention, config.encryption)
+	case "ssh", "remote":
+		sshBackup(db, config.backupFileName, config.remotePath, config.disableCompression, config.prune, config.backupRetention, config.encryption)
+	case "ftp":
+		utils.Fatal("Not supported storage type: %s", config.storage)
+	default:
+		localBackup(db, config.backupFileName, config.disableCompression, config.prune, config.backupRetention, config.encryption)
 	}
-
-	// Read and print new lines from the log file
-	for line := range t.Lines {
-		fmt.Println(line.Text)
-	}
-
 }
 func intro() {
 	utils.Info("Starting PostgreSQL Backup...")
