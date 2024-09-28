@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
@@ -247,4 +248,8 @@ func NotifyError(error string) {
 func getTgUrl() string {
 	return fmt.Sprintf("https://api.telegram.org/bot%s", os.Getenv("TG_TOKEN"))
 
+}
+func IsValidCronExpression(cronExpr string) bool {
+	_, err := cron.ParseStandard(cronExpr)
+	return err == nil
 }

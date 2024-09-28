@@ -17,34 +17,24 @@ import (
 
 func StartRestore(cmd *cobra.Command) {
 	intro()
-	//Set env
-	utils.SetEnv("STORAGE_PATH", storagePath)
+	dbConf = initDbConfig(cmd)
+	restoreConf := initRestoreConfig(cmd)
 
-	//Get flag value and set env
-	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
-	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
-	storage = utils.GetEnv(cmd, "storage", "STORAGE")
-	file = utils.GetEnv(cmd, "file", "FILE_NAME")
-	executionMode, _ = cmd.Flags().GetString("mode")
-	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
-
-	dbConf = getDbConfig(cmd)
-
-	switch storage {
+	switch restoreConf.storage {
 	case "s3":
-		restoreFromS3(dbConf, file, bucket, s3Path)
+		restoreFromS3(dbConf, restoreConf.file, restoreConf.bucket, restoreConf.s3Path)
 	case "local":
 		utils.Info("Restore database from local")
-		copyToTmp(storagePath, file)
-		RestoreDatabase(dbConf, file)
+		copyToTmp(storagePath, restoreConf.file)
+		RestoreDatabase(dbConf, restoreConf.file)
 	case "ssh":
-		restoreFromRemote(dbConf, file, remotePath)
+		restoreFromRemote(dbConf, restoreConf.file, restoreConf.remotePath)
 	case "ftp":
 		utils.Fatal("Restore from FTP is not yet supported")
 	default:
 		utils.Info("Restore database from local")
-		copyToTmp(storagePath, file)
-		RestoreDatabase(dbConf, file)
+		copyToTmp(storagePath, restoreConf.file)
+		RestoreDatabase(dbConf, restoreConf.file)
 	}
 }
 

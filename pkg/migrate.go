@@ -17,8 +17,8 @@ func StartMigration(cmd *cobra.Command) {
 	intro()
 	utils.Info("Starting database migration...")
 	//Get DB config
-	dbConf = getDbConfig(cmd)
-	targetDbConf = getTargetDbConfig()
+	dbConf = initDbConfig(cmd)
+	targetDbConf = initTargetDbConfig()
 
 	//Defining the target database variables
 	newDbConfig := dbConfig{}
