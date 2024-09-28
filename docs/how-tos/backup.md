@@ -56,7 +56,7 @@ networks:
  jkaninda/pg-bkup backup -d database_name
 ```
 
-In case you need to use recurring backups, you can use `--mode scheduled` and specify the periodical backup time by adding `--period "0 1 * * *"` flag as described below.
+In case you need to use recurring backups, you can use `--cron-expression "0 1 * * *"` flag or  `BACKUP_CRON_EXPRESSION=0 1 * * *` as described below.
 
 ```yml
 services:
@@ -67,7 +67,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    #command:  backup -d database --mode scheduled --period "0 1 * * *"
+    command:  backup -d database --cron-expression "0 1 * * *"
     volumes:
       - ./backup:/backup
     environment:
@@ -76,6 +76,7 @@ services:
       - DB_NAME=database
       - DB_USERNAME=username
       - DB_PASSWORD=password
+      - BACKUP_CRON_EXPRESSION=0 1 * * *
     # pg-bkup container must be connected to the same network with your database
     networks:
       - web

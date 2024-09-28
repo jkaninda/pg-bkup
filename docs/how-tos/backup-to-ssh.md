@@ -52,7 +52,7 @@ networks:
 ### Recurring backups to SSH remote server
 
 As explained above, you need just to add required environment variables and specify the storage type `--storage ssh`.
-You can use `--mode scheduled` and specify the periodical backup time by adding `--period "0 1 * * *"` flag as described below.
+You can use `--cron-expression "* * * * *"` or  `BACKUP_CRON_EXPRESSION=0 1 * * *` as described below.
 
 ```yml
 services:
@@ -63,10 +63,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:
-      - /bin/sh
-      - -c
-      - pg-bkup backup -d database --storage ssh --mode scheduled --period "0 1 * * *"
+    command: backup -d database --storage ssh --cron-expression "0 1 * * *"
     volumes:
       - ./id_ed25519:/tmp/id_ed25519"
     environment:

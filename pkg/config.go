@@ -73,7 +73,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	backupRetention, _ := cmd.Flags().GetInt("keep-last")
 	prune, _ := cmd.Flags().GetBool("prune")
 	disableCompression, _ = cmd.Flags().GetBool("disable-compression")
-	executionMode, _ = cmd.Flags().GetString("mode")
+	_, _ = cmd.Flags().GetString("mode")
 	gpqPassphrase := os.Getenv("GPG_PASSPHRASE")
 	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	cronExpression := os.Getenv("BACKUP_CRON_EXPRESSION")

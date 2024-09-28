@@ -11,6 +11,9 @@ The image supports encrypting backups using GPG out of the box. In case a `GPG_P
 {: .warning }
 To restore an encrypted backup, you need to provide the same GPG passphrase used during backup process.
 
+- GPG home directory `/config/gnupg`
+- Cipher algorithm `aes256`
+- 
 To decrypt manually, you need to install `gnupg`
 
 ```shell

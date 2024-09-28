@@ -6,17 +6,15 @@
 **/
 package pkg
 
-const cronLogFile = "/var/log/pg-bkup.log"
 const tmpPath = "/tmp/backup"
-const backupCronFile = "/usr/local/bin/backup_cron.sh"
-const gpgHome = "gnupg"
+const gpgHome = "/config/gnupg"
 const algorithm = "aes256"
 const gpgExtension = "gpg"
 
 var (
-	storage            = "local"
-	file               = ""
-	executionMode      = "default"
+	storage = "local"
+	file    = ""
+
 	storagePath        = "/backup"
 	disableCompression = false
 	encryption         = false
