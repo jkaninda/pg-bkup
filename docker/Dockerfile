@@ -36,7 +36,7 @@ ENV TARGET_DB_NAME=""
 ENV TARGET_DB_USERNAME=""
 ENV TARGET_DB_PASSWORD=""
 ARG DEBIAN_FRONTEND=noninteractive
-ENV VERSION="v1.2.5"
+ENV VERSION="v1.2.8"
 ENV BACKUP_CRON_EXPRESSION=""
 ENV TG_TOKEN=""
 ENV TG_CHAT_ID=""
@@ -50,7 +50,7 @@ LABEL author="Jonas Kaninda"
 
 RUN apt-get update -qq
 
-RUN apt install postgresql-client supervisor cron gnupg -y
+RUN apt install postgresql-client cron gnupg -y
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -71,7 +71,6 @@ RUN chmod +x /usr/local/bin/pg-bkup
 
 RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
 
-ADD docker/supervisord.conf /etc/supervisor/supervisord.conf
 # Create the backup script and make it executable
 RUN echo '#!/bin/sh\n/usr/local/bin/pg-bkup backup "$@"' > /usr/local/bin/backup && \
     chmod +x /usr/local/bin/backup

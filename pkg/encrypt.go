@@ -16,7 +16,7 @@ import (
 func Decrypt(inputFile string, passphrase string) error {
 	utils.Info("Decrypting backup file: %s...", inputFile)
 	//Create gpg home dir
-	err := utils.MakeDir(gpgHome)
+	err := utils.MakeDirAll(gpgHome)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func Decrypt(inputFile string, passphrase string) error {
 func Encrypt(inputFile string, passphrase string) error {
 	utils.Info("Encrypting backup...")
 	//Create gpg home dir
-	err := utils.MakeDir(gpgHome)
+	err := utils.MakeDirAll(gpgHome)
 	if err != nil {
 		return err
 	}
