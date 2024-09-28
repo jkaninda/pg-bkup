@@ -223,7 +223,7 @@ func NotifySuccess(fileName string) {
 	//Telegram notification
 	err := CheckEnvVars(vars)
 	if err == nil {
-		message := "PostgreSQL Backup \n" +
+		message := "[✅ PostgreSQL Backup ]\n" +
 			"Database has been backed up \n" +
 			"Backup name is " + fileName
 		sendMessage(message)
@@ -238,7 +238,7 @@ func NotifyError(error string) {
 	//Telegram notification
 	err := CheckEnvVars(vars)
 	if err == nil {
-		message := "PostgreSQL Backup \n" +
+		message := "[🔴 PostgreSQL Backup ]\n" +
 			"An error occurred during database backup \n" +
 			"Error: " + error
 		sendMessage(message)
