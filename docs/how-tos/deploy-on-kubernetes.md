@@ -2,7 +2,7 @@
 title: Deploy on Kubernetes
 layout: default
 parent: How Tos
-nav_order: 8
+nav_order: 9
 ---
 
 ## Deploy on Kubernetes
