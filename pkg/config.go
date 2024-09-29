@@ -40,7 +40,7 @@ type BackupConfig struct {
 	prune              bool
 	encryption         bool
 	remotePath         string
-	gpqPassphrase      string
+	passphrase         string
 	storage            string
 	cronExpression     string
 }
@@ -74,11 +74,11 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	prune, _ := cmd.Flags().GetBool("prune")
 	disableCompression, _ = cmd.Flags().GetBool("disable-compression")
 	_, _ = cmd.Flags().GetString("mode")
-	gpqPassphrase := os.Getenv("GPG_PASSPHRASE")
+	passphrase := os.Getenv("GPG_PASSPHRASE")
 	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	cronExpression := os.Getenv("BACKUP_CRON_EXPRESSION")
 
-	if gpqPassphrase != "" {
+	if passphrase != "" {
 		encryption = true
 	}
 
@@ -90,7 +90,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.storage = storage
 	config.encryption = encryption
 	config.remotePath = remotePath
-	config.gpqPassphrase = gpqPassphrase
+	config.passphrase = passphrase
 	config.cronExpression = cronExpression
 	return &config
 }
