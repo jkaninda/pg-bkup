@@ -9,7 +9,7 @@ RUN go mod download
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/pg-bkup
 
-FROM ubuntu:24.04
+FROM alpine:3.20.3
 ENV DB_HOST=""
 ENV DB_NAME=""
 ENV DB_USERNAME=""
@@ -35,7 +35,6 @@ ENV TARGET_DB_PORT=5432
 ENV TARGET_DB_NAME=""
 ENV TARGET_DB_USERNAME=""
 ENV TARGET_DB_PASSWORD=""
-ARG DEBIAN_FRONTEND=noninteractive
 ENV VERSION="v1.2.8"
 ENV BACKUP_CRON_EXPRESSION=""
 ENV TG_TOKEN=""
@@ -43,29 +42,16 @@ ENV TG_CHAT_ID=""
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
-ARG BACKUP_CRON="/etc/cron.d/backup_cron"
-ARG BACKUP_CRON_SCRIPT="/usr/local/bin/backup_cron.sh"
 LABEL author="Jonas Kaninda"
 
-
-RUN apt-get update -qq
-
-RUN apt install postgresql-client cron gnupg -y
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
+RUN apk --update add postgresql-client gnupg
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
 RUN mkdir -p $BACKUP_TMP_DIR
 RUN chmod 777 $WORKDIR
 RUN chmod 777 $BACKUPDIR
 RUN chmod 777 $BACKUP_TMP_DIR
-RUN touch $BACKUP_CRON && \
-    touch $BACKUP_CRON_SCRIPT && \
-    chmod 777 $WORKDIR && \
-    chmod 777 $BACKUP_CRON && \
-    chmod 777 $BACKUP_CRON_SCRIPT
+RUN chmod 777 $WORKDIR
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
 RUN chmod +x /usr/local/bin/pg-bkup
 
