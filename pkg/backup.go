@@ -68,9 +68,9 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 func BackupTask(db *dbConfig, config *BackupConfig) {
 	utils.Info("Starting backup task...")
 	//Generate file name
-	backupFileName := fmt.Sprintf("%s_%s.sql.gz", db.dbName, time.Now().Format("20240102_150405"))
+	backupFileName := fmt.Sprintf("%s_%s.sql.gz", db.dbName, time.Now().Format("20060102_150405"))
 	if config.disableCompression {
-		backupFileName = fmt.Sprintf("%s_%s.sql", db.dbName, time.Now().Format("20240102_150405"))
+		backupFileName = fmt.Sprintf("%s_%s.sql", db.dbName, time.Now().Format("20060102_150405"))
 	}
 	config.backupFileName = backupFileName
 	switch config.storage {
