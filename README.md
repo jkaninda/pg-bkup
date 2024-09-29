@@ -87,6 +87,18 @@ services:
 networks:
   web:
 ```
+### Docker recurring backup
+
+```shell
+ docker run --rm --network network_name \
+ -v $PWD/backup:/backup/ \
+ -e "DB_HOST=hostname" \
+ -e "DB_USERNAME=user" \
+ -e "DB_PASSWORD=password" \
+ jkaninda/pg-bkup backup -d dbName --cron-expression "@every 1m"
+```
+See: https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules
+
 ## Deploy on Kubernetes
 
 For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as Job or CronJob.

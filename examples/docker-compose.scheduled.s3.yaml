@@ -21,7 +21,8 @@ services:
       - AWS_SECRET_KEY=xxxxx
       ## In case you are using S3 alternative such as Minio and your Minio instance is not secured, you change it to true
       - AWS_DISABLE_SSL="false"
-      - BACKUP_CRON_EXPRESSION=0 1 * * *
+      # Check https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules
+      - BACKUP_CRON_EXPRESSION=@daily #@every 5m|@weekly | @monthly |0 1 * * *
       # pg-bkup container must be connected to the same network with your database
     networks:
       - web
