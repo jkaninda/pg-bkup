@@ -81,7 +81,8 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 	case "ssh", "remote":
 		sshBackup(db, config)
 	case "ftp":
-		utils.Fatal("Not supported storage type: %s", config.storage)
+		ftpBackup(db, config)
+		//utils.Fatal("Not supported storage type: %s", config.storage)
 	default:
 		localBackup(db, config)
 	}
@@ -196,7 +197,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Uploading backup archive to remote storage S3 ... ")
 
 	utils.Info("Backup name is %s", finalFileName)
-	err := utils.UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
+	err := UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
 	if err != nil {
 		utils.Fatal("Error uploading backup archive to S3: %s ", err)
 
@@ -210,7 +211,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	}
 	// Delete old backup
 	if config.prune {
-		err := utils.DeleteOldBackup(bucket, s3Path, config.backupRetention)
+		err := DeleteOldBackup(bucket, s3Path, config.backupRetention)
 		if err != nil {
 			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
@@ -251,6 +252,41 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	}
 
 	utils.Done("Uploading backup archive to remote storage ... done ")
+	//Send notification
+	utils.NotifySuccess(finalFileName)
+	//Delete temp
+	deleteTemp()
+}
+func ftpBackup(db *dbConfig, config *BackupConfig) {
+	utils.Info("Backup database to the remote FTP server")
+	//Backup database
+	BackupDatabase(db, config.backupFileName, disableCompression)
+	finalFileName := config.backupFileName
+	if config.encryption {
+		encryptBackup(config.backupFileName, config.passphrase)
+		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
+	}
+	utils.Info("Uploading backup archive to the remote FTP server ... ")
+	utils.Info("Backup name is %s", finalFileName)
+	err := CopyToFTP(finalFileName, config.remotePath)
+	if err != nil {
+		utils.Fatal("Error uploading file to the remote FTP server: %s ", err)
+
+	}
+
+	//Delete backup file from tmp folder
+	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		utils.Error("Error deleting file: %v", err)
+
+	}
+	if config.prune {
+		//TODO: Delete old backup from remote server
+		utils.Info("Deleting old backup from a remote server is not implemented yet")
+
+	}
+
+	utils.Done("Uploading backup archive to the remote FTP server ... done ")
 	//Send notification
 	utils.NotifySuccess(finalFileName)
 	//Delete temp

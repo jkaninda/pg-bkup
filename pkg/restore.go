@@ -30,7 +30,7 @@ func StartRestore(cmd *cobra.Command) {
 	case "ssh":
 		restoreFromRemote(dbConf, restoreConf.file, restoreConf.remotePath)
 	case "ftp":
-		utils.Fatal("Restore from FTP is not yet supported")
+		restoreFromFTP(dbConf, restoreConf.file, restoreConf.remotePath)
 	default:
 		utils.Info("Restore database from local")
 		copyToTmp(storagePath, restoreConf.file)
@@ -40,7 +40,7 @@ func StartRestore(cmd *cobra.Command) {
 
 func restoreFromS3(db *dbConfig, file, bucket, s3Path string) {
 	utils.Info("Restore database from s3")
-	err := utils.DownloadFile(tmpPath, file, bucket, s3Path)
+	err := DownloadFile(tmpPath, file, bucket, s3Path)
 	if err != nil {
 		utils.Fatal("Error download file from s3 %s %v ", file, err)
 	}
@@ -51,6 +51,14 @@ func restoreFromRemote(db *dbConfig, file, remotePath string) {
 	err := CopyFromRemote(file, remotePath)
 	if err != nil {
 		utils.Fatal("Error download file from remote server: %s %v", filepath.Join(remotePath, file), err)
+	}
+	RestoreDatabase(db, file)
+}
+func restoreFromFTP(db *dbConfig, file, remotePath string) {
+	utils.Info("Restore database from FTP server")
+	err := CopyFromFTP(file, remotePath)
+	if err != nil {
+		utils.Fatal("Error download file from FTP server: %s %v", filepath.Join(remotePath, file), err)
 	}
 	RestoreDatabase(db, file)
 }
@@ -93,11 +101,11 @@ func RestoreDatabase(db *dbConfig, file string) {
 		testDatabaseConnection(db)
 		utils.Info("Restoring database...")
 
-		extension := filepath.Ext(fmt.Sprintf("%s/%s", tmpPath, file))
+		extension := filepath.Ext(file)
 		// Restore from compressed file / .sql.gz
 		if extension == ".gz" {
-			str := "zcat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
-			_, err := exec.Command("bash", "-c", str).Output()
+			str := "zcat " + filepath.Join(tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
+			_, err := exec.Command("sh", "-c", str).Output()
 			if err != nil {
 				utils.Fatal("Error, in restoring the database %v", err)
 			}
@@ -108,8 +116,8 @@ func RestoreDatabase(db *dbConfig, file string) {
 
 		} else if extension == ".sql" {
 			//Restore from sql file
-			str := "cat " + fmt.Sprintf("%s/%s", tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
-			_, err := exec.Command("bash", "-c", str).Output()
+			str := "cat " + filepath.Join(tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
+			_, err := exec.Command("sh", "-c", str).Output()
 			if err != nil {
 				utils.Fatal("Error in restoring the database %v", err)
 			}

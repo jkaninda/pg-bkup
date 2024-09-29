@@ -44,6 +44,29 @@ type BackupConfig struct {
 	storage            string
 	cronExpression     string
 }
+type FTPConfig struct {
+	host       string
+	user       string
+	password   string
+	port       string
+	remotePath string
+}
+
+func initFtpConfig() *FTPConfig {
+	//Initialize backup configs
+	fConfig := FTPConfig{}
+	fConfig.host = os.Getenv("FTP_HOST_NAME")
+	fConfig.user = os.Getenv("FTP_USER")
+	fConfig.password = os.Getenv("FTP_PASSWORD")
+	fConfig.port = os.Getenv("FTP_PORT")
+	fConfig.remotePath = os.Getenv("REMOTE_PATH")
+	err := utils.CheckEnvVars(ftpVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for FTP are set")
+		utils.Fatal("Error checking environment variables: %s", err)
+	}
+	return &fConfig
+}
 
 func initDbConfig(cmd *cobra.Command) *dbConfig {
 	//Set env
@@ -66,9 +89,9 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
 	utils.GetEnv(cmd, "cron-expression", "BACKUP_CRON_EXPRESSION")
 	utils.GetEnv(cmd, "period", "BACKUP_CRON_EXPRESSION")
-
+	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 	//Get flag value and set env
-	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
+	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	backupRetention, _ := cmd.Flags().GetInt("keep-last")
 	prune, _ := cmd.Flags().GetBool("prune")
@@ -106,10 +129,11 @@ type RestoreConfig struct {
 
 func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
+	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 
 	//Get flag value and set env
 	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
-	remotePath := utils.GetEnv(cmd, "path", "SSH_REMOTE_PATH")
+	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	_, _ = cmd.Flags().GetString("mode")
