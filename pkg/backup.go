@@ -44,8 +44,11 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	//Test database connexion
 	testDatabaseConnection(db)
-
-	utils.Info("Creating cron job...")
+	//Test backup
+	utils.Info("Testing backup configurations...")
+	BackupTask(db, config)
+	utils.Info("Testing backup configurations...done")
+	utils.Info("Creating backup job...")
 	// Create a new cron instance
 	c := cron.New()
 
@@ -57,7 +60,8 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 	}
 	// Start the cron scheduler
 	c.Start()
-	utils.Info("Creating cron job...done")
+	utils.Info("Creating backup job...done")
+	utils.Info("Backup job started")
 	defer c.Stop()
 	select {}
 }
@@ -84,7 +88,7 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 }
 func intro() {
 	utils.Info("Starting PostgreSQL Backup...")
-	utils.Info("Copyright © 2024 Jonas Kaninda ")
+	utils.Info("Copyright (c) 2024 Jonas Kaninda ")
 }
 
 // BackupDatabase backup database
