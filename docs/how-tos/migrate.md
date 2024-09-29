@@ -2,7 +2,7 @@
 title: Migrate database
 layout: default
 parent: How Tos
-nav_order: 9
+nav_order: 10
 ---
 
 # Migrate database

@@ -2,7 +2,7 @@
 title: Restore database from SSH
 layout: default
 parent: How Tos
-nav_order: 6
+nav_order: 7
 ---
 # Restore database from SSH remote server
 

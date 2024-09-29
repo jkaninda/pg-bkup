@@ -6,7 +6,7 @@ nav_order: 1
 
 # About pg-bkup
 {:.no_toc}
-PostreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+PostreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, ftp and SSH compatible storage.
 It also supports database __encryption__ using GPG.
 
 
@@ -158,7 +158,7 @@ While it may work against different implementations, there are no guarantees abo
 
 We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
 
-- The original image is based on `ubuntu` and requires additional tools, making it heavy.
+- The original image is based on `Alpine` and requires additional tools, making it heavy.
 - This image is written in Go.
 - `arm64` and `arm/v7` architectures are supported.
 - Docker in Swarm mode is supported.

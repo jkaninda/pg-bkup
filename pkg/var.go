@@ -41,9 +41,15 @@ var targetDbConf *targetDbConfig
 // sshVars Required environment variables for SSH remote server storage
 var sshVars = []string{
 	"SSH_USER",
-	"SSH_REMOTE_PATH",
 	"SSH_HOST_NAME",
 	"SSH_PORT",
+	"REMOTE_PATH",
+}
+var ftpVars = []string{
+	"FTP_HOST_NAME",
+	"FTP_USER",
+	"FTP_PASSWORD",
+	"FTP_PORT",
 }
 
 // AwsVars Required environment variables for AWS S3 storage

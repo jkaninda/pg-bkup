@@ -55,7 +55,12 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | SSH_PASSWORD           | Optional, required for SSH storage                            | ssh remote user's password                           |
 | SSH_IDENTIFY_FILE      | Optional, required for SSH storage                            | ssh remote user's private key                        |
 | SSH_PORT               | Optional, required for SSH storage                            | ssh remote server port                               |
-| SSH_REMOTE_PATH        | Optional, required for SSH storage                            | ssh remote path (/home/toto/backup)                  |
+| REMOTE_PATH            | Optional, required for SSH or FTP storage                     | remote path (/home/toto/backup)                      |
+| FTP_HOST_NAME          | Optional, required for FTP storage                            | FTP host name                                        |
+| FTP_PORT               | Optional, required for FTP storage                            | FTP server port number                               |
+| FTP_USER               | Optional, required for FTP storage                            | FTP user                                             |
+| FTP_PASSWORD           | Optional, required for FTP storage                            | FTP user password                                    |
+
 | TARGET_DB_HOST         | Optional, required for database migration                     | Target database host                                 |
 | TARGET_DB_PORT         | Optional, required for database migration                     | Target database port                                 |
 | TARGET_DB_NAME         | Optional, required for database migration                     | Target database name                                 |
