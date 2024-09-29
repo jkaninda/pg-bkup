@@ -6,17 +6,15 @@
 **/
 package pkg
 
-const cronLogFile = "/var/log/pg-bkup.log"
 const tmpPath = "/tmp/backup"
-const backupCronFile = "/usr/local/bin/backup_cron.sh"
-const gpgHome = "gnupg"
+const gpgHome = "/config/gnupg"
 const algorithm = "aes256"
 const gpgExtension = "gpg"
 
 var (
-	storage            = "local"
-	file               = ""
-	executionMode      = "default"
+	storage = "local"
+	file    = ""
+
 	storagePath        = "/backup"
 	disableCompression = false
 	encryption         = false
@@ -43,9 +41,15 @@ var targetDbConf *targetDbConfig
 // sshVars Required environment variables for SSH remote server storage
 var sshVars = []string{
 	"SSH_USER",
-	"SSH_REMOTE_PATH",
 	"SSH_HOST_NAME",
 	"SSH_PORT",
+	"REMOTE_PATH",
+}
+var ftpVars = []string{
+	"FTP_HOST_NAME",
+	"FTP_USER",
+	"FTP_PASSWORD",
+	"FTP_PORT",
 }
 
 // AwsVars Required environment variables for AWS S3 storage

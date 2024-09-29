@@ -1,10 +1,10 @@
-// Package utils /
+// Package pkg
 /*****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
 **/
-package utils
+package pkg
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/jkaninda/pg-bkup/utils"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,20 +33,20 @@ func CreateSession() (*session.Session, error) {
 		"AWS_REGION",
 	}
 
-	endPoint := GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
-	accessKey := GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
-	secretKey := GetEnvVariable("AWS_SECRET_KEY", "SECRET_KEY")
-	_ = GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
+	endPoint := utils.GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
+	accessKey := utils.GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
+	secretKey := utils.GetEnvVariable("AWS_SECRET_KEY", "SECRET_KEY")
+	_ = utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 
 	region := os.Getenv("AWS_REGION")
 	awsDisableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
 	if err != nil {
-		Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+		utils.Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)
 	}
 
-	err = CheckEnvVars(awsVars)
+	err = utils.CheckEnvVars(awsVars)
 	if err != nil {
-		Fatal("Error checking environment variables\n: %s", err)
+		utils.Fatal("Error checking environment variables\n: %s", err)
 	}
 	// Configure to use MinIO Server
 	s3Config := &aws.Config{
@@ -105,10 +106,10 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 	if err != nil {
 		return err
 	}
-	Info("Download backup from S3 storage...")
+	utils.Info("Download backup from S3 storage...")
 	file, err := os.Create(filepath.Join(destinationPath, key))
 	if err != nil {
-		Error("Failed to create file", err)
+		utils.Error("Failed to create file", err)
 		return err
 	}
 	defer file.Close()
@@ -122,10 +123,10 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 			Key:    aws.String(objectKey),
 		})
 	if err != nil {
-		Error("Failed to download file", err)
+		utils.Error("Failed to download file %s", key)
 		return err
 	}
-	Info("Backup downloaded:  %s bytes size %s ", file.Name(), numBytes)
+	utils.Info("Backup downloaded:  %s bytes size %s ", file.Name(), numBytes)
 
 	return nil
 }
@@ -155,18 +156,18 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 					Key:    object.Key,
 				})
 				if err != nil {
-					Info("Failed to delete object %s: %v", *object.Key, err)
+					utils.Info("Failed to delete object %s: %v", *object.Key, err)
 				} else {
-					Info("Deleted object %s\n", *object.Key)
+					utils.Info("Deleted object %s\n", *object.Key)
 				}
 			}
 		}
 		return !lastPage
 	})
 	if err != nil {
-		Error("Failed to list objects: %v", err)
+		utils.Error("Failed to list objects: %v", err)
 	}
 
-	Info("Finished deleting old files.")
+	utils.Info("Finished deleting old files.")
 	return nil
 }

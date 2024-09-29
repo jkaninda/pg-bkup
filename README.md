@@ -1,5 +1,5 @@
 # PostgreSQL Backup
-PostgreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
+PostgreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, FTP and SSH compatible storage.
 It also supports __encrypting__ your backups using GPG.
 
 The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image can be deployed on Docker, Docker Swarm and Kubernetes.
@@ -87,6 +87,18 @@ services:
 networks:
   web:
 ```
+### Docker recurring backup
+
+```shell
+ docker run --rm --network network_name \
+ -v $PWD/backup:/backup/ \
+ -e "DB_HOST=hostname" \
+ -e "DB_USERNAME=user" \
+ -e "DB_PASSWORD=password" \
+ jkaninda/pg-bkup backup -d dbName --cron-expression "@every 1m"
+```
+See: https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules
+
 ## Deploy on Kubernetes
 
 For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as Job or CronJob.
@@ -155,7 +167,7 @@ While it may work against different implementations, there are no guarantees abo
 
 We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
 
-- The original image is based on `ubuntu` and requires additional tools, making it heavy.
+- The original image is based on `Alpine` and requires additional tools, making it heavy.
 - This image is written in Go.
 - `arm64` and `arm/v7` architectures are supported.
 - Docker in Swarm mode is supported.

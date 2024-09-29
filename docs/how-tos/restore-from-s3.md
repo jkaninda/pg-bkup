@@ -2,7 +2,7 @@
 title: Restore database from AWS S3
 layout: default
 parent: How Tos
-nav_order: 5
+nav_order: 6
 ---
 
 # Restore database from S3 storage
