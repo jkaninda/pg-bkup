@@ -60,7 +60,6 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | FTP_PORT               | Optional, required for FTP storage                            | FTP server port number                               |
 | FTP_USER               | Optional, required for FTP storage                            | FTP user                                             |
 | FTP_PASSWORD           | Optional, required for FTP storage                            | FTP user password                                    |
-
 | TARGET_DB_HOST         | Optional, required for database migration                     | Target database host                                 |
 | TARGET_DB_PORT         | Optional, required for database migration                     | Target database port                                 |
 | TARGET_DB_NAME         | Optional, required for database migration                     | Target database name                                 |
@@ -68,6 +67,7 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | TARGET_DB_PASSWORD     | Optional, required for database migration                     | Target database password                             |
 | TG_TOKEN               | Optional, required for Telegram notification                  | Telegram token (`BOT-ID:BOT-TOKEN`)                  |
 | TG_CHAT_ID             | Optional, required for Telegram notification                  | Telegram Chat ID                                     |
+| TZ                     | Optional                                                      | Time Zone                                            |
 
 ---
 ## Run in Scheduled mode
