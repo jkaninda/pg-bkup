@@ -81,6 +81,7 @@ services:
       - DB_NAME=foo
       - DB_USERNAME=bar
       - DB_PASSWORD=password
+      - TZ=Europe/Paris
     # pg-bkup container must be connected to the same network with your database
     networks:
        - web
