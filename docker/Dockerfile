@@ -43,12 +43,13 @@ ENV VERSION="v1.2.9"
 ENV BACKUP_CRON_EXPRESSION=""
 ENV TG_TOKEN=""
 ENV TG_CHAT_ID=""
+ENV TZ=UTC
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
 LABEL author="Jonas Kaninda"
 
-RUN apk --update add postgresql-client gnupg
+RUN apk --update add --no-cache postgresql-client gnupg tzdata
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
 RUN mkdir -p $BACKUP_TMP_DIR
