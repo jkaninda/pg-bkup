@@ -18,81 +18,73 @@ import (
 	"path/filepath"
 )
 
-func CopyToRemote(fileName, remotePath string) error {
-	sshUser := os.Getenv("SSH_USER")
-	sshPassword := os.Getenv("SSH_PASSWORD")
-	sshHostName := os.Getenv("SSH_HOST_NAME")
-	sshPort := os.Getenv("SSH_PORT")
-	sshIdentifyFile := os.Getenv("SSH_IDENTIFY_FILE")
-
-	err := utils.CheckEnvVars(sshVars)
-	if err != nil {
-		utils.Fatal(fmt.Sprintf("Error checking environment variables\n: %s", err))
-	}
-
-	clientConfig, _ := auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
-	if sshIdentifyFile != "" && utils.FileExists(sshIdentifyFile) {
-		clientConfig, _ = auth.PrivateKey(sshUser, sshIdentifyFile, ssh.InsecureIgnoreHostKey())
-
+// createSSHClientConfig sets up the SSH client configuration based on the provided SSHConfig
+func createSSHClientConfig(sshConfig *SSHConfig) (ssh.ClientConfig, error) {
+	if sshConfig.identifyFile != "" && utils.FileExists(sshConfig.identifyFile) {
+		return auth.PrivateKey(sshConfig.user, sshConfig.identifyFile, ssh.InsecureIgnoreHostKey())
 	} else {
-		if sshPassword == "" {
-			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty")
+		if sshConfig.password == "" {
+			return ssh.ClientConfig{}, errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty")
 		}
-		utils.Warn("Accessing the remote server using password, password is not recommended")
-		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
-
+		utils.Warn("Accessing the remote server using password, which is not recommended.")
+		return auth.PasswordKey(sshConfig.user, sshConfig.password, ssh.InsecureIgnoreHostKey())
 	}
+}
+
+// CopyToRemote copies a file to a remote server via SCP
+func CopyToRemote(fileName, remotePath string) error {
+	// Load environment variables
+	sshConfig, err := loadSSHConfig()
+	if err != nil {
+		return fmt.Errorf("failed to load SSH configuration: %w", err)
+	}
+
+	// Initialize SSH client config
+	clientConfig, err := createSSHClientConfig(sshConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create SSH client config: %w", err)
+	}
+
 	// Create a new SCP client
-	client := scp.NewClient(fmt.Sprintf("%s:%s", sshHostName, sshPort), &clientConfig)
+	client := scp.NewClient(fmt.Sprintf("%s:%s", sshConfig.hostName, sshConfig.port), &clientConfig)
 
 	// Connect to the remote server
 	err = client.Connect()
 	if err != nil {
-		return errors.New("couldn't establish a connection to the remote server")
+		return errors.New("Couldn't establish a connection to the remote server\n")
 	}
 
-	// Open a file
-	file, _ := os.Open(filepath.Join(tmpPath, fileName))
-
-	// Close client connection after the file has been copied
+	// Open the local file
+	filePath := filepath.Join(tmpPath, fileName)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %w", filePath, err)
+	}
 	defer client.Close()
-	// Close the file after it has been copied
-	defer file.Close()
-	// the context can be adjusted to provide time-outs or inherit from other contexts if this is embedded in a larger application.
+	// Copy file to the remote server
 	err = client.CopyFromFile(context.Background(), *file, filepath.Join(remotePath, fileName), "0655")
 	if err != nil {
-		fmt.Println("Error while copying file ")
-		return err
+		return fmt.Errorf("failed to copy file to remote server: %w", err)
 	}
+
 	return nil
 }
 
 func CopyFromRemote(fileName, remotePath string) error {
-	sshUser := os.Getenv("SSH_USER")
-	sshPassword := os.Getenv("SSH_PASSWORD")
-	sshHostName := os.Getenv("SSH_HOST_NAME")
-	sshPort := os.Getenv("SSH_PORT")
-	sshIdentifyFile := os.Getenv("SSH_IDENTIFY_FILE")
-
-	err := utils.CheckEnvVars(sshVars)
+	// Load environment variables
+	sshConfig, err := loadSSHConfig()
 	if err != nil {
-		utils.Fatal("Error checking environment variables\n: %s", err)
+		return fmt.Errorf("failed to load SSH configuration: %w", err)
 	}
 
-	clientConfig, _ := auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
-	if sshIdentifyFile != "" && utils.FileExists(sshIdentifyFile) {
-		clientConfig, _ = auth.PrivateKey(sshUser, sshIdentifyFile, ssh.InsecureIgnoreHostKey())
-
-	} else {
-		if sshPassword == "" {
-			return errors.New("SSH_PASSWORD environment variable is required if SSH_IDENTIFY_FILE is empty\n")
-		}
-		utils.Warn("Accessing the remote server using password, password is not recommended\n")
-		clientConfig, _ = auth.PasswordKey(sshUser, sshPassword, ssh.InsecureIgnoreHostKey())
-
+	// Initialize SSH client config
+	clientConfig, err := createSSHClientConfig(sshConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create SSH client config: %w", err)
 	}
+
 	// Create a new SCP client
-	client := scp.NewClient(fmt.Sprintf("%s:%s", sshHostName, sshPort), &clientConfig)
+	client := scp.NewClient(fmt.Sprintf("%s:%s", sshConfig.hostName, sshConfig.port), &clientConfig)
 
 	// Connect to the remote server
 	err = client.Connect()
@@ -107,7 +99,6 @@ func CopyFromRemote(fileName, remotePath string) error {
 	}
 	defer file.Close()
 
-	// the context can be adjusted to provide time-outs or inherit from other contexts if this is embedded in a larger application.
 	err = client.CopyFromRemote(context.Background(), file, filepath.Join(remotePath, fileName))
 
 	if err != nil {

@@ -7,9 +7,11 @@
 package pkg
 
 import (
+	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -52,20 +54,22 @@ type FTPConfig struct {
 	remotePath string
 }
 
-func initFtpConfig() *FTPConfig {
-	//Initialize backup configs
-	fConfig := FTPConfig{}
-	fConfig.host = os.Getenv("FTP_HOST_NAME")
-	fConfig.user = os.Getenv("FTP_USER")
-	fConfig.password = os.Getenv("FTP_PASSWORD")
-	fConfig.port = os.Getenv("FTP_PORT")
-	fConfig.remotePath = os.Getenv("REMOTE_PATH")
-	err := utils.CheckEnvVars(ftpVars)
-	if err != nil {
-		utils.Error("Please make sure all required environment variables for FTP are set")
-		utils.Fatal("Error checking environment variables: %s", err)
-	}
-	return &fConfig
+// SSHConfig holds the SSH connection details
+type SSHConfig struct {
+	user         string
+	password     string
+	hostName     string
+	port         string
+	identifyFile string
+}
+type AWSConfig struct {
+	endpoint       string
+	bucket         string
+	accessKey      string
+	secretKey      string
+	region         string
+	disableSsl     bool
+	forcePathStyle bool
 }
 
 func initDbConfig(cmd *cobra.Command) *dbConfig {
@@ -84,6 +88,64 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 		utils.Fatal("Error checking environment variables: %s", err)
 	}
 	return &dConf
+}
+
+// loadSSHConfig loads the SSH configuration from environment variables
+func loadSSHConfig() (*SSHConfig, error) {
+	utils.GetEnvVariable("SSH_HOST", "SSH_HOST_NAME")
+	sshVars := []string{"SSH_USER", "SSH_HOST", "SSH_PORT", "REMOTE_PATH"}
+	err := utils.CheckEnvVars(sshVars)
+	if err != nil {
+		return nil, fmt.Errorf("error missing environment variables: %w", err)
+	}
+
+	return &SSHConfig{
+		user:         os.Getenv("SSH_USER"),
+		password:     os.Getenv("SSH_PASSWORD"),
+		hostName:     os.Getenv("SSH_HOST"),
+		port:         os.Getenv("SSH_PORT"),
+		identifyFile: os.Getenv("SSH_IDENTIFY_FILE"),
+	}, nil
+}
+func initFtpConfig() *FTPConfig {
+	//Initialize data configs
+	fConfig := FTPConfig{}
+	fConfig.host = utils.GetEnvVariable("FTP_HOST", "FTP_HOST_NAME")
+	fConfig.user = os.Getenv("FTP_USER")
+	fConfig.password = os.Getenv("FTP_PASSWORD")
+	fConfig.port = os.Getenv("FTP_PORT")
+	fConfig.remotePath = os.Getenv("REMOTE_PATH")
+	err := utils.CheckEnvVars(ftpVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for FTP are set")
+		utils.Fatal("Error missing environment variables: %s", err)
+	}
+	return &fConfig
+}
+func initAWSConfig() *AWSConfig {
+	//Initialize AWS configs
+	aConfig := AWSConfig{}
+	aConfig.endpoint = utils.GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
+	aConfig.accessKey = utils.GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
+	aConfig.secretKey = utils.GetEnvVariable("AWS_SECRET_KEY", "SECRET_KEY")
+	aConfig.bucket = utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
+	aConfig.region = os.Getenv("AWS_REGION")
+	disableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
+	if err != nil {
+		utils.Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+	}
+	forcePathStyle, err := strconv.ParseBool(os.Getenv("AWS_FORCE_PATH_STYLE"))
+	if err != nil {
+		utils.Fatal("Unable to parse AWS_FORCE_PATH_STYLE env var: %s", err)
+	}
+	aConfig.disableSsl = disableSsl
+	aConfig.forcePathStyle = forcePathStyle
+	err = utils.CheckEnvVars(awsVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for AWS S3 are set")
+		utils.Fatal("Error checking environment variables: %s", err)
+	}
+	return &aConfig
 }
 func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
@@ -136,7 +198,6 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
-	_, _ = cmd.Flags().GetString("mode")
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 	gpqPassphrase := os.Getenv("GPG_PASSPHRASE")
 	//Initialize restore configs
