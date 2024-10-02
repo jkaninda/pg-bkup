@@ -47,16 +47,17 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | AWS_BUCKET_NAME        | Optional, required for S3 storage                             | AWS S3 Bucket Name                                   |
 | AWS_REGION             | Optional, required for S3 storage                             | AWS Region                                           |
 | AWS_DISABLE_SSL        | Optional, required for S3 storage                             | Disable SSL                                          |
+| AWS_FORCE_PATH_STYLE   | Optional, required for S3 storage                             | Force path style                                     |
 | FILE_NAME              | Optional if it was provided from the --file flag              | Database file to restore (extensions: .sql, .sql.gz) |
 | GPG_PASSPHRASE         | Optional, required to encrypt and restore backup              | GPG passphrase                                       |
 | BACKUP_CRON_EXPRESSION | Optional if it was provided from the `--cron-expression` flag | Backup cron expression for docker in scheduled mode  |
-| SSH_HOST_NAME          | Optional, required for SSH storage                            | ssh remote hostname or ip                            |
+| SSH_HOST               | Optional, required for SSH storage                            | ssh remote hostname or ip                            |
 | SSH_USER               | Optional, required for SSH storage                            | ssh remote user                                      |
 | SSH_PASSWORD           | Optional, required for SSH storage                            | ssh remote user's password                           |
 | SSH_IDENTIFY_FILE      | Optional, required for SSH storage                            | ssh remote user's private key                        |
 | SSH_PORT               | Optional, required for SSH storage                            | ssh remote server port                               |
 | REMOTE_PATH            | Optional, required for SSH or FTP storage                     | remote path (/home/toto/backup)                      |
-| FTP_HOST_NAME          | Optional, required for FTP storage                            | FTP host name                                        |
+| FTP_HOST               | Optional, required for FTP storage                            | FTP host name                                        |
 | FTP_PORT               | Optional, required for FTP storage                            | FTP server port number                               |
 | FTP_USER               | Optional, required for FTP storage                            | FTP user                                             |
 | FTP_PASSWORD           | Optional, required for FTP storage                            | FTP user password                                    |
