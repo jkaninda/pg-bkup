@@ -33,7 +33,7 @@ services:
       - DB_USERNAME=username
       - DB_PASSWORD=password
       ## SSH config
-      - SSH_HOST_NAME="hostname"
+      - SSH_HOST="hostname"
       - SSH_PORT=22
       - SSH_USER=user
       - REMOTE_PATH=/home/jkaninda/backups
@@ -73,7 +73,7 @@ services:
       - DB_USERNAME=username
       - DB_PASSWORD=password
       ## SSH config
-      - SSH_HOST_NAME="hostname"
+      - SSH_HOST="hostname"
       - SSH_PORT=22
       - SSH_USER=user
       - REMOTE_PATH=/home/jkaninda/backups
@@ -124,7 +124,7 @@ spec:
               # Please use secret!
               - name: DB_PASSWORD
                 value: ""
-              - name: SSH_HOST_NAME
+              - name: SSH_HOST
                 value: ""
               - name: SSH_PORT
                 value: "22"

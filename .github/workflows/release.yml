@@ -3,8 +3,6 @@ on:
   push:
     tags:
       - v1.**
-env:
-  BUILDKIT_IMAGE: jkaninda/pg-bkup
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -41,9 +39,11 @@ jobs:
           push: true
           file: "./docker/Dockerfile"
           platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            appVersion=${{ env.TAG_NAME }}
           tags: |
-            "${{env.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
-            "${{env.BUILDKIT_IMAGE}}:latest"
-            "ghcr.io/${{env.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
-            "ghcr.io/${{env.BUILDKIT_IMAGE}}:latest"
+            "${{vars.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
+            "${{vars.BUILDKIT_IMAGE}}:latest"
+            "ghcr.io/${{vars.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
+            "ghcr.io/${{vars.BUILDKIT_IMAGE}}:latest"
 
