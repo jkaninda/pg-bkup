@@ -11,7 +11,7 @@ As described for s3 backup section, to change the storage of your backup and use
 You need to add the full remote path by adding `--path /home/jkaninda/backups` flag or using `REMOTE_PATH` environment variable.
 
 {: .note }
-These environment variables are required for SSH backup `SSH_HOST_NAME`, `SSH_USER`, `REMOTE_PATH`, `SSH_IDENTIFY_FILE`, `SSH_PORT` or `SSH_PASSWORD` if you dont use a private key to access to your server.
+These environment variables are required for SSH backup `SSH_HOST`, `SSH_USER`, `REMOTE_PATH`, `SSH_IDENTIFY_FILE`, `SSH_PORT` or `SSH_PASSWORD` if you dont use a private key to access to your server.
 Accessing the remote server using password is not recommended, use private key instead.
 
 ```yml
