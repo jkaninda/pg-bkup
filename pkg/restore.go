@@ -21,15 +21,15 @@ func StartRestore(cmd *cobra.Command) {
 	restoreConf := initRestoreConfig(cmd)
 
 	switch restoreConf.storage {
-	case "s3":
-		restoreFromS3(dbConf, restoreConf.file, restoreConf.bucket, restoreConf.s3Path)
 	case "local":
 		utils.Info("Restore database from local")
 		copyToTmp(storagePath, restoreConf.file)
 		RestoreDatabase(dbConf, restoreConf.file)
-	case "ssh":
+	case "s3", "S3":
+		restoreFromS3(dbConf, restoreConf.file, restoreConf.bucket, restoreConf.s3Path)
+	case "ssh", "SSH", "remote":
 		restoreFromRemote(dbConf, restoreConf.file, restoreConf.remotePath)
-	case "ftp":
+	case "ftp", "FTP":
 		restoreFromFTP(dbConf, restoreConf.file, restoreConf.remotePath)
 	default:
 		utils.Info("Restore database from local")

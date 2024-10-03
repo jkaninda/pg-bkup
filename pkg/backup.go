@@ -42,8 +42,6 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup cron expression:  %s", config.cronExpression)
 	utils.Info("Storage type %s ", config.storage)
 
-	//Test database connexion
-	testDatabaseConnection(db)
 	//Test backup
 	utils.Info("Testing backup configurations...")
 	BackupTask(db, config)
@@ -76,11 +74,11 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 	switch config.storage {
 	case "local":
 		localBackup(db, config)
-	case "s3":
+	case "s3", "S3":
 		s3Backup(db, config)
-	case "ssh", "remote":
+	case "ssh", "SSH", "remote":
 		sshBackup(db, config)
-	case "ftp":
+	case "ftp", "FTP":
 		ftpBackup(db, config)
 		//utils.Fatal("Not supported storage type: %s", config.storage)
 	default:
