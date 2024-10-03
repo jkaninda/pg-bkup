@@ -42,8 +42,6 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup cron expression:  %s", config.cronExpression)
 	utils.Info("Storage type %s ", config.storage)
 
-	//Test database connexion
-	testDatabaseConnection(db)
 	//Test backup
 	utils.Info("Testing backup configurations...")
 	BackupTask(db, config)
