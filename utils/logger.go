@@ -12,10 +12,9 @@ import (
 	"time"
 )
 
-var currentTime = time.Now().Format("2006/01/02 15:04:05")
-
 // Info message
 func Info(msg string, args ...any) {
+	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		fmt.Printf("%s INFO: %s\n", currentTime, msg)
@@ -26,6 +25,7 @@ func Info(msg string, args ...any) {
 
 // Warn Warning message
 func Warn(msg string, args ...any) {
+	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		fmt.Printf("%s WARN: %s\n", currentTime, msg)
@@ -36,6 +36,7 @@ func Warn(msg string, args ...any) {
 
 // Error error message
 func Error(msg string, args ...any) {
+	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		fmt.Printf("%s ERROR: %s\n", currentTime, msg)
@@ -44,6 +45,7 @@ func Error(msg string, args ...any) {
 	}
 }
 func Done(msg string, args ...any) {
+	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
 		fmt.Printf("%s INFO: %s\n", currentTime, msg)
@@ -53,6 +55,7 @@ func Done(msg string, args ...any) {
 }
 
 func Fatal(msg string, args ...any) {
+	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	// Fatal logs an error message and exits the program.
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
@@ -65,5 +68,4 @@ func Fatal(msg string, args ...any) {
 	}
 
 	os.Exit(1)
-	os.Kill.Signal()
 }
