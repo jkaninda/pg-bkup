@@ -68,5 +68,4 @@ func Fatal(msg string, args ...any) {
 	}
 
 	os.Exit(1)
-	os.Kill.Signal()
 }
