@@ -12,50 +12,59 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/jkaninda/pg-bkup/utils"
 	"os"
-	"os/exec"
 	"strings"
 )
 
-// decryptWithGPGSymmetric decrypts backup file using a passphrase
-func decryptWithGPGSymmetric(inputFile string, passphrase string) error {
+// decryptWithGPG decrypts backup file using a passphrase
+func decryptWithGPG(inputFile string, passphrase string) error {
 	utils.Info("Decrypting backup using passphrase...")
-
-	//Create gpg home dir
-	err := utils.MakeDirAll(gpgHome)
+	// Read the encrypted file
+	encFileContent, err := os.ReadFile(inputFile)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error reading encrypted file: %s", err))
 	}
-	utils.SetEnv("GNUPGHOME", gpgHome)
-	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--output", RemoveLastExtension(inputFile), "--decrypt", inputFile)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err = cmd.Run()
+	// Define the passphrase used to encrypt the file
+	_passphrase := []byte(passphrase)
+	// Create a PGP message object from the encrypted file content
+	encryptedMessage := crypto.NewPGPMessage(encFileContent)
+	// Decrypt the message using the passphrase
+	plainMessage, err := crypto.DecryptMessageWithPassword(encryptedMessage, _passphrase)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error decrypting file: %s", err))
+	}
+
+	// Save the decrypted file (restore it)
+	err = os.WriteFile(RemoveLastExtension(inputFile), plainMessage.GetBinary(), 0644)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error saving decrypted file: %s", err))
 	}
 	utils.Info("Decrypting backup using passphrase...done")
 	utils.Info("Backup file decrypted successful!")
 	return nil
 }
 
-// encryptWithGPGSymmetric encrypts backup using a passphrase
-func encryptWithGPGSymmetric(inputFile string, passphrase string) error {
+// encryptWithGPG encrypts backup using a passphrase
+func encryptWithGPG(inputFile string, passphrase string) error {
 	utils.Info("Encrypting backup using passphrase...")
-
-	//Create gpg home dir
-	err := utils.MakeDirAll(gpgHome)
+	// Read the file to be encrypted
+	plainFileContent, err := os.ReadFile(inputFile)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error reading file: %s", err))
 	}
-	utils.SetEnv("GNUPGHOME", gpgHome)
-	cmd := exec.Command("gpg", "--batch", "--passphrase", passphrase, "--symmetric", "--cipher-algo", algorithm, inputFile)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// Define the passphrase to encrypt the file
+	_passphrase := []byte(passphrase)
 
-	err = cmd.Run()
+	// Create a message object from the file content
+	message := crypto.NewPlainMessage(plainFileContent)
+	// Encrypt the message using the passphrase
+	encryptedMessage, err := crypto.EncryptMessageWithPassword(message, _passphrase)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error encrypting backup file: %s", err))
+	}
+	// Save the encrypted .tar file
+	err = os.WriteFile(fmt.Sprintf("%s.%s", inputFile, gpgExtension), encryptedMessage.GetBinary(), 0644)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error saving encrypted filee: %s", err))
 	}
 	utils.Info("Encrypting backup using passphrase...done")
 	utils.Info("Backup file encrypted successful!")
@@ -88,7 +97,7 @@ func encryptWithGPGPublicKey(inputFile string, publicKey string) error {
 		return errors.New(fmt.Sprintf("Error reading file: %v", err))
 	}
 
-	// encryptWithGPGSymmetric the file
+	// encryptWithGPG the file
 	message := crypto.NewPlainMessage(fileContent)
 	encMessage, err := keyRing.Encrypt(message, nil)
 	if err != nil {
@@ -149,7 +158,7 @@ func decryptWithGPGPrivateKey(inputFile, privateKey, passphrase string) error {
 		return errors.New(fmt.Sprintf("Error reading encrypted file: %s", err))
 	}
 
-	// decryptWithGPGSymmetric the file
+	// decryptWithGPG the file
 	encryptedMessage := crypto.NewPGPMessage(encFileContent)
 	message, err := keyRing.Decrypt(encryptedMessage, nil, 0)
 	if err != nil {

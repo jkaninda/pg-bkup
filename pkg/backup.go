@@ -296,12 +296,12 @@ func encryptBackup(config *BackupConfig) {
 	if config.usingKey {
 		err := encryptWithGPGPublicKey(filepath.Join(tmpPath, config.backupFileName), config.publicKey)
 		if err != nil {
-			utils.Fatal("Error during encrypting backup %v", err)
+			utils.Fatal("error during encrypting backup %v", err)
 		}
 	} else if config.passphrase != "" {
-		err := encryptWithGPGSymmetric(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
+		err := encryptWithGPG(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
 		if err != nil {
-			utils.Fatal("Error during encrypting backup %v", err)
+			utils.Fatal("error during encrypting backup %v", err)
 		}
 
 	}

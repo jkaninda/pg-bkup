@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
-	"gopkg.in/yaml.v3"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -139,24 +138,6 @@ func testDatabaseConnection(db *dbConfig) {
 	}
 	utils.Info("Successfully connected to %s database", db.dbName)
 
-}
-func readConf(filename string) (*Config, error) {
-	configFile := filepath.Join("", filename)
-	if utils.FileExists(configFile) {
-		buf, err := os.ReadFile(configFile)
-		if err != nil {
-			return nil, err
-		}
-
-		c := &Config{}
-		err = yaml.Unmarshal(buf, c)
-		if err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
-		}
-
-		return c, err
-	}
-	return nil, fmt.Errorf("config file %q not found", filename)
 }
 func checkPubKeyFile(pubKey string) (string, error) {
 	utils.Info("Checking file %s ...", pubKey)

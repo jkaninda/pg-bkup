@@ -52,7 +52,7 @@ ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
 LABEL version=${appVersion}
 
-RUN apk --update add --no-cache postgresql-client gnupg tzdata
+RUN apk --update add --no-cache postgresql-client tzdata
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
 RUN mkdir -p $BACKUP_TMP_DIR
