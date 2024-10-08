@@ -71,6 +71,7 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 	if extension == ".gpg" {
 
 		if conf.usingKey {
+			utils.Warn("Backup decryption using a private key is not fully supported")
 			err := decrypt(filepath.Join(tmpPath, conf.file), conf.privateKey, conf.passphrase)
 			if err != nil {
 				utils.Fatal("Error during decrypting backup %v", err)
@@ -116,7 +117,7 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 
 		} else if extension == ".sql" {
 			//Restore from sql file
-			str := "cat " + filepath.Join(tmpPath, file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
+			str := "cat " + filepath.Join(tmpPath, conf.file) + " | psql -h " + db.dbHost + " -p " + db.dbPort + " -U " + db.dbUserName + " -v -d " + db.dbName
 			_, err := exec.Command("sh", "-c", str).Output()
 			if err != nil {
 				utils.Fatal("Error in restoring the database %v", err)
