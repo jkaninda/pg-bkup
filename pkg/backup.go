@@ -166,9 +166,10 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
-		encryptBackup(config.backupFileName, config.passphrase)
+		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, gpgExtension)
 	}
+
 	utils.Info("Backup name is %s", finalFileName)
 	moveToBackup(finalFileName, storagePath)
 	//Send notification
@@ -189,7 +190,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
-		encryptBackup(config.backupFileName, config.passphrase)
+		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to remote storage S3 ... ")
@@ -226,7 +227,7 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
-		encryptBackup(config.backupFileName, config.passphrase)
+		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to remote storage ... ")
@@ -261,7 +262,7 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
-		encryptBackup(config.backupFileName, config.passphrase)
+		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to the remote FTP server ... ")
@@ -291,10 +292,18 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	deleteTemp()
 }
 
-func encryptBackup(backupFileName, gpqPassphrase string) {
-	err := Encrypt(filepath.Join(tmpPath, backupFileName), gpqPassphrase)
-	if err != nil {
-		utils.Fatal("Error during encrypting backup %v", err)
+func encryptBackup(config *BackupConfig) {
+	if config.usingKey {
+		err := encrypt(filepath.Join(tmpPath, config.backupFileName), config.publicKey)
+		if err != nil {
+			utils.Fatal("Error during encrypting backup %v", err)
+		}
+	} else if config.passphrase != "" {
+		err := Encrypt(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
+		if err != nil {
+			utils.Fatal("Error during encrypting backup %v", err)
+		}
+
 	}
 
 }

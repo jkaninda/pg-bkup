@@ -18,6 +18,7 @@ var (
 	storagePath        = "/backup"
 	disableCompression = false
 	encryption         = false
+	usingKey           = false
 )
 
 // dbHVars Required environment variables for database

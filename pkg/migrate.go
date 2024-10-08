@@ -30,11 +30,13 @@ func StartMigration(cmd *cobra.Command) {
 
 	//Generate file name
 	backupFileName := fmt.Sprintf("%s_%s.sql", dbConf.dbName, time.Now().Format("20060102_150405"))
+	conf := &RestoreConfig{}
+	conf.file = backupFileName
 	//Backup source Database
 	BackupDatabase(dbConf, backupFileName, true)
 	//Restore source database into target database
 	utils.Info("Restoring [%s] database into [%s] database...", dbConf.dbName, targetDbConf.targetDbName)
-	RestoreDatabase(&newDbConfig, backupFileName)
+	RestoreDatabase(&newDbConfig, conf)
 	utils.Info("[%s] database has been restored into [%s] database", dbConf.dbName, targetDbConf.targetDbName)
 	utils.Info("Database migration completed.")
 }

@@ -8,13 +8,16 @@ package pkg
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
+	"gopkg.in/yaml.v3"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
 )
 
+// copyToTmp copy file to temporary directory
 func copyToTmp(sourcePath string, backupFileName string) {
 	//Copy backup from storage to /tmp
 	err := utils.CopyFile(filepath.Join(sourcePath, backupFileName), filepath.Join(tmpPath, backupFileName))
@@ -136,4 +139,65 @@ func testDatabaseConnection(db *dbConfig) {
 	}
 	utils.Info("Successfully connected to %s database", db.dbName)
 
+}
+func readConf(filename string) (*Config, error) {
+	configFile := filepath.Join("", filename)
+	if utils.FileExists(configFile) {
+		buf, err := os.ReadFile(configFile)
+		if err != nil {
+			return nil, err
+		}
+
+		c := &Config{}
+		err = yaml.Unmarshal(buf, c)
+		if err != nil {
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
+		}
+
+		return c, err
+	}
+	return nil, fmt.Errorf("config file %q not found", filename)
+}
+func checkPubKeyFile(pubKey string) (string, error) {
+	utils.Info("Checking file %s ...", pubKey)
+	// Define possible key file names
+	keyFiles := []string{filepath.Join(gpgHome, "public_key.asc"), filepath.Join(gpgHome, "public_key.gpg"), pubKey}
+
+	// Loop through key file names and check if they exist
+	for _, keyFile := range keyFiles {
+		if _, err := os.Stat(keyFile); err == nil {
+			// File exists
+			return keyFile, nil
+		} else if os.IsNotExist(err) {
+			// File does not exist, continue to the next one
+			continue
+		} else {
+			// An unexpected error occurred
+			return "", err
+		}
+	}
+
+	// Return an error if neither file exists
+	return "", fmt.Errorf("no public key file found")
+}
+func checkPrKeyFile(prKey string) (string, error) {
+	// Define possible key file names
+	keyFiles := []string{filepath.Join(gpgHome, "private_key.asc"), filepath.Join(gpgHome, "private_key.gpg"), prKey}
+
+	// Loop through key file names and check if they exist
+	for _, keyFile := range keyFiles {
+		if _, err := os.Stat(keyFile); err == nil {
+			// File exists
+			return keyFile, nil
+		} else if os.IsNotExist(err) {
+			// File does not exist, continue to the next one
+			continue
+		} else {
+			// An unexpected error occurred
+			return "", err
+		}
+	}
+
+	// Return an error if neither file exists
+	return "", fmt.Errorf("no public key file found")
 }
