@@ -16,8 +16,8 @@ import (
 	"strings"
 )
 
-// Decrypt decrypts backup file using a passphrase
-func Decrypt(inputFile string, passphrase string) error {
+// decryptWithGPGSymmetric decrypts backup file using a passphrase
+func decryptWithGPGSymmetric(inputFile string, passphrase string) error {
 	utils.Info("Decrypting backup using passphrase...")
 
 	//Create gpg home dir
@@ -39,8 +39,8 @@ func Decrypt(inputFile string, passphrase string) error {
 	return nil
 }
 
-// Encrypt encrypts backup using a passphrase
-func Encrypt(inputFile string, passphrase string) error {
+// encryptWithGPGSymmetric encrypts backup using a passphrase
+func encryptWithGPGSymmetric(inputFile string, passphrase string) error {
 	utils.Info("Encrypting backup using passphrase...")
 
 	//Create gpg home dir
@@ -62,8 +62,8 @@ func Encrypt(inputFile string, passphrase string) error {
 	return nil
 }
 
-// encrypt encrypts backup using a public key
-func encrypt(inputFile string, publicKey string) error {
+// encryptWithGPGPublicKey encrypts backup using a public key
+func encryptWithGPGPublicKey(inputFile string, publicKey string) error {
 	utils.Info("Encrypting backup using public key...")
 	// Read the public key
 	pubKeyBytes, err := os.ReadFile(publicKey)
@@ -82,13 +82,13 @@ func encrypt(inputFile string, publicKey string) error {
 		return errors.New(fmt.Sprintf("Error creating key ring: %v", err))
 	}
 
-	// Read the file to encrypt
+	// Read the file to encryptWithGPGPublicKey
 	fileContent, err := os.ReadFile(inputFile)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error reading file: %v", err))
 	}
 
-	// Encrypt the file
+	// encryptWithGPGSymmetric the file
 	message := crypto.NewPlainMessage(fileContent)
 	encMessage, err := keyRing.Encrypt(message, nil)
 	if err != nil {
@@ -106,10 +106,10 @@ func encrypt(inputFile string, publicKey string) error {
 
 }
 
-// decrypt decrypts backup file using a private key and passphrase.
+// decryptWithGPGPrivateKey decrypts backup file using a private key and passphrase.
 // privateKey GPG private key
 // passphrase GPG passphrase
-func decrypt(inputFile, privateKey, passphrase string) error {
+func decryptWithGPGPrivateKey(inputFile, privateKey, passphrase string) error {
 	utils.Info("Encrypting backup using private key...")
 
 	// Read the private key
@@ -149,7 +149,7 @@ func decrypt(inputFile, privateKey, passphrase string) error {
 		return errors.New(fmt.Sprintf("Error reading encrypted file: %s", err))
 	}
 
-	// Decrypt the file
+	// decryptWithGPGSymmetric the file
 	encryptedMessage := crypto.NewPGPMessage(encFileContent)
 	message, err := keyRing.Decrypt(encryptedMessage, nil, 0)
 	if err != nil {

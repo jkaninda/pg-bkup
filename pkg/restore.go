@@ -72,17 +72,17 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 
 		if conf.usingKey {
 			utils.Warn("Backup decryption using a private key is not fully supported")
-			err := decrypt(filepath.Join(tmpPath, conf.file), conf.privateKey, conf.passphrase)
+			err := decryptWithGPGPrivateKey(filepath.Join(tmpPath, conf.file), conf.privateKey, conf.passphrase)
 			if err != nil {
-				utils.Fatal("Error during decrypting backup %v", err)
+				utils.Fatal("error during decrypting backup %v", err)
 			}
 		} else {
 			if conf.passphrase == "" {
 				utils.Error("Error, passphrase or private key required")
 				utils.Fatal("Your file seems to be a GPG file.\nYou need to provide GPG keys. GPG_PASSPHRASE or GPG_PRIVATE_KEY environment variable is required.")
 			} else {
-				//Decrypt file
-				err := Decrypt(filepath.Join(tmpPath, conf.file), conf.passphrase)
+				//decryptWithGPGSymmetric file
+				err := decryptWithGPGSymmetric(filepath.Join(tmpPath, conf.file), conf.passphrase)
 				if err != nil {
 					utils.Fatal("Error decrypting file %s %v", file, err)
 				}

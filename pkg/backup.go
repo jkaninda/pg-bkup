@@ -294,12 +294,12 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 
 func encryptBackup(config *BackupConfig) {
 	if config.usingKey {
-		err := encrypt(filepath.Join(tmpPath, config.backupFileName), config.publicKey)
+		err := encryptWithGPGPublicKey(filepath.Join(tmpPath, config.backupFileName), config.publicKey)
 		if err != nil {
 			utils.Fatal("Error during encrypting backup %v", err)
 		}
 	} else if config.passphrase != "" {
-		err := Encrypt(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
+		err := encryptWithGPGSymmetric(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
 		if err != nil {
 			utils.Fatal("Error during encrypting backup %v", err)
 		}
