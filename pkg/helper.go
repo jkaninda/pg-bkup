@@ -140,7 +140,6 @@ func testDatabaseConnection(db *dbConfig) {
 
 }
 func checkPubKeyFile(pubKey string) (string, error) {
-	utils.Info("Checking file %s ...", pubKey)
 	// Define possible key file names
 	keyFiles := []string{filepath.Join(gpgHome, "public_key.asc"), filepath.Join(gpgHome, "public_key.gpg"), pubKey}
 
