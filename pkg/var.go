@@ -16,6 +16,7 @@ var (
 	file    = ""
 
 	storagePath        = "/backup"
+	workingDir         = "/config"
 	disableCompression = false
 	encryption         = false
 	usingKey           = false

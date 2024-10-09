@@ -7,6 +7,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
@@ -14,7 +15,17 @@ import (
 	"strconv"
 )
 
+type Database struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Path     string `yaml:"path"`
+}
 type Config struct {
+	Databases      []Database `yaml:"databases"`
+	CronExpression string     `yaml:"cronExpression"`
 }
 
 type dbConfig struct {
@@ -90,6 +101,16 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 		utils.Fatal("Error checking environment variables: %s", err)
 	}
 	return &dConf
+}
+
+func getDatabase(database Database) *dbConfig {
+	return &dbConfig{
+		dbHost:     database.Host,
+		dbPort:     database.Port,
+		dbName:     database.Name,
+		dbUserName: database.User,
+		dbPassword: database.Password,
+	}
 }
 
 // loadSSHConfig loads the SSH configuration from environment variables
@@ -244,4 +265,11 @@ func initTargetDbConfig() *targetDbConfig {
 		utils.Fatal("Error checking target database environment variables: %s", err)
 	}
 	return &tdbConfig
+}
+func loadConfigFile() (string, error) {
+	backupConfigFile, err := checkConfigFile(os.Getenv("BACKUP_CONFIG_FILE"))
+	if err == nil {
+		return backupConfigFile, nil
+	}
+	return "", errors.New("backup config file not found")
 }

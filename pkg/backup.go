@@ -20,17 +20,22 @@ import (
 
 func StartBackup(cmd *cobra.Command) {
 	intro()
-	dbConf = initDbConfig(cmd)
 	//Initialize backup configs
 	config := initBackupConfig(cmd)
-
-	if config.cronExpression == "" {
-		BackupTask(dbConf, config)
+	//Load backup configuration file
+	configFile, err := loadConfigFile()
+	if err == nil {
+		startMultiBackup(config, configFile)
 	} else {
-		if utils.IsValidCronExpression(config.cronExpression) {
-			scheduledMode(dbConf, config)
+		dbConf = initDbConfig(cmd)
+		if config.cronExpression == "" {
+			BackupTask(dbConf, config)
 		} else {
-			utils.Fatal("Cron expression is not valid: %s", config.cronExpression)
+			if utils.IsValidCronExpression(config.cronExpression) {
+				scheduledMode(dbConf, config)
+			} else {
+				utils.Fatal("Cron expression is not valid: %s", config.cronExpression)
+			}
 		}
 	}
 
@@ -63,6 +68,15 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 	defer c.Stop()
 	select {}
 }
+func multiBackupTask(databases []Database, bkConfig *BackupConfig) {
+	for _, db := range databases {
+		//Check if path is defined in config file
+		if db.Path != "" {
+			bkConfig.remotePath = db.Path
+		}
+		BackupTask(getDatabase(db), bkConfig)
+	}
+}
 func BackupTask(db *dbConfig, config *BackupConfig) {
 	utils.Info("Starting backup task...")
 	//Generate file name
@@ -84,6 +98,55 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 	default:
 		localBackup(db, config)
 	}
+}
+func startMultiBackup(bkConfig *BackupConfig, configFile string) {
+	utils.Info("Starting multiple backup jobs...")
+	var conf = &Config{}
+	conf, err := readConf(configFile)
+	if err != nil {
+		utils.Fatal("Error reading config file: %s", err)
+	}
+	//Check if cronExpression is defined in config file
+	if conf.CronExpression != "" {
+		bkConfig.cronExpression = conf.CronExpression
+	}
+	// Check if cronExpression is defined
+	if bkConfig.cronExpression == "" {
+		multiBackupTask(conf.Databases, bkConfig)
+	} else {
+		// Check if cronExpression is valid
+		if utils.IsValidCronExpression(bkConfig.cronExpression) {
+			utils.Info("Running MultiBackup in Scheduled mode")
+			utils.Info("Backup cron expression:  %s", bkConfig.cronExpression)
+			utils.Info("Storage type %s ", bkConfig.storage)
+
+			//Test backup
+			utils.Info("Testing backup configurations...")
+			multiBackupTask(conf.Databases, bkConfig)
+			utils.Info("Testing backup configurations...done")
+			utils.Info("Creating multi backup job...")
+			// Create a new cron instance
+			c := cron.New()
+
+			_, err := c.AddFunc(bkConfig.cronExpression, func() {
+				// Create a channel
+				multiBackupTask(conf.Databases, bkConfig)
+			})
+			if err != nil {
+				return
+			}
+			// Start the cron scheduler
+			c.Start()
+			utils.Info("Creating multi backup job...done")
+			utils.Info("Backup job started")
+			defer c.Stop()
+			select {}
+
+		} else {
+			utils.Fatal("Cron expression is not valid: %s", bkConfig.cronExpression)
+		}
+	}
+
 }
 func intro() {
 	utils.Info("Starting PostgreSQL Backup...")

@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
+	"gopkg.in/yaml.v3"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -139,6 +140,8 @@ func testDatabaseConnection(db *dbConfig) {
 	utils.Info("Successfully connected to %s database", db.dbName)
 
 }
+
+// checkPubKeyFile checks gpg public key
 func checkPubKeyFile(pubKey string) (string, error) {
 	// Define possible key file names
 	keyFiles := []string{filepath.Join(gpgHome, "public_key.asc"), filepath.Join(gpgHome, "public_key.gpg"), pubKey}
@@ -160,6 +163,8 @@ func checkPubKeyFile(pubKey string) (string, error) {
 	// Return an error if neither file exists
 	return "", fmt.Errorf("no public key file found")
 }
+
+// checkPrKeyFile checks private key
 func checkPrKeyFile(prKey string) (string, error) {
 	// Define possible key file names
 	keyFiles := []string{filepath.Join(gpgHome, "private_key.asc"), filepath.Join(gpgHome, "private_key.gpg"), prKey}
@@ -180,4 +185,43 @@ func checkPrKeyFile(prKey string) (string, error) {
 
 	// Return an error if neither file exists
 	return "", fmt.Errorf("no public key file found")
+}
+func readConf(configFile string) (*Config, error) {
+	//configFile := filepath.Join("./", filename)
+	if utils.FileExists(configFile) {
+		buf, err := os.ReadFile(configFile)
+		if err != nil {
+			return nil, err
+		}
+
+		c := &Config{}
+		err = yaml.Unmarshal(buf, c)
+		if err != nil {
+			return nil, fmt.Errorf("in file %q: %w", configFile, err)
+		}
+
+		return c, err
+	}
+	return nil, fmt.Errorf("config file %q not found", configFile)
+}
+func checkConfigFile(filePath string) (string, error) {
+	// Define possible config file names
+	configFiles := []string{filepath.Join(workingDir, "config.yaml"), filepath.Join(workingDir, "config.yml"), filePath}
+
+	// Loop through config file names and check if they exist
+	for _, configFile := range configFiles {
+		if _, err := os.Stat(configFile); err == nil {
+			// File exists
+			return configFile, nil
+		} else if os.IsNotExist(err) {
+			// File does not exist, continue to the next one
+			continue
+		} else {
+			// An unexpected error occurred
+			return "", err
+		}
+	}
+
+	// Return an error if neither file exists
+	return "", fmt.Errorf("no config file found")
 }
