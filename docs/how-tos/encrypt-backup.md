@@ -10,8 +10,6 @@ The image supports encrypting backups using one of two available methods: GPG wi
 
 
 The image supports encrypting backups using GPG out of the box. In case a `GPG_PASSPHRASE` or `GPG_PUBLIC_KEY` environment variable is set, the backup archive will be encrypted using the given key and saved as a sql.gpg file instead or sql.gz.gpg.
-Suppose you used a GPG public key during the backup process. In that case, you need to decrypt your backup before restoration because decryption using a `GPG private` key is not fully supported.
-
 
 {: .warning }
 To restore an encrypted backup, you need to provide the same GPG passphrase used during backup process.
@@ -20,8 +18,8 @@ To restore an encrypted backup, you need to provide the same GPG passphrase used
 - Cipher algorithm `aes256`
 
 {: .note }
-The backup encrypted using `GPG passphrase` method can be restored automatically, no need to decrypt it before restoration.  
-
+The backup encrypted using `GPG passphrase` method can be restored automatically, no need to decrypt it before restoration.
+Suppose you used a GPG public key during the backup process. In that case, you need to decrypt your backup before restoration because decryption using a `GPG private` key is not fully supported.
 
 To decrypt manually, you need to install `gnupg`
 
@@ -31,6 +29,7 @@ gpg --batch --passphrase "my-passphrase" \
 --decrypt database_20240730_044201.sql.gz.gpg
 ```
 Using your private key
+
 ```shell
 gpg --output database_20240730_044201.sql.gz --decrypt database_20240730_044201.sql.gz.gpg
 ```
