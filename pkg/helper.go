@@ -17,6 +17,11 @@ import (
 	"time"
 )
 
+func intro() {
+	utils.Info("Starting PostgreSQL Backup...")
+	utils.Info("Copyright (c) 2024 Jonas Kaninda ")
+}
+
 // copyToTmp copy file to temporary directory
 func copyToTmp(sourcePath string, backupFileName string) {
 	//Copy backup from storage to /tmp
@@ -186,8 +191,9 @@ func checkPrKeyFile(prKey string) (string, error) {
 	// Return an error if neither file exists
 	return "", fmt.Errorf("no public key file found")
 }
+
+// readConf reads config file and returns Config
 func readConf(configFile string) (*Config, error) {
-	//configFile := filepath.Join("./", filename)
 	if utils.FileExists(configFile) {
 		buf, err := os.ReadFile(configFile)
 		if err != nil {
@@ -204,6 +210,8 @@ func readConf(configFile string) (*Config, error) {
 	}
 	return nil, fmt.Errorf("config file %q not found", configFile)
 }
+
+// checkConfigFile checks config files and returns one config file
 func checkConfigFile(filePath string) (string, error) {
 	// Define possible config file names
 	configFiles := []string{filepath.Join(workingDir, "config.yaml"), filepath.Join(workingDir, "config.yml"), filePath}

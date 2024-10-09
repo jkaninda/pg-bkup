@@ -7,7 +7,6 @@
 package pkg
 
 import (
-	"errors"
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
@@ -271,5 +270,5 @@ func loadConfigFile() (string, error) {
 	if err == nil {
 		return backupConfigFile, nil
 	}
-	return "", errors.New("backup config file not found")
+	return "", fmt.Errorf("backup config file not found")
 }
