@@ -14,7 +14,17 @@ import (
 	"strconv"
 )
 
+type Database struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Path     string `yaml:"path"`
+}
 type Config struct {
+	Databases      []Database `yaml:"databases"`
+	CronExpression string     `yaml:"cronExpression"`
 }
 
 type dbConfig struct {
@@ -40,9 +50,11 @@ type BackupConfig struct {
 	backupRetention    int
 	disableCompression bool
 	prune              bool
-	encryption         bool
 	remotePath         string
+	encryption         bool
+	usingKey           bool
 	passphrase         string
+	publicKey          string
 	storage            string
 	cronExpression     string
 }
@@ -88,6 +100,16 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 		utils.Fatal("Error checking environment variables: %s", err)
 	}
 	return &dConf
+}
+
+func getDatabase(database Database) *dbConfig {
+	return &dbConfig{
+		dbHost:     database.Host,
+		dbPort:     database.Port,
+		dbName:     database.Name,
+		dbUserName: database.User,
+		dbPassword: database.Password,
+	}
 }
 
 // loadSSHConfig loads the SSH configuration from environment variables
@@ -163,10 +185,14 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	cronExpression := os.Getenv("BACKUP_CRON_EXPRESSION")
 
-	if passphrase != "" {
+	publicKeyFile, err := checkPubKeyFile(os.Getenv("GPG_PUBLIC_KEY"))
+	if err == nil {
 		encryption = true
+		usingKey = true
+	} else if passphrase != "" {
+		encryption = true
+		usingKey = false
 	}
-
 	//Initialize backup configs
 	config := BackupConfig{}
 	config.backupRetention = backupRetention
@@ -176,17 +202,21 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.encryption = encryption
 	config.remotePath = remotePath
 	config.passphrase = passphrase
+	config.publicKey = publicKeyFile
+	config.usingKey = usingKey
 	config.cronExpression = cronExpression
 	return &config
 }
 
 type RestoreConfig struct {
-	s3Path        string
-	remotePath    string
-	storage       string
-	file          string
-	bucket        string
-	gpqPassphrase string
+	s3Path     string
+	remotePath string
+	storage    string
+	file       string
+	bucket     string
+	usingKey   bool
+	passphrase string
+	privateKey string
 }
 
 func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
@@ -199,7 +229,14 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	file = utils.GetEnv(cmd, "file", "FILE_NAME")
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
-	gpqPassphrase := os.Getenv("GPG_PASSPHRASE")
+	passphrase := os.Getenv("GPG_PASSPHRASE")
+	privateKeyFile, err := checkPrKeyFile(os.Getenv("GPG_PRIVATE_KEY"))
+	if err == nil {
+		usingKey = true
+	} else if passphrase != "" {
+		usingKey = false
+	}
+
 	//Initialize restore configs
 	rConfig := RestoreConfig{}
 	rConfig.s3Path = s3Path
@@ -208,7 +245,9 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	rConfig.bucket = bucket
 	rConfig.file = file
 	rConfig.storage = storage
-	rConfig.gpqPassphrase = gpqPassphrase
+	rConfig.passphrase = passphrase
+	rConfig.usingKey = usingKey
+	rConfig.privateKey = privateKeyFile
 	return &rConfig
 }
 func initTargetDbConfig() *targetDbConfig {
@@ -225,4 +264,11 @@ func initTargetDbConfig() *targetDbConfig {
 		utils.Fatal("Error checking target database environment variables: %s", err)
 	}
 	return &tdbConfig
+}
+func loadConfigFile() (string, error) {
+	backupConfigFile, err := checkConfigFile(os.Getenv("BACKUP_CONFIG_FILE"))
+	if err == nil {
+		return backupConfigFile, nil
+	}
+	return "", fmt.Errorf("backup config file not found")
 }
