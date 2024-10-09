@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🔴 Urgent: Database Backup Failure Notification</title>
+</head>
+<body>
+<h2>Hi,</h2>
+<p>An error occurred during database backup.</p>
+<h3>Failure Details:</h3>
+<ul>
+<li>Error Message: {{.Error}}</li>
+<li>Date: {{.EndTime}}</li>
+</ul>
+<p>©2024 <a href="github.com/jkaninda/pg-bkup">pg-bkup</a></p>
+</body>
+</html>
