@@ -38,3 +38,27 @@ databases:
     password: password
     path: /s3-path/joplin #For SSH or FTP you need to define the full path (/home/toto/backup/)
 ```
+
+## Docker compose file
+
+```yaml
+services:
+  pg-bkup:
+    # In production, it is advised to lock your image tag to a proper
+    # release version instead of using `latest`.
+    # Check https://github.com/jkaninda/pg-bkup/releases
+    # for a list of available releases.
+    image: jkaninda/pg-bkup
+    container_name: pg-bkup
+    command: backup
+    volumes:
+      - ./backup:/backup
+    environment:
+      ## Multi backup config file
+      - BACKUP_CONFIG_FILE=/backup/config.yaml
+    # pg-bkup container must be connected to the same network with your database
+    networks:
+      - web
+networks:
+  web:
+```
