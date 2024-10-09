@@ -1,0 +1,11 @@
+[✅  Database Backup Notification – {{.Database}}
+Hi,
+Backup of the {{.Database}} database has been successfully completed on {{.EndTime}}.
+
+Backup Details:
+- Database Name: {{.Database}}
+- Backup Start Time: {{.StartTime}}
+- Backup EndTime: {{.EndTime}}
+- Backup Storage: {{.Storage}}
+- Backup Location: {{.BackupLocation}}
+- Backup Size: {{.BackupSize}} bytes

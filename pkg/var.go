@@ -15,11 +15,13 @@ var (
 	storage = "local"
 	file    = ""
 
-	storagePath        = "/backup"
-	workingDir         = "/config"
-	disableCompression = false
-	encryption         = false
-	usingKey           = false
+	storagePath              = "/backup"
+	workingDir               = "/config"
+	disableCompression       = false
+	encryption               = false
+	usingKey                 = false
+	backupSize         int64 = 0
+	startTime          string
 )
 
 // dbHVars Required environment variables for database

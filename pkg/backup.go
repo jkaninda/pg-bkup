@@ -224,17 +224,31 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 }
 func localBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to local storage")
+	startTime = time.Now().Format("2006-01-02 15:04:05")
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
 		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, gpgExtension)
 	}
-
+	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		utils.Error("Error:", err)
+	}
+	backupSize = fileInfo.Size()
 	utils.Info("Backup name is %s", finalFileName)
 	moveToBackup(finalFileName, storagePath)
+
 	//Send notification
-	utils.NotifySuccess(finalFileName)
+	utils.NotifySuccess(&utils.NotificationData{
+		File:           finalFileName,
+		BackupSize:     backupSize,
+		Database:       db.dbName,
+		Storage:        config.storage,
+		BackupLocation: filepath.Join(config.remotePath, finalFileName),
+		StartTime:      startTime,
+		EndTime:        time.Now().Format("2006-01-02 15:04:05"),
+	})
 	//Delete old backup
 	if config.prune {
 		deleteOldBackup(config.backupRetention)
@@ -248,6 +262,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
 	s3Path := utils.GetEnvVariable("AWS_S3_PATH", "S3_PATH")
 	utils.Info("Backup database to s3 storage")
+	startTime = time.Now().Format("2006-01-02 15:04:05")
 	//Backup database
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
@@ -263,6 +278,12 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error uploading backup archive to S3: %s ", err)
 
 	}
+	//Get backup info
+	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		utils.Error("Error:", err)
+	}
+	backupSize = fileInfo.Size()
 
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, config.backupFileName))
@@ -279,7 +300,15 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	}
 	utils.Done("Uploading backup archive to remote storage S3 ... done ")
 	//Send notification
-	utils.NotifySuccess(finalFileName)
+	utils.NotifySuccess(&utils.NotificationData{
+		File:           finalFileName,
+		BackupSize:     backupSize,
+		Database:       db.dbName,
+		Storage:        config.storage,
+		BackupLocation: filepath.Join(config.remotePath, finalFileName),
+		StartTime:      startTime,
+		EndTime:        time.Now().Format("2006-01-02 15:04:05"),
+	})
 	//Delete temp
 	deleteTemp()
 	utils.Info("Backup completed successfully")
@@ -287,6 +316,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 }
 func sshBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to Remote server")
+	startTime = time.Now().Format("2006-01-02 15:04:05")
 	//Backup database
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
@@ -301,6 +331,12 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error uploading file to the remote server: %s ", err)
 
 	}
+	//Get backup info
+	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		utils.Error("Error:", err)
+	}
+	backupSize = fileInfo.Size()
 
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
@@ -316,7 +352,15 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 
 	utils.Done("Uploading backup archive to remote storage ... done ")
 	//Send notification
-	utils.NotifySuccess(finalFileName)
+	utils.NotifySuccess(&utils.NotificationData{
+		File:           finalFileName,
+		BackupSize:     backupSize,
+		Database:       db.dbName,
+		Storage:        config.storage,
+		BackupLocation: filepath.Join(config.remotePath, finalFileName),
+		StartTime:      startTime,
+		EndTime:        time.Now().Format("2006-01-02 15:04:05"),
+	})
 	//Delete temp
 	deleteTemp()
 	utils.Info("Backup completed successfully")
@@ -324,6 +368,8 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 }
 func ftpBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to the remote FTP server")
+	startTime = time.Now().Format("2006-01-02 15:04:05")
+
 	//Backup database
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
@@ -338,7 +384,12 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error uploading file to the remote FTP server: %s ", err)
 
 	}
-
+	//Get backup info
+	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+	if err != nil {
+		utils.Error("Error:", err)
+	}
+	backupSize = fileInfo.Size()
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
@@ -352,8 +403,17 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	}
 
 	utils.Done("Uploading backup archive to the remote FTP server ... done ")
+
 	//Send notification
-	utils.NotifySuccess(finalFileName)
+	utils.NotifySuccess(&utils.NotificationData{
+		File:           finalFileName,
+		BackupSize:     backupSize,
+		Database:       db.dbName,
+		Storage:        config.storage,
+		BackupLocation: filepath.Join(config.remotePath, finalFileName),
+		StartTime:      startTime,
+		EndTime:        time.Now().Format("2006-01-02 15:04:05"),
+	})
 	//Delete temp
 	deleteTemp()
 	utils.Info("Backup completed successfully")

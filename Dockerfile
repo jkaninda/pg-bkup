@@ -47,6 +47,7 @@ ENV TZ=UTC
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
+ARG TEMPLATES_DIR="/config/templates"
 ARG appVersion="v1.2.11"
 ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
@@ -55,12 +56,14 @@ LABEL version=${appVersion}
 RUN apk --update add --no-cache postgresql-client tzdata
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
+RUN mkdir $TEMPLATES_DIR
 RUN mkdir -p $BACKUP_TMP_DIR
 RUN chmod 777 $WORKDIR
 RUN chmod 777 $BACKUPDIR
 RUN chmod 777 $BACKUP_TMP_DIR
 RUN chmod 777 $WORKDIR
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
+COPY ./templates/* $TEMPLATES_DIR/
 RUN chmod +x /usr/local/bin/pg-bkup
 
 RUN ln -s /usr/local/bin/pg-bkup /usr/local/bin/bkup
