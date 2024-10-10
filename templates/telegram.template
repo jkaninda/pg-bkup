@@ -9,3 +9,4 @@ Backup Details:
 - Backup Storage: {{.Storage}}
 - Backup Location: {{.BackupLocation}}
 - Backup Size: {{.BackupSize}} bytes
+- Backup Reference: {{.BackupReference}}

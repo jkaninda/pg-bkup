@@ -31,8 +31,8 @@ func parseTemplate[T any](data T, fileName string) (string, error) {
 	return buf.String(), nil
 }
 
-func SendEmail(subject, body string) {
-	Info("Start sending email....")
+func SendEmail(subject, body string) error {
+	Info("Start sending email notification....")
 	config := loadMailConfig()
 	emails := strings.Split(config.MailTo, ",")
 	m := mail.NewMessage()
@@ -44,14 +44,16 @@ func SendEmail(subject, body string) {
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: config.SkipTls}
 
 	if err := d.DialAndSend(m); err != nil {
-		Fatal("Error could not send email : %v", err)
+		Error("Error could not send email : %v", err)
+		return err
 	}
-	Info("Email has been sent")
+	Info("Email notification has been sent")
+	return nil
 
 }
-func sendMessage(msg string) {
+func sendMessage(msg string) error {
 
-	Info("Sending notification... ")
+	Info("Sending Telegram notification... ")
 	chatId := os.Getenv("TG_CHAT_ID")
 	body, _ := json.Marshal(map[string]string{
 		"chat_id": chatId,
@@ -67,18 +69,21 @@ func sendMessage(msg string) {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	code := response.StatusCode
 	if code == 200 {
-		Info("Notification has been sent")
+		Info("Telegram notification has been sent")
+		return nil
 	} else {
 		body, _ := ioutil.ReadAll(response.Body)
-		Fatal("Error could not send message, error: %s", string(body))
+		Error("Error could not send message, error: %s", string(body))
+		return fmt.Errorf("error could not send message %s", string(body))
 	}
 
 }
 func NotifySuccess(notificationData *NotificationData) {
+	notificationData.BackupReference = backupReference()
 	var vars = []string{
 		"TG_TOKEN",
 		"TG_CHAT_ID",
@@ -99,17 +104,23 @@ func NotifySuccess(notificationData *NotificationData) {
 		if err != nil {
 			Error("Could not parse email template: %v", err)
 		}
-		SendEmail(fmt.Sprintf("✅  Database Backup Notification – %s", notificationData.Database), body)
+		err = SendEmail(fmt.Sprintf("✅  Database Backup Notification – %s", notificationData.Database), body)
+		if err != nil {
+			Error("Could not send email: %v", err)
+		}
 	}
 	//Telegram notification
 	err = CheckEnvVars(vars)
 	if err == nil {
 		message, err := parseTemplate(*notificationData, "telegram.template")
 		if err != nil {
-			Error("Could not parse email template: %v", err)
+			Error("Could not parse telegram template: %v", err)
 		}
 
-		sendMessage(message)
+		err = sendMessage(message)
+		if err != nil {
+			Error("Could not send Telegram message: %v", err)
+		}
 	}
 }
 func NotifyError(error string) {
@@ -130,26 +141,35 @@ func NotifyError(error string) {
 	err := CheckEnvVars(mailVars)
 	if err == nil {
 		body, err := parseTemplate(ErrorMessage{
-			Error:   error,
-			EndTime: time.Now().Format("2006-01-02 15:04:05"),
+			Error:           error,
+			EndTime:         time.Now().Format(TimeFormat()),
+			BackupReference: os.Getenv("BACKUP_REFERENCE"),
 		}, "email-error.template")
 		if err != nil {
-			Error("Could not parse email template: %v", err)
+			Error("Could not parse error template: %v", err)
 		}
-		SendEmail(fmt.Sprintf("🔴 Urgent: Database Backup Failure Notification"), body)
+		err = SendEmail(fmt.Sprintf("🔴 Urgent: Database Backup Failure Notification"), body)
+		if err != nil {
+			Error("Could not send email: %v", err)
+		}
 	}
 	//Telegram notification
 	err = CheckEnvVars(vars)
 	if err == nil {
 		message, err := parseTemplate(ErrorMessage{
-			Error:   error,
-			EndTime: time.Now().Format("2006-01-02 15:04:05"),
+			Error:           error,
+			EndTime:         time.Now().Format(TimeFormat()),
+			BackupReference: os.Getenv("BACKUP_REFERENCE"),
 		}, "telegram-error.template")
 		if err != nil {
-			Error("Could not parse email template: %v", err)
+			Error("Could not parse error template: %v", err)
+
 		}
 
-		sendMessage(message)
+		err = sendMessage(message)
+		if err != nil {
+			Error("Could not send telegram message: %v", err)
+		}
 	}
 }
 

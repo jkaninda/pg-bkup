@@ -15,6 +15,7 @@
 <li>Backup Storage: {{.Storage}}</li>
 <li>Backup Location: {{.BackupLocation}}</li>
 <li>Backup Size: {{.BackupSize}} bytes</li>
+<li>Backup Reference: {{.BackupReference}} </li>
 </ul>
 <p>Best regards,</p>
 <p>©2024 <a href="github.com/jkaninda/pg-bkup">pg-bkup</a></p>
