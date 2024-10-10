@@ -8,6 +8,7 @@ nav_order: 1
 {:.no_toc}
 PostreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, ftp and SSH compatible storage.
 It also supports database __encryption__ using GPG.
+
 Telegram and Email notifications on successful and failed backups.
 
 
