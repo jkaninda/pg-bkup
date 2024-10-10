@@ -6,6 +6,8 @@ The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image c
 It handles __recurring__ backups of postgres database on Docker and can be deployed as __Job or CronJob  on Kubernetes__ using local, AWS S3 or SSH compatible storage.
 
 It also supports __encrypting__ your backups using GPG.
+Telegram and Email notifications on successful and failed backups.
+
 
 [![Build](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/pg-bkup)
