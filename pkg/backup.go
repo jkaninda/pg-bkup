@@ -260,7 +260,6 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 
 func s3Backup(db *dbConfig, config *BackupConfig) {
 	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
-	s3Path := utils.GetEnvVariable("AWS_S3_PATH", "S3_PATH")
 	utils.Info("Backup database to s3 storage")
 	startTime = time.Now().Format(utils.TimeFormat())
 	//Backup database
@@ -273,7 +272,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Uploading backup archive to remote storage S3 ... ")
 
 	utils.Info("Backup name is %s", finalFileName)
-	err := UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
+	err := UploadFileToS3(tmpPath, finalFileName, bucket, config.remotePath)
 	if err != nil {
 		utils.Fatal("Error uploading backup archive to S3: %s ", err)
 
@@ -293,7 +292,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	}
 	// Delete old backup
 	if config.prune {
-		err := DeleteOldBackup(bucket, s3Path, config.backupRetention)
+		err := DeleteOldBackup(bucket, config.remotePath, config.backupRetention)
 		if err != nil {
 			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
