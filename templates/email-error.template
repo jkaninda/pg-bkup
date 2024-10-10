@@ -11,6 +11,7 @@
 <ul>
 <li>Error Message: {{.Error}}</li>
 <li>Date: {{.EndTime}}</li>
+<li>Backup Reference: {{.BackupReference}} </li>
 </ul>
 <p>©2024 <a href="github.com/jkaninda/pg-bkup">pg-bkup</a></p>
 </body>

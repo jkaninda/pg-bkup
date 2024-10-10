@@ -2,6 +2,7 @@
 Hi,
 An error occurred during database backup.
 Failure Details:
-Date: {{.EndTime}}
-Error Message: {{.Error}}
+- Date: {{.EndTime}}
+- Backup Reference: {{.BackupReference}}
+- Error Message: {{.Error}}
 
