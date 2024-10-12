@@ -27,7 +27,8 @@ services:
       - MAIL_PORT=587
       - MAIL_USERNAME=
       - MAIL_PASSWORD=!
-      - MAIL_FROM=
+      - MAIL_FROM=Backup Jobs <backup@example.com>
+      ## Multiple recipients separated by a comma
       - MAIL_TO=me@example.com,team@example.com,manager@example.com
       - MAIL_SKIP_TLS=false
       ## Time format for notification 
@@ -93,13 +94,6 @@ Here is a list of all data passed to the template:
 
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>✅  Database Backup Notification – {{.Database}}</title>
-</head>
-<body>
 <h2>Hi,</h2>
 <p>Backup of the {{.Database}} database has been successfully completed on {{.EndTime}}.</p>
 <h3>Backup Details:</h3>
@@ -113,8 +107,6 @@ Here is a list of all data passed to the template:
     <li>Backup Reference: {{.BackupReference}} </li>
 </ul>
 <p>Best regards,</p>
-</body>
-</html>
 ```
 
 > telegram.template
