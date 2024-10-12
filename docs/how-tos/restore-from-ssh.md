@@ -9,7 +9,7 @@ nav_order: 7
 To restore the database from your remote server, you need to add `restore` command and specify the file to restore by adding `--file store_20231219_022941.sql.gz`.
 
 {: .note }
-It supports __.sql__ and __.sql.gz__ compressed file.
+It supports __.sql__,__.sql.gpg__  and __.sql.gz__,__.sql.gz.gpg__ compressed file.
 
 ### Restore
 
