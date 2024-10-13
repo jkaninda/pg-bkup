@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -232,4 +233,10 @@ func checkConfigFile(filePath string) (string, error) {
 
 	// Return an error if neither file exists
 	return "", fmt.Errorf("no config file found")
+}
+func RemoveLastExtension(filename string) string {
+	if idx := strings.LastIndex(filename, "."); idx != -1 {
+		return filename[:idx]
+	}
+	return filename
 }

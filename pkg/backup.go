@@ -8,6 +8,7 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
@@ -423,16 +424,30 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 }
 
 func encryptBackup(config *BackupConfig) {
+	backupFile, err := os.ReadFile(filepath.Join(tmpPath, config.backupFileName))
+	outputFile := fmt.Sprintf("%s.%s", filepath.Join(tmpPath, config.backupFileName), gpgExtension)
+	if err != nil {
+		utils.Fatal("Error reading backup file: %s ", err)
+	}
 	if config.usingKey {
-		err := encryptWithGPGPublicKey(filepath.Join(tmpPath, config.backupFileName), config.publicKey)
+		utils.Info("Encrypting backup using public key...")
+		pubKey, err := os.ReadFile(config.publicKey)
 		if err != nil {
-			utils.Fatal("error during encrypting backup %v", err)
+			utils.Fatal("Error reading public key: %s ", err)
 		}
+		err = encryptor.EncryptWithPublicKey(backupFile, fmt.Sprintf("%s.%s", filepath.Join(tmpPath, config.backupFileName), gpgExtension), pubKey)
+		if err != nil {
+			utils.Fatal("Error encrypting backup file: %v ", err)
+		}
+		utils.Info("Encrypting backup using public key...done")
+
 	} else if config.passphrase != "" {
-		err := encryptWithGPG(filepath.Join(tmpPath, config.backupFileName), config.passphrase)
+		utils.Info("Encrypting backup using passphrase...")
+		err := encryptor.Encrypt(backupFile, outputFile, config.passphrase)
 		if err != nil {
 			utils.Fatal("error during encrypting backup %v", err)
 		}
+		utils.Info("Encrypting backup using passphrase...done")
 
 	}
 
