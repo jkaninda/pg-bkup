@@ -96,13 +96,12 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 				utils.Fatal("Your file seems to be a GPG file.\nYou need to provide GPG keys. GPG_PASSPHRASE or GPG_PRIVATE_KEY environment variable is required.")
 			} else {
 				utils.Info("Decrypting backup using passphrase...")
-
 				//decryptWithGPG file
 				err := encryptor.Decrypt(rFile, outputFile, conf.passphrase)
 				if err != nil {
 					utils.Fatal("Error decrypting file %s %v", file, err)
 				}
-				utils.Info("Decrypting backup using private key...done")
+				utils.Info("Decrypting backup using passphrase...done")
 				//Update file name
 				conf.file = RemoveLastExtension(file)
 			}
