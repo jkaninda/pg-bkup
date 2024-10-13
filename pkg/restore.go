@@ -7,6 +7,7 @@
 package pkg
 
 import (
+	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -68,24 +69,40 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 		utils.Fatal("Error, file required")
 	}
 	extension := filepath.Ext(filepath.Join(tmpPath, conf.file))
+	rFile, err := os.ReadFile(filepath.Join(tmpPath, conf.file))
+	outputFile := RemoveLastExtension(filepath.Join(tmpPath, conf.file))
+	if err != nil {
+		utils.Fatal("Error reading backup file: %s ", err)
+	}
+
 	if extension == ".gpg" {
 
 		if conf.usingKey {
+			utils.Info("Decrypting backup using private key...")
 			utils.Warn("Backup decryption using a private key is not fully supported")
-			err := decryptWithGPGPrivateKey(filepath.Join(tmpPath, conf.file), conf.privateKey, conf.passphrase)
+			prKey, err := os.ReadFile(conf.privateKey)
+			if err != nil {
+				utils.Fatal("Error reading public key: %s ", err)
+			}
+			err = encryptor.DecryptWithPrivateKey(rFile, outputFile, prKey, conf.passphrase)
 			if err != nil {
 				utils.Fatal("error during decrypting backup %v", err)
 			}
+			utils.Info("Decrypting backup using private key...done")
+
 		} else {
 			if conf.passphrase == "" {
 				utils.Error("Error, passphrase or private key required")
 				utils.Fatal("Your file seems to be a GPG file.\nYou need to provide GPG keys. GPG_PASSPHRASE or GPG_PRIVATE_KEY environment variable is required.")
 			} else {
+				utils.Info("Decrypting backup using passphrase...")
+
 				//decryptWithGPG file
-				err := decryptWithGPG(filepath.Join(tmpPath, conf.file), conf.passphrase)
+				err := encryptor.Decrypt(rFile, outputFile, conf.passphrase)
 				if err != nil {
 					utils.Fatal("Error decrypting file %s %v", file, err)
 				}
+				utils.Info("Decrypting backup using private key...done")
 				//Update file name
 				conf.file = RemoveLastExtension(file)
 			}

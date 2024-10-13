@@ -1,6 +1,6 @@
 module github.com/jkaninda/pg-bkup
 
-go 1.21.0
+go 1.23.2
 
 require (
 	github.com/ProtonMail/gopenpgp/v2 v2.7.5
@@ -21,6 +21,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jkaninda/encryptor v0.0.0-20241013043504-6641402116a4 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
