@@ -1,0 +1,23 @@
+name: Build
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Build
+        uses: docker/build-push-action@v3
+        with:
+          push: false
+          file: "./Dockerfile"
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            appVersion=merge-${{ github.sha }}
+          tags: |
+            "${{vars.BUILDKIT_IMAGE}}:merge-${{ github.sha }}"
+
