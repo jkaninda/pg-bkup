@@ -15,6 +15,7 @@ ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
 ARG BACKUP_TMP_DIR="/tmp/backup"
 ARG TEMPLATES_DIR="/config/templates"
+ARG appVersion=""
 ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
 LABEL version=${appVersion}
