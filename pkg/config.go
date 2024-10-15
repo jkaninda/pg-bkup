@@ -154,11 +154,11 @@ func initAWSConfig() *AWSConfig {
 	aConfig.region = os.Getenv("AWS_REGION")
 	disableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
 	if err != nil {
-		utils.Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)
+		disableSsl = false
 	}
 	forcePathStyle, err := strconv.ParseBool(os.Getenv("AWS_FORCE_PATH_STYLE"))
 	if err != nil {
-		utils.Fatal("Unable to parse AWS_FORCE_PATH_STYLE env var: %s", err)
+		forcePathStyle = false
 	}
 	aConfig.disableSsl = disableSsl
 	aConfig.forcePathStyle = forcePathStyle
@@ -253,7 +253,7 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 func initTargetDbConfig() *targetDbConfig {
 	tdbConfig := targetDbConfig{}
 	tdbConfig.targetDbHost = os.Getenv("TARGET_DB_HOST")
-	tdbConfig.targetDbPort = os.Getenv("TARGET_DB_PORT")
+	tdbConfig.targetDbPort = utils.EnvWithDefault("TARGET_DB_PORT", "5432")
 	tdbConfig.targetDbName = os.Getenv("TARGET_DB_NAME")
 	tdbConfig.targetDbUserName = os.Getenv("TARGET_DB_USERNAME")
 	tdbConfig.targetDbPassword = os.Getenv("TARGET_DB_PASSWORD")
