@@ -180,3 +180,11 @@ func GetIntEnv(envName string) int {
 	}
 	return ret
 }
+
+func EnvWithDefault(envName string, defaultValue string) string {
+	value := os.Getenv(envName)
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}
