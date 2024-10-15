@@ -18,6 +18,7 @@ ARG TEMPLATES_DIR="/config/templates"
 ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
 LABEL version=${appVersion}
+LABEL github="github.com/jkaninda/pg-bkup"
 
 RUN apk --update add --no-cache postgresql-client tzdata ca-certificates
 RUN mkdir $WORKDIR
