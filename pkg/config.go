@@ -177,8 +177,11 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	//Get flag value and set env
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
-	backupRetention, _ := cmd.Flags().GetInt("keep-last")
-	prune, _ := cmd.Flags().GetBool("prune")
+	prune := false
+	backupRetention := utils.GetIntEnv("BACKUP_RETENTION_DAYS")
+	if backupRetention > 0 {
+		prune = true
+	}
 	disableCompression, _ = cmd.Flags().GetBool("disable-compression")
 	_, _ = cmd.Flags().GetString("mode")
 	passphrase := os.Getenv("GPG_PASSPHRASE")
