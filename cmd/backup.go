@@ -30,8 +30,6 @@ func init() {
 	BackupCmd.PersistentFlags().StringP("storage", "s", "local", "Storage. local or s3")
 	BackupCmd.PersistentFlags().StringP("path", "P", "", "AWS S3 path without file name. eg: /custom_path or ssh remote path `/home/foo/backup`")
 	BackupCmd.PersistentFlags().StringP("cron-expression", "", "", "Backup cron expression")
-	BackupCmd.PersistentFlags().BoolP("prune", "", false, "Delete old backup, default disabled")
-	BackupCmd.PersistentFlags().IntP("keep-last", "", 7, "Delete files created more than specified days ago, default 7 days")
 	BackupCmd.PersistentFlags().BoolP("disable-compression", "", false, "Disable backup compression")
 
 }
