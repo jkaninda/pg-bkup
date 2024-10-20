@@ -10,6 +10,7 @@ const tmpPath = "/tmp/backup"
 const gpgHome = "/config/gnupg"
 const algorithm = "aes256"
 const gpgExtension = "gpg"
+const timeFormat = "2006-01-02 at 15:04:05"
 
 var (
 	storage = "local"

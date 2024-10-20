@@ -77,6 +77,8 @@ services:
       - DB_USERNAME=username
       - DB_PASSWORD=password
       - BACKUP_CRON_EXPRESSION=0 1 * * *
+      #Delete old backup created more than specified days ago
+      #- BACKUP_RETENTION_DAYS=7
     # pg-bkup container must be connected to the same network with your database
     networks:
       - web

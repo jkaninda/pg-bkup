@@ -60,7 +60,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command: backup --storage s3 -d my-database --mode scheduled --period "0 1 * * *"
+    command: backup --storage s3 -d my-database"
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
@@ -74,6 +74,8 @@ services:
       - AWS_ACCESS_KEY=xxxx
       - AWS_SECRET_KEY=xxxxx
      # - BACKUP_CRON_EXPRESSION=0 1 * * * # Optional
+      #Delete old backup created more than specified days ago
+      #- BACKUP_RETENTION_DAYS=7
       ## In case you are using S3 alternative such as Minio and your Minio instance is not secured, you change it to true
       - AWS_DISABLE_SSL="false"
      # pg-bkup container must be connected to the same network with your database

@@ -8,11 +8,13 @@ package utils
 
 import (
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
 	"os"
 	"strconv"
+	"time"
 )
 
 // FileExists checks if the file does exist
@@ -187,4 +189,27 @@ func EnvWithDefault(envName string, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+// IsValidCronExpression verify cronExpression and returns boolean
+func IsValidCronExpression(cronExpr string) bool {
+	// Parse the cron expression
+	_, err := cron.ParseStandard(cronExpr)
+	return err == nil
+}
+
+// CronNextTime returns cronExpression next time
+func CronNextTime(cronExpr string) time.Time {
+	// Parse the cron expression
+	schedule, err := cron.ParseStandard(cronExpr)
+	if err != nil {
+		Error("Error parsing cron expression:", err)
+		return time.Time{}
+	}
+	// Get the current time
+	now := time.Now()
+	// Get the next scheduled time
+	next := schedule.Next(now)
+	//Info("The next scheduled time is: %v\n", next)
+	return next
 }
