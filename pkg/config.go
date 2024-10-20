@@ -172,7 +172,6 @@ func initAWSConfig() *AWSConfig {
 func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
 	utils.GetEnv(cmd, "cron-expression", "BACKUP_CRON_EXPRESSION")
-	utils.GetEnv(cmd, "period", "BACKUP_CRON_EXPRESSION")
 	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 	//Get flag value and set env
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")

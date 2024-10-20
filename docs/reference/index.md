@@ -26,8 +26,6 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | --dbname              | -d     | Database name                                                                          |
 | --port                | -p     | Database port (default: 5432)                                                          |
 | --disable-compression |        | Disable database backup compression                                                    |
-| --prune               |        | Delete old backup, default disabled                                                    |
-| --keep-last           |        | Delete old backup created more than specified days ago, default 7 days                 |
 | --cron-expression     |        | Backup cron expression, eg: (* * * * *) or @daily                                      |
 | --help                | -h     | Print this help message and exit                                                       |
 | --version             | -V     | Print version information and exit                                                     |
@@ -52,6 +50,7 @@ Backup, restore and migrate targets, schedule and retention are configured using
 | GPG_PASSPHRASE         | Optional, required to encrypt and restore backup              | GPG passphrase                                                  |
 | GPG_PUBLIC_KEY         | Optional, required to encrypt backup                          | GPG public key, used to encrypt backup (/config/public_key.asc) |
 | BACKUP_CRON_EXPRESSION | Optional if it was provided from the `--cron-expression` flag | Backup cron expression for docker in scheduled mode             |
+| BACKUP_RETENTION_DAYS  | Optional                                                      | Delete old backup created more than specified days ago          |
 | SSH_HOST               | Optional, required for SSH storage                            | ssh remote hostname or ip                                       |
 | SSH_USER               | Optional, required for SSH storage                            | ssh remote user                                                 |
 | SSH_PASSWORD           | Optional, required for SSH storage                            | ssh remote user's password                                      |

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-mail/mail"
-	"github.com/robfig/cron/v3"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -176,8 +175,4 @@ func NotifyError(error string) {
 func getTgUrl() string {
 	return fmt.Sprintf("https://api.telegram.org/bot%s", os.Getenv("TG_TOKEN"))
 
-}
-func IsValidCronExpression(cronExpr string) bool {
-	_, err := cron.ParseStandard(cronExpr)
-	return err == nil
 }

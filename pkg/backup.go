@@ -46,6 +46,7 @@ func StartBackup(cmd *cobra.Command) {
 func scheduledMode(db *dbConfig, config *BackupConfig) {
 	utils.Info("Running in Scheduled mode")
 	utils.Info("Backup cron expression:  %s", config.cronExpression)
+	utils.Info("The next scheduled time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat))
 	utils.Info("Storage type %s ", config.storage)
 
 	//Test backup
@@ -58,6 +59,8 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	_, err := c.AddFunc(config.cronExpression, func() {
 		BackupTask(db, config)
+		utils.Info("Next backup time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat))
+
 	})
 	if err != nil {
 		return
@@ -80,6 +83,8 @@ func multiBackupTask(databases []Database, bkConfig *BackupConfig) {
 		BackupTask(getDatabase(db), bkConfig)
 	}
 }
+
+// BackupTask backups database
 func BackupTask(db *dbConfig, config *BackupConfig) {
 	utils.Info("Starting backup task...")
 	//Generate file name
@@ -121,6 +126,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 		if utils.IsValidCronExpression(bkConfig.cronExpression) {
 			utils.Info("Running MultiBackup in Scheduled mode")
 			utils.Info("Backup cron expression:  %s", bkConfig.cronExpression)
+			utils.Info("The next scheduled time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
 			utils.Info("Storage type %s ", bkConfig.storage)
 
 			//Test backup
@@ -132,8 +138,9 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 			c := cron.New()
 
 			_, err := c.AddFunc(bkConfig.cronExpression, func() {
-				// Create a channel
 				multiBackupTask(conf.Databases, bkConfig)
+				utils.Info("Next backup time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
+
 			})
 			if err != nil {
 				return
