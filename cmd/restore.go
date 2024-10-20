@@ -20,7 +20,7 @@ var RestoreCmd = &cobra.Command{
 		if len(args) == 0 {
 			pkg.StartRestore(cmd)
 		} else {
-			utils.Fatal("Error, no argument required")
+			utils.Fatal(`"restore" accepts no argument %q`, args)
 
 		}
 

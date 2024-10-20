@@ -19,7 +19,7 @@ var MigrateCmd = &cobra.Command{
 		if len(args) == 0 {
 			pkg.StartMigration(cmd)
 		} else {
-			utils.Fatal("Error, no argument required")
+			utils.Fatal(`"migrate" accepts no argument %q`, args)
 
 		}
 
