@@ -213,3 +213,7 @@ func CronNextTime(cronExpr string) time.Time {
 	//Info("The next scheduled time is: %v\n", next)
 	return next
 }
+func UsageErrorf(cmd *cobra.Command, message string, args ...interface{}) error {
+	msg := fmt.Sprintf(message, args...)
+	return fmt.Errorf("%s\nSee '%s -h' for help and examples", msg, cmd.CommandPath())
+}
