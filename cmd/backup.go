@@ -28,7 +28,7 @@ var BackupCmd = &cobra.Command{
 
 func init() {
 	//Backup
-	BackupCmd.PersistentFlags().StringP("storage", "s", "local", "Storage. local or s3")
+	BackupCmd.PersistentFlags().StringP("storage", "s", "local", "Define storage: local, s3, ssh, ftp")
 	BackupCmd.PersistentFlags().StringP("path", "P", "", "AWS S3 path without file name. eg: /custom_path or ssh remote path `/home/foo/backup`")
 	BackupCmd.PersistentFlags().StringP("cron-expression", "", "", "Backup cron expression")
 	BackupCmd.PersistentFlags().BoolP("disable-compression", "", false, "Disable backup compression")

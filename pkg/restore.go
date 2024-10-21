@@ -127,7 +127,7 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 				utils.Fatal("Error, in restoring the database %v", err)
 			}
 			utils.Info("Restoring database... done")
-			utils.Done("Database has been restored")
+			utils.Info("Database has been restored")
 			//Delete temp
 			deleteTemp()
 
@@ -139,7 +139,7 @@ func RestoreDatabase(db *dbConfig, conf *RestoreConfig) {
 				utils.Fatal("Error in restoring the database %v", err)
 			}
 			utils.Info("Restoring database... done")
-			utils.Done("Database has been restored")
+			utils.Info("Database has been restored")
 			//Delete temp
 			deleteTemp()
 		} else {
