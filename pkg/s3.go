@@ -106,6 +106,8 @@ func DownloadFile(destinationPath, key, bucket, prefix string) error {
 	return nil
 }
 func DeleteOldBackup(bucket, prefix string, retention int) error {
+	utils.Info("Deleting old backups...")
+	utils.Info("Bucket %s Prefix: %s Retention: %d", bucket, prefix, retention)
 	sess, err := CreateSession()
 	if err != nil {
 		return err
@@ -113,7 +115,7 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 
 	svc := s3.New(sess)
 
-	// Get the current time and the time threshold for 7 days ago
+	// Get the current time
 	now := time.Now()
 	backupRetentionDays := now.AddDate(0, 0, -retention)
 
@@ -125,6 +127,7 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 	err = svc.ListObjectsV2Pages(listObjectsInput, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
 		for _, object := range page.Contents {
 			if object.LastModified.Before(backupRetentionDays) {
+				utils.Info("Deleting old backup: %s", *object.Key)
 				// Object is older than retention days, delete it
 				_, err := svc.DeleteObject(&s3.DeleteObjectInput{
 					Bucket: aws.String(bucket),
@@ -133,7 +136,7 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 				if err != nil {
 					utils.Info("Failed to delete object %s: %v", *object.Key, err)
 				} else {
-					utils.Info("Deleted object %s\n", *object.Key)
+					utils.Info("Deleted object %s", *object.Key)
 				}
 			}
 		}
@@ -143,6 +146,6 @@ func DeleteOldBackup(bucket, prefix string, retention int) error {
 		utils.Error("Failed to list objects: %v", err)
 	}
 
-	utils.Info("Finished deleting old files.")
+	utils.Info("Deleting old backups...done")
 	return nil
 }

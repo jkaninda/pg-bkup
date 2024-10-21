@@ -44,16 +44,6 @@ func Error(msg string, args ...any) {
 		fmt.Printf("%s ERROR: %s\n", currentTime, formattedMessage)
 	}
 }
-func Done(msg string, args ...any) {
-	var currentTime = time.Now().Format("2006/01/02 15:04:05")
-	formattedMessage := fmt.Sprintf(msg, args...)
-	if len(args) == 0 {
-		fmt.Printf("%s INFO: %s\n", currentTime, msg)
-	} else {
-		fmt.Printf("%s INFO: %s\n", currentTime, formattedMessage)
-	}
-}
-
 func Fatal(msg string, args ...any) {
 	var currentTime = time.Now().Format("2006/01/02 15:04:05")
 	// Fatal logs an error message and exits the program.

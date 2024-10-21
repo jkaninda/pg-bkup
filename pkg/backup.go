@@ -308,7 +308,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
 	}
-	utils.Done("Uploading backup archive to remote storage S3 ... done ")
+	utils.Info("Uploading backup archive to remote storage S3 ... done ")
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
@@ -360,7 +360,7 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 
 	}
 
-	utils.Done("Uploading backup archive to remote storage ... done ")
+	utils.Info("Uploading backup archive to remote storage ... done ")
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
@@ -412,7 +412,7 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 
 	}
 
-	utils.Done("Uploading backup archive to the remote FTP server ... done ")
+	utils.Info("Uploading backup archive to the remote FTP server ... done ")
 
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
