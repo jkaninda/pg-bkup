@@ -37,7 +37,7 @@ services:
       - AWS_SECRET_KEY=xxxxx
       ## In case you are using S3 alternative such as Minio and your Minio instance is not secured, you change it to true
       - AWS_DISABLE_SSL="false"
-      - AWS_FORCE_PATH_STYLE="false"
+      - AWS_FORCE_PATH_STYLE=false # true for S3 alternative such as Minio
  
     # pg-bkup container must be connected to the same network with your database
     networks:
@@ -78,6 +78,7 @@ services:
       #- BACKUP_RETENTION_DAYS=7
       ## In case you are using S3 alternative such as Minio and your Minio instance is not secured, you change it to true
       - AWS_DISABLE_SSL="false"
+      - AWS_FORCE_PATH_STYLE=true # true for S3 alternative such as Minio
      # pg-bkup container must be connected to the same network with your database
     networks:
       - web
