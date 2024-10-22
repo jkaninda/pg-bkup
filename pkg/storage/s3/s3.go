@@ -28,8 +28,8 @@ type Config struct {
 	Region         string
 	DisableSsl     bool
 	ForcePathStyle bool
-	LocalPath string
-	RemotePath string
+	LocalPath      string
+	RemotePath     string
 }
 
 // CreateSession creates a new AWS session
@@ -55,7 +55,7 @@ func NewStorage(conf Config) (storage.Storage, error) {
 		bucket: conf.Bucket,
 		Backend: &storage.Backend{
 			RemotePath: conf.RemotePath,
-			LocalPath: conf.LocalPath,
+			LocalPath:  conf.LocalPath,
 		},
 	}, nil
 }
@@ -93,7 +93,6 @@ func (s s3Storage) Copy(fileName string) error {
 
 // CopyFrom copies a file from the remote server to local storage
 func (s s3Storage) CopyFrom(fileName string) error {
-	utils.Info("Copy data from S3 storage...")
 	file, err := os.Create(filepath.Join(s.LocalPath, fileName))
 	if err != nil {
 		return err

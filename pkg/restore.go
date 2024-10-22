@@ -82,10 +82,6 @@ func restoreFromS3(db *dbConfig, conf *RestoreConfig) {
 }
 func restoreFromRemote(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from remote server")
-	//err := CopyFromRemote(conf.file, conf.remotePath)
-	//if err != nil {
-	//	utils.Fatal("Error download file from remote server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
-	//}
 	sshConfig, err := loadSSHConfig()
 	if err != nil {
 		utils.Fatal("Error loading ssh config: %s", err)
@@ -110,10 +106,6 @@ func restoreFromRemote(db *dbConfig, conf *RestoreConfig) {
 }
 func restoreFromFTP(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from FTP server")
-	//err := CopyFromFTP(conf.file, conf.remotePath)
-	//if err != nil {
-	//	utils.Fatal("Error download file from FTP server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
-	//}
 	ftpConfig := loadFtpConfig()
 	ftpStorage, err := ftp.NewStorage(ftp.Config{
 		Host:       ftpConfig.host,
