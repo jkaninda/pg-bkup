@@ -8,6 +8,10 @@ package pkg
 
 import (
 	"github.com/jkaninda/encryptor"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ftp"
+	"github.com/jkaninda/pg-bkup/pkg/storage/local"
+	"github.com/jkaninda/pg-bkup/pkg/storage/s3"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ssh"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -22,9 +26,7 @@ func StartRestore(cmd *cobra.Command) {
 
 	switch restoreConf.storage {
 	case "local":
-		utils.Info("Restore database from local")
-		copyToTmp(storagePath, restoreConf.file)
-		RestoreDatabase(dbConf, restoreConf)
+		localRestore(dbConf, restoreConf)
 	case "s3", "S3":
 		restoreFromS3(dbConf, restoreConf)
 	case "ssh", "SSH", "remote":
@@ -32,33 +34,101 @@ func StartRestore(cmd *cobra.Command) {
 	case "ftp", "FTP":
 		restoreFromFTP(dbConf, restoreConf)
 	default:
-		utils.Info("Restore database from local")
-		copyToTmp(storagePath, restoreConf.file)
-		RestoreDatabase(dbConf, restoreConf)
+		localRestore(dbConf, restoreConf)
 	}
 }
+func localRestore(dbConf *dbConfig, restoreConf *RestoreConfig) {
+	utils.Info("Restore database from local")
+	localStorage := local.NewStorage(local.Config{
+		RemotePath: storagePath,
+		LocalPath:  tmpPath,
+	})
+	err := localStorage.CopyFrom(restoreConf.file)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
+	}
+	RestoreDatabase(dbConf, restoreConf)
 
+}
 func restoreFromS3(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from s3")
-	err := DownloadFile(tmpPath, conf.file, conf.bucket, conf.s3Path)
+	//err := DownloadFile(tmpPath, conf.file, conf.bucket, conf.s3Path)
+	//if err != nil {
+	//	utils.Fatal("Error download file from s3 %s %v ", conf.file, err)
+	//}
+	awsConfig := initAWSConfig()
+	if conf.remotePath == "" {
+		conf.remotePath = awsConfig.remotePath
+	}
+	s3Storage, err := s3.NewStorage(s3.Config{
+		Endpoint:       awsConfig.endpoint,
+		Bucket:         awsConfig.bucket,
+		AccessKey:      awsConfig.accessKey,
+		SecretKey:      awsConfig.secretKey,
+		Region:         awsConfig.region,
+		DisableSsl:     awsConfig.disableSsl,
+		ForcePathStyle: awsConfig.forcePathStyle,
+		RemotePath:     awsConfig.remotePath,
+		LocalPath:      tmpPath,
+	})
 	if err != nil {
-		utils.Fatal("Error download file from s3 %s %v ", conf.file, err)
+		utils.Fatal("Error creating s3 storage: %s", err)
+	}
+	err = s3Storage.CopyFrom(conf.file)
+	if err != nil {
+		utils.Fatal("Error download file from S3 storage: %s", err)
 	}
 	RestoreDatabase(db, conf)
 }
 func restoreFromRemote(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from remote server")
-	err := CopyFromRemote(conf.file, conf.remotePath)
+	//err := CopyFromRemote(conf.file, conf.remotePath)
+	//if err != nil {
+	//	utils.Fatal("Error download file from remote server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
+	//}
+	sshConfig, err := loadSSHConfig()
 	if err != nil {
-		utils.Fatal("Error download file from remote server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
+		utils.Fatal("Error loading ssh config: %s", err)
+	}
+
+	sshStorage, err := ssh.NewStorage(ssh.Config{
+		Host:       sshConfig.hostName,
+		Port:       sshConfig.port,
+		User:       sshConfig.user,
+		Password:   sshConfig.password,
+		RemotePath: conf.remotePath,
+		LocalPath:  tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = sshStorage.CopyFrom(conf.file)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %w", err)
 	}
 	RestoreDatabase(db, conf)
 }
 func restoreFromFTP(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from FTP server")
-	err := CopyFromFTP(conf.file, conf.remotePath)
+	//err := CopyFromFTP(conf.file, conf.remotePath)
+	//if err != nil {
+	//	utils.Fatal("Error download file from FTP server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
+	//}
+	ftpConfig := loadFtpConfig()
+	ftpStorage, err := ftp.NewStorage(ftp.Config{
+		Host:       ftpConfig.host,
+		Port:       ftpConfig.port,
+		User:       ftpConfig.user,
+		Password:   ftpConfig.password,
+		RemotePath: conf.remotePath,
+		LocalPath:  tmpPath,
+	})
 	if err != nil {
-		utils.Fatal("Error download file from FTP server: %s %v", filepath.Join(conf.remotePath, conf.file), err)
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = ftpStorage.CopyFrom(conf.file)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
 	}
 	RestoreDatabase(db, conf)
 }
