@@ -249,7 +249,6 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	}
 	backupSize = fileInfo.Size()
 	utils.Info("Backup name is %s", finalFileName)
-	//moveToBackup(finalFileName, storagePath)
 	localStorage := local.NewStorage(local.Config{
 		LocalPath:  tmpPath,
 		RemotePath: storagePath,
