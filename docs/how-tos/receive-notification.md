@@ -74,10 +74,10 @@ networks:
 The title and body of the notifications can be tailored to your needs using Go templates.
 Template sources must be mounted inside the container in /config/templates:
 
-- email.template: Email notification template
-- telegram.template: Telegram notification template
-- email-error.template: Error notification template
-- telegram-error.template: Error notification template
+- email.tmpl: Email notification template
+- telegram.tmpl: Telegram notification template
+- email-error.tmpl: Error notification template
+- telegram-error.tmpl: Error notification template
 
 ### Data
 
