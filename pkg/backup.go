@@ -9,9 +9,14 @@ package pkg
 import (
 	"fmt"
 	"github.com/jkaninda/encryptor"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ftp"
+	"github.com/jkaninda/pg-bkup/pkg/storage/local"
+	"github.com/jkaninda/pg-bkup/pkg/storage/s3"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ssh"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
+
 	"log"
 	"os"
 	"os/exec"
@@ -108,7 +113,7 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 	}
 }
 func startMultiBackup(bkConfig *BackupConfig, configFile string) {
-	utils.Info("Starting multiple backup job...")
+	utils.Info("Starting backup task...")
 	conf, err := readConf(configFile)
 	if err != nil {
 		utils.Fatal("Error reading config file: %s", err)
@@ -123,7 +128,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 	} else {
 		// Check if cronExpression is valid
 		if utils.IsValidCronExpression(bkConfig.cronExpression) {
-			utils.Info("Running MultiBackup in Scheduled mode")
+			utils.Info("Running backup in Scheduled mode")
 			utils.Info("Backup cron expression:  %s", bkConfig.cronExpression)
 			utils.Info("The next scheduled time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
 			utils.Info("Storage type %s ", bkConfig.storage)
@@ -132,7 +137,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 			utils.Info("Testing backup configurations...")
 			multiBackupTask(conf.Databases, bkConfig)
 			utils.Info("Testing backup configurations...done")
-			utils.Info("Creating multi backup job...")
+			utils.Info("Creating backup job...")
 			// Create a new cron instance
 			c := cron.New()
 
@@ -146,7 +151,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 			}
 			// Start the cron scheduler
 			c.Start()
-			utils.Info("Creating multi backup job...done")
+			utils.Info("Creating backup job...done")
 			utils.Info("Backup job started")
 			defer c.Stop()
 			select {}
@@ -244,21 +249,32 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	}
 	backupSize = fileInfo.Size()
 	utils.Info("Backup name is %s", finalFileName)
-	moveToBackup(finalFileName, storagePath)
-
+	localStorage := local.NewStorage(local.Config{
+		LocalPath:  tmpPath,
+		RemotePath: storagePath,
+	})
+	err = localStorage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
+	}
+	utils.Info("Backup saved in %s", filepath.Join(storagePath, finalFileName))
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
 		BackupSize:     backupSize,
 		Database:       db.dbName,
 		Storage:        config.storage,
-		BackupLocation: filepath.Join(config.remotePath, finalFileName),
+		BackupLocation: filepath.Join(storagePath, finalFileName),
 		StartTime:      startTime,
 		EndTime:        time.Now().Format(utils.TimeFormat()),
 	})
 	//Delete old backup
 	if config.prune {
-		deleteOldBackup(config.backupRetention)
+		err = localStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Fatal("Error deleting old backup from %s storage: %s ", config.storage, err)
+		}
+
 	}
 	//Delete temp
 	deleteTemp()
@@ -266,11 +282,7 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 }
 
 func s3Backup(db *dbConfig, config *BackupConfig) {
-	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
-	s3Path := utils.GetEnvVariable("AWS_S3_PATH", "S3_PATH")
-	if config.remotePath != "" {
-		s3Path = config.remotePath
-	}
+
 	utils.Info("Backup database to s3 storage")
 	startTime = time.Now().Format(utils.TimeFormat())
 	//Backup database
@@ -281,12 +293,28 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to remote storage S3 ... ")
-
+	awsConfig := initAWSConfig()
+	if config.remotePath == "" {
+		config.remotePath = awsConfig.remotePath
+	}
 	utils.Info("Backup name is %s", finalFileName)
-	err := UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
+	s3Storage, err := s3.NewStorage(s3.Config{
+		Endpoint:       awsConfig.endpoint,
+		Bucket:         awsConfig.bucket,
+		AccessKey:      awsConfig.accessKey,
+		SecretKey:      awsConfig.secretKey,
+		Region:         awsConfig.region,
+		DisableSsl:     awsConfig.disableSsl,
+		ForcePathStyle: awsConfig.forcePathStyle,
+		RemotePath:     awsConfig.remotePath,
+		LocalPath:      tmpPath,
+	})
 	if err != nil {
-		utils.Fatal("Error uploading backup archive to S3: %s ", err)
-
+		utils.Fatal("Error creating s3 storage: %s", err)
+	}
+	err = s3Storage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
 	}
 	//Get backup info
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
@@ -303,11 +331,12 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	}
 	// Delete old backup
 	if config.prune {
-		err := DeleteOldBackup(bucket, s3Path, config.backupRetention)
+		err := s3Storage.Prune(config.backupRetention)
 		if err != nil {
-			utils.Fatal("Error deleting old backup from S3: %s ", err)
+			utils.Fatal("Error deleting old backup from %s storage: %s ", config.storage, err)
 		}
 	}
+	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
 	utils.Info("Uploading backup archive to remote storage S3 ... done ")
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
@@ -315,7 +344,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		BackupSize:     backupSize,
 		Database:       db.dbName,
 		Storage:        config.storage,
-		BackupLocation: filepath.Join(s3Path, finalFileName),
+		BackupLocation: filepath.Join(config.remotePath, finalFileName),
 		StartTime:      startTime,
 		EndTime:        time.Now().Format(utils.TimeFormat()),
 	})
@@ -336,10 +365,25 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	}
 	utils.Info("Uploading backup archive to remote storage ... ")
 	utils.Info("Backup name is %s", finalFileName)
-	err := CopyToRemote(finalFileName, config.remotePath)
+	sshConfig, err := loadSSHConfig()
 	if err != nil {
-		utils.Fatal("Error uploading file to the remote server: %s ", err)
+		utils.Fatal("Error loading ssh config: %s", err)
+	}
 
+	sshStorage, err := ssh.NewStorage(ssh.Config{
+		Host:       sshConfig.hostName,
+		Port:       sshConfig.port,
+		User:       sshConfig.user,
+		Password:   sshConfig.password,
+		RemotePath: config.remotePath,
+		LocalPath:  tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = sshStorage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
 	}
 	//Get backup info
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
@@ -347,6 +391,7 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 		utils.Error("Error:", err)
 	}
 	backupSize = fileInfo.Size()
+	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
 
 	//Delete backup file from tmp folder
 	err = utils.DeleteFile(filepath.Join(tmpPath, finalFileName))
@@ -355,11 +400,12 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 
 	}
 	if config.prune {
-		//TODO: Delete old backup from remote server
-		utils.Info("Deleting old backup from a remote server is not implemented yet")
+		err := sshStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Fatal("Error deleting old backup from %s storage: %s ", config.storage, err)
+		}
 
 	}
-
 	utils.Info("Uploading backup archive to remote storage ... done ")
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
@@ -389,11 +435,23 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	}
 	utils.Info("Uploading backup archive to the remote FTP server ... ")
 	utils.Info("Backup name is %s", finalFileName)
-	err := CopyToFTP(finalFileName, config.remotePath)
+	ftpConfig := loadFtpConfig()
+	ftpStorage, err := ftp.NewStorage(ftp.Config{
+		Host:       ftpConfig.host,
+		Port:       ftpConfig.port,
+		User:       ftpConfig.user,
+		Password:   ftpConfig.password,
+		RemotePath: config.remotePath,
+		LocalPath:  tmpPath,
+	})
 	if err != nil {
-		utils.Fatal("Error uploading file to the remote FTP server: %s ", err)
-
+		utils.Fatal("Error creating SSH storage: %s", err)
 	}
+	err = ftpStorage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
+	}
+	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
 	//Get backup info
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
@@ -407,8 +465,10 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 
 	}
 	if config.prune {
-		//TODO: Delete old backup from remote server
-		utils.Info("Deleting old backup from a remote server is not implemented yet")
+		err := ftpStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Fatal("Error deleting old backup from %s storage: %s ", config.storage, err)
+		}
 
 	}
 

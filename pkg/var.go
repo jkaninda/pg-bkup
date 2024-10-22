@@ -28,6 +28,7 @@ var (
 // dbHVars Required environment variables for database
 var dbHVars = []string{
 	"DB_HOST",
+	"DB_PORT",
 	"DB_PASSWORD",
 	"DB_USERNAME",
 	"DB_NAME",
