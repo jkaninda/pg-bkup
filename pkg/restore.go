@@ -101,7 +101,7 @@ func restoreFromRemote(db *dbConfig, conf *RestoreConfig) {
 	}
 	err = sshStorage.CopyFrom(conf.file)
 	if err != nil {
-		utils.Fatal("Error copying backup file: %w", err)
+		utils.Fatal("Error copying backup file: %s", err)
 	}
 	RestoreDatabase(db, conf)
 }
