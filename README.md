@@ -38,7 +38,8 @@ Successfully tested on:
 ## Storage:
 - Local
 - AWS S3 or any S3 Alternatives for Object Storage
-- SSH remote server
+- SSH remote storage server
+- FTP remote storage server
 
 ## Quickstart
 
