@@ -7,6 +7,10 @@
 package pkg
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/go-storage/pkg/ftp"
 	"github.com/jkaninda/go-storage/pkg/local"
@@ -14,9 +18,6 @@ import (
 	"github.com/jkaninda/go-storage/pkg/ssh"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
-	"path/filepath"
 )
 
 func StartRestore(cmd *cobra.Command) {
@@ -52,10 +53,6 @@ func localRestore(dbConf *dbConfig, restoreConf *RestoreConfig) {
 }
 func restoreFromS3(db *dbConfig, conf *RestoreConfig) {
 	utils.Info("Restore database from s3")
-	//err := DownloadFile(tmpPath, conf.file, conf.bucket, conf.s3Path)
-	//if err != nil {
-	//	utils.Fatal("Error download file from s3 %s %v ", conf.file, err)
-	//}
 	awsConfig := initAWSConfig()
 	if conf.remotePath == "" {
 		conf.remotePath = awsConfig.remotePath
