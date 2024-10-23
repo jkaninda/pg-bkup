@@ -203,7 +203,7 @@ func CronNextTime(cronExpr string) time.Time {
 	// Parse the cron expression
 	schedule, err := cron.ParseStandard(cronExpr)
 	if err != nil {
-		Error("Error parsing cron expression:", err)
+		Error("Error parsing cron expression: %s", err)
 		return time.Time{}
 	}
 	// Get the current time
