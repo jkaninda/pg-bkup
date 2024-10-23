@@ -39,6 +39,8 @@ github.com/jkaninda/encryptor v0.0.0-20241013064832-ed4bd6a1b221 h1:AwkCf7el1kze
 github.com/jkaninda/encryptor v0.0.0-20241013064832-ed4bd6a1b221/go.mod h1:9F8ZJ+ZXE8DZBo77+aneGj8LMjrYXX6eFUCC/uqZOUo=
 github.com/jkaninda/go-storage v0.0.0-20241022140446-c79ba2b4300d h1:AFmLusMhR9TOpkZIFt7+dSSflenGWvTl26RttBo71ds=
 github.com/jkaninda/go-storage v0.0.0-20241022140446-c79ba2b4300d/go.mod h1:7VK5gQISQaLxtLfBtc+een8spcgLVSBAKTRuyF1N81I=
+github.com/jkaninda/go-storage v0.1.1 h1:vjpdD/fh39S5HGyfHvLE5HGYOEPIukINlOX3OnM3GW4=
+github.com/jkaninda/go-storage v0.1.1/go.mod h1:7VK5gQISQaLxtLfBtc+een8spcgLVSBAKTRuyF1N81I=
 github.com/jlaffaye/ftp v0.2.0 h1:lXNvW7cBu7R/68bknOX3MrRIIqZ61zELs1P2RAiA3lg=
 github.com/jlaffaye/ftp v0.2.0/go.mod h1:is2Ds5qkhceAPy2xD6RLI6hmp/qysSoymZ+Z2uTnspI=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
