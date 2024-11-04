@@ -1,10 +1,10 @@
-// Package pkg /
+// Package internal /
 /*****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
 **/
-package pkg
+package internal
 
 import (
 	"fmt"
