@@ -8,51 +8,52 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"time"
 )
 
 // Info message
 func Info(msg string, args ...any) {
-	var currentTime = time.Now().Format("2006/01/02 15:04:05")
+	log.SetOutput(os.Stdout)
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
-		fmt.Printf("%s INFO: %s\n", currentTime, msg)
+		log.Printf("INFO: %s\n", msg)
 	} else {
-		fmt.Printf("%s INFO: %s\n", currentTime, formattedMessage)
+		log.Printf("INFO: %s\n", formattedMessage)
 	}
 }
 
-// Warn Warning message
+// Warn a Warning message
 func Warn(msg string, args ...any) {
-	var currentTime = time.Now().Format("2006/01/02 15:04:05")
+	log.SetOutput(os.Stdout)
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
-		fmt.Printf("%s WARN: %s\n", currentTime, msg)
+		log.Printf("WARN: %s\n", msg)
 	} else {
-		fmt.Printf("%s WARN: %s\n", currentTime, formattedMessage)
+		log.Printf("WARN: %s\n", formattedMessage)
 	}
 }
 
 // Error error message
 func Error(msg string, args ...any) {
-	var currentTime = time.Now().Format("2006/01/02 15:04:05")
+	log.SetOutput(os.Stdout)
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
-		fmt.Printf("%s ERROR: %s\n", currentTime, msg)
+		log.Printf("ERROR: %s\n", msg)
 	} else {
-		fmt.Printf("%s ERROR: %s\n", currentTime, formattedMessage)
+		log.Printf("ERROR: %s\n", formattedMessage)
+
 	}
 }
 func Fatal(msg string, args ...any) {
-	var currentTime = time.Now().Format("2006/01/02 15:04:05")
+	log.SetOutput(os.Stdout)
 	// Fatal logs an error message and exits the program.
 	formattedMessage := fmt.Sprintf(msg, args...)
 	if len(args) == 0 {
-		fmt.Printf("%s ERROR: %s\n", currentTime, msg)
+		log.Printf("ERROR: %s\n", msg)
 		NotifyError(msg)
 	} else {
-		fmt.Printf("%s ERROR: %s\n", currentTime, formattedMessage)
+		log.Printf("ERROR: %s\n", formattedMessage)
 		NotifyError(formattedMessage)
 
 	}
