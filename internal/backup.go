@@ -51,7 +51,7 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	// Test backup
 	logger.Info("Testing backup configurations...")
-	BackupTask(db, config)
+	testDatabaseConnection(db)
 	logger.Info("Testing backup configurations...done")
 	logger.Info("Creating backup job...")
 	// Create a new cron instance
@@ -129,7 +129,9 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 
 			// Test backup
 			logger.Info("Testing backup configurations...")
-			multiBackupTask(conf.Databases, bkConfig)
+			for _, db := range conf.Databases {
+				testDatabaseConnection(getDatabase(db))
+			}
 			logger.Info("Testing backup configurations...done")
 			logger.Info("Creating backup job...")
 			// Create a new cron instance
