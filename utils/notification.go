@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-mail/mail"
+	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -31,7 +32,7 @@ func parseTemplate[T any](data T, fileName string) (string, error) {
 }
 
 func SendEmail(subject, body string) error {
-	Info("Start sending email notification....")
+	logger.Info("Start sending email notification....")
 	config := loadMailConfig()
 	emails := strings.Split(config.MailTo, ",")
 	m := mail.NewMessage()
@@ -43,16 +44,16 @@ func SendEmail(subject, body string) error {
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: config.SkipTls}
 
 	if err := d.DialAndSend(m); err != nil {
-		Error("Error could not send email : %v", err)
+		logger.Error("Error could not send email : %v", err)
 		return err
 	}
-	Info("Email notification has been sent")
+	logger.Info("Email notification has been sent")
 	return nil
 
 }
 func sendMessage(msg string) error {
 
-	Info("Sending Telegram notification... ")
+	logger.Info("Sending Telegram notification... ")
 	chatId := os.Getenv("TG_CHAT_ID")
 	body, _ := json.Marshal(map[string]string{
 		"chat_id": chatId,
@@ -72,11 +73,11 @@ func sendMessage(msg string) error {
 	}
 	code := response.StatusCode
 	if code == 200 {
-		Info("Telegram notification has been sent")
+		logger.Info("Telegram notification has been sent")
 		return nil
 	} else {
-		body, _ := ioutil.ReadAll(response.Body)
-		Error("Error could not send message, error: %s", string(body))
+		body, _ := io.ReadAll(response.Body)
+		logger.Error("Error could not send message, error: %s", string(body))
 		return fmt.Errorf("error could not send message %s", string(body))
 	}
 
@@ -96,29 +97,29 @@ func NotifySuccess(notificationData *NotificationData) {
 		"MAIL_TO",
 	}
 
-	//Email notification
+	// Email notification
 	err := CheckEnvVars(mailVars)
 	if err == nil {
 		body, err := parseTemplate(*notificationData, "email.tmpl")
 		if err != nil {
-			Error("Could not parse email template: %v", err)
+			logger.Error("Could not parse email template: %v", err)
 		}
 		err = SendEmail(fmt.Sprintf("✅  Database Backup Notification – %s", notificationData.Database), body)
 		if err != nil {
-			Error("Could not send email: %v", err)
+			logger.Error("Could not send email: %v", err)
 		}
 	}
-	//Telegram notification
+	// Telegram notification
 	err = CheckEnvVars(vars)
 	if err == nil {
 		message, err := parseTemplate(*notificationData, "telegram.tmpl")
 		if err != nil {
-			Error("Could not parse telegram template: %v", err)
+			logger.Error("Could not parse telegram template: %v", err)
 		}
 
 		err = sendMessage(message)
 		if err != nil {
-			Error("Could not send Telegram message: %v", err)
+			logger.Error("Could not send Telegram message: %v", err)
 		}
 	}
 }
@@ -136,7 +137,7 @@ func NotifyError(error string) {
 		"MAIL_TO",
 	}
 
-	//Email notification
+	// Email notification
 	err := CheckEnvVars(mailVars)
 	if err == nil {
 		body, err := parseTemplate(ErrorMessage{
@@ -145,14 +146,14 @@ func NotifyError(error string) {
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
 		}, "email-error.tmpl")
 		if err != nil {
-			Error("Could not parse error template: %v", err)
+			logger.Error("Could not parse error template: %v", err)
 		}
-		err = SendEmail(fmt.Sprintf("🔴 Urgent: Database Backup Failure Notification"), body)
+		err = SendEmail("🔴 Urgent: Database Backup Failure Notification", body)
 		if err != nil {
-			Error("Could not send email: %v", err)
+			logger.Error("Could not send email: %v", err)
 		}
 	}
-	//Telegram notification
+	// Telegram notification
 	err = CheckEnvVars(vars)
 	if err == nil {
 		message, err := parseTemplate(ErrorMessage{
@@ -161,13 +162,13 @@ func NotifyError(error string) {
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
 		}, "telegram-error.tmpl")
 		if err != nil {
-			Error("Could not parse error template: %v", err)
+			logger.Error("Could not parse error template: %v", err)
 
 		}
 
 		err = sendMessage(message)
 		if err != nil {
-			Error("Could not send telegram message: %v", err)
+			logger.Error("Could not send telegram message: %v", err)
 		}
 	}
 }

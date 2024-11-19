@@ -1,5 +1,6 @@
 // Package utils /
-/*****
+/*
+****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
@@ -8,6 +9,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
@@ -31,7 +33,13 @@ func WriteToFile(filePath, content string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			return
+
+		}
+	}(file)
 
 	_, err = file.WriteString(content)
 	return err
@@ -49,14 +57,25 @@ func CopyFile(src, dst string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
 	}
-	defer sourceFile.Close()
+	defer func(sourceFile *os.File) {
+		err := sourceFile.Close()
+		if err != nil {
+			return
+		}
+	}(sourceFile)
 
 	// Create the destination file
 	destinationFile, err := os.Create(dst)
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %v", err)
 	}
-	defer destinationFile.Close()
+	defer func(destinationFile *os.File) {
+		err := destinationFile.Close()
+		if err != nil {
+			return
+
+		}
+	}(destinationFile)
 
 	// Copy the content from source to destination
 	_, err = io.Copy(destinationFile, sourceFile)
@@ -74,7 +93,7 @@ func CopyFile(src, dst string) error {
 }
 func ChangePermission(filePath string, mod int) {
 	if err := os.Chmod(filePath, fs.FileMode(mod)); err != nil {
-		Fatal("Error changing permissions of %s: %v\n", filePath, err)
+		logger.Fatal("Error changing permissions of %s: %v\n", filePath, err)
 	}
 
 }
@@ -83,7 +102,12 @@ func IsDirEmpty(name string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			return
+		}
+	}(f)
 
 	_, err = f.Readdirnames(1)
 	if err == nil {
@@ -131,7 +155,7 @@ func GetEnvVariable(envName, oldEnvName string) string {
 			if err != nil {
 				return value
 			}
-			Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
+			logger.Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
 		}
 	}
 	return value
@@ -178,7 +202,7 @@ func GetIntEnv(envName string) int {
 	}
 	ret, err := strconv.Atoi(val)
 	if err != nil {
-		Error("Error: %v", err)
+		logger.Error("Error: %v", err)
 	}
 	return ret
 }
@@ -203,14 +227,13 @@ func CronNextTime(cronExpr string) time.Time {
 	// Parse the cron expression
 	schedule, err := cron.ParseStandard(cronExpr)
 	if err != nil {
-		Error("Error parsing cron expression: %s", err)
+		logger.Error("Error parsing cron expression: %s", err)
 		return time.Time{}
 	}
 	// Get the current time
 	now := time.Now()
 	// Get the next scheduled time
 	next := schedule.Next(now)
-	//Info("The next scheduled time is: %v\n", next)
 	return next
 }
 func UsageErrorf(cmd *cobra.Command, message string, args ...interface{}) error {
