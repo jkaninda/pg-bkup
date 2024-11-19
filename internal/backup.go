@@ -3,15 +3,14 @@ package internal
 import (
 	"fmt"
 	"github.com/jkaninda/encryptor"
-	"github.com/jkaninda/go-storage/pkg/ftp"
-	"github.com/jkaninda/go-storage/pkg/local"
-	"github.com/jkaninda/go-storage/pkg/s3"
-	"github.com/jkaninda/go-storage/pkg/ssh"
 	"github.com/jkaninda/pg-bkup/pkg/logger"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ftp"
+	"github.com/jkaninda/pg-bkup/pkg/storage/local"
+	"github.com/jkaninda/pg-bkup/pkg/storage/s3"
+	"github.com/jkaninda/pg-bkup/pkg/storage/ssh"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
-
 	"log"
 	"os"
 	"os/exec"
@@ -51,7 +50,7 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	// Test backup
 	logger.Info("Testing backup configurations...")
-	BackupTask(db, config)
+	testDatabaseConnection(db)
 	logger.Info("Testing backup configurations...done")
 	logger.Info("Creating backup job...")
 	// Create a new cron instance
@@ -116,6 +115,9 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 	if conf.CronExpression != "" {
 		bkConfig.cronExpression = conf.CronExpression
 	}
+	if len(conf.Databases) == 0 {
+		logger.Fatal("No databases found")
+	}
 	// Check if cronExpression is defined
 	if bkConfig.cronExpression == "" {
 		multiBackupTask(conf.Databases, bkConfig)
@@ -129,7 +131,9 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 
 			// Test backup
 			logger.Info("Testing backup configurations...")
-			multiBackupTask(conf.Databases, bkConfig)
+			for _, db := range conf.Databases {
+				testDatabaseConnection(getDatabase(db))
+			}
 			logger.Info("Testing backup configurations...done")
 			logger.Info("Creating backup job...")
 			// Create a new cron instance

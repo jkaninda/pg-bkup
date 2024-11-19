@@ -20,8 +20,8 @@ import (
 )
 
 func intro() {
-	logger.Info("Starting PostgreSQL Backup...")
-	logger.Info("Copyright (c) 2024 Jonas Kaninda ")
+	fmt.Println("Starting PostgreSQL Backup...")
+	fmt.Println("Copyright (c) 2024 Jonas Kaninda ")
 }
 
 // copyToTmp copy file to temporary directory
