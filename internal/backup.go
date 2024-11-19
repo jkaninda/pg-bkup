@@ -116,6 +116,9 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 	if conf.CronExpression != "" {
 		bkConfig.cronExpression = conf.CronExpression
 	}
+	if len(conf.Databases) == 0 {
+		logger.Fatal("No databases found")
+	}
 	// Check if cronExpression is defined
 	if bkConfig.cronExpression == "" {
 		multiBackupTask(conf.Databases, bkConfig)
