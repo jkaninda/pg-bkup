@@ -1,5 +1,6 @@
 // Package internal /
-/*****
+/*
+****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
@@ -8,6 +9,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -86,7 +88,7 @@ type AWSConfig struct {
 }
 
 func initDbConfig(cmd *cobra.Command) *dbConfig {
-	//Set env
+	// Set env
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	dConf := dbConfig{}
 	dConf.dbHost = os.Getenv("DB_HOST")
@@ -97,8 +99,8 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 
 	err := utils.CheckEnvVars(dbHVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for database are set")
-		utils.Fatal("Error checking environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for database are set")
+		logger.Fatal("Error checking environment variables: %s", err)
 	}
 	return &dConf
 }
@@ -131,7 +133,7 @@ func loadSSHConfig() (*SSHConfig, error) {
 	}, nil
 }
 func loadFtpConfig() *FTPConfig {
-	//Initialize data configs
+	// Initialize data configs
 	fConfig := FTPConfig{}
 	fConfig.host = utils.GetEnvVariable("FTP_HOST", "FTP_HOST_NAME")
 	fConfig.user = os.Getenv("FTP_USER")
@@ -140,13 +142,13 @@ func loadFtpConfig() *FTPConfig {
 	fConfig.remotePath = os.Getenv("REMOTE_PATH")
 	err := utils.CheckEnvVars(ftpVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for FTP are set")
-		utils.Fatal("Error missing environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for FTP are set")
+		logger.Fatal("Error missing environment variables: %s", err)
 	}
 	return &fConfig
 }
 func initAWSConfig() *AWSConfig {
-	//Initialize AWS configs
+	// Initialize AWS configs
 	aConfig := AWSConfig{}
 	aConfig.endpoint = utils.GetEnvVariable("AWS_S3_ENDPOINT", "S3_ENDPOINT")
 	aConfig.accessKey = utils.GetEnvVariable("AWS_ACCESS_KEY", "ACCESS_KEY")
@@ -167,8 +169,8 @@ func initAWSConfig() *AWSConfig {
 	aConfig.forcePathStyle = forcePathStyle
 	err = utils.CheckEnvVars(awsVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for AWS S3 are set")
-		utils.Fatal("Error checking environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for AWS S3 are set")
+		logger.Fatal("Error checking environment variables: %s", err)
 	}
 	return &aConfig
 }
@@ -176,7 +178,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
 	utils.GetEnv(cmd, "cron-expression", "BACKUP_CRON_EXPRESSION")
 	utils.GetEnv(cmd, "path", "REMOTE_PATH")
-	//Get flag value and set env
+	// Get flag value and set env
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	prune := false
@@ -198,7 +200,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 		encryption = true
 		usingKey = false
 	}
-	//Initialize backup configs
+	// Initialize backup configs
 	config := BackupConfig{}
 	config.backupRetention = backupRetention
 	config.disableCompression = disableCompression
@@ -228,7 +230,7 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	utils.SetEnv("STORAGE_PATH", storagePath)
 	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 
-	//Get flag value and set env
+	// Get flag value and set env
 	s3Path := utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
@@ -242,7 +244,7 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 		usingKey = false
 	}
 
-	//Initialize restore configs
+	// Initialize restore configs
 	rConfig := RestoreConfig{}
 	rConfig.s3Path = s3Path
 	rConfig.remotePath = remotePath
@@ -265,8 +267,8 @@ func initTargetDbConfig() *targetDbConfig {
 
 	err := utils.CheckEnvVars(tdbRVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for the target database are set")
-		utils.Fatal("Error checking target database environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for the target database are set")
+		logger.Fatal("Error checking target database environment variables: %s", err)
 	}
 	return &tdbConfig
 }

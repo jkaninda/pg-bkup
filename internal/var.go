@@ -1,14 +1,8 @@
 // Package internal /
-/*****
-@author    Jonas Kaninda
-@license   MIT License <https://opensource.org/licenses/MIT>
-@Copyright © 2024 Jonas Kaninda
-**/
 package internal
 
 const tmpPath = "/tmp/backup"
 const gpgHome = "/config/gnupg"
-const algorithm = "aes256"
 const gpgExtension = "gpg"
 const timeFormat = "2006-01-02 at 15:04:05"
 
@@ -44,13 +38,6 @@ var tdbRVars = []string{
 var dbConf *dbConfig
 var targetDbConf *targetDbConfig
 
-// sshVars Required environment variables for SSH remote server storage
-var sshVars = []string{
-	"SSH_USER",
-	"SSH_HOST_NAME",
-	"SSH_PORT",
-	"REMOTE_PATH",
-}
 var ftpVars = []string{
 	"FTP_HOST_NAME",
 	"FTP_USER",

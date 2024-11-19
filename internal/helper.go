@@ -1,5 +1,6 @@
 // Package internal /
-/*****
+/*
+****
 @author    Jonas Kaninda
 @license   MIT License <https://opensource.org/licenses/MIT>
 @Copyright © 2024 Jonas Kaninda
@@ -9,6 +10,7 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -18,13 +20,13 @@ import (
 )
 
 func intro() {
-	utils.Info("Starting PostgreSQL Backup...")
-	utils.Info("Copyright (c) 2024 Jonas Kaninda ")
+	logger.Info("Starting PostgreSQL Backup...")
+	logger.Info("Copyright (c) 2024 Jonas Kaninda ")
 }
 
 // copyToTmp copy file to temporary directory
 func deleteTemp() {
-	utils.Info("Deleting %s ...", tmpPath)
+	logger.Info("Deleting %s ...", tmpPath)
 	err := filepath.Walk(tmpPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -40,16 +42,16 @@ func deleteTemp() {
 		return nil
 	})
 	if err != nil {
-		utils.Error("Error deleting files: %v", err)
+		logger.Error("Error deleting files: %v", err)
 	} else {
-		utils.Info("Deleting %s ... done", tmpPath)
+		logger.Info("Deleting %s ... done", tmpPath)
 	}
 }
 
 // TestDatabaseConnection  tests the database connection
 func testDatabaseConnection(db *dbConfig) {
 
-	utils.Info("Connecting to %s database ...", db.dbName)
+	logger.Info("Connecting to %s database ...", db.dbName)
 	// Test database connection
 	query := "SELECT version();"
 
@@ -74,10 +76,10 @@ func testDatabaseConnection(db *dbConfig) {
 	// Run the command and capture any errors
 	err = cmd.Run()
 	if err != nil {
-		utils.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
+		logger.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
 		return
 	}
-	utils.Info("Successfully connected to %s database", db.dbName)
+	logger.Info("Successfully connected to %s database", db.dbName)
 
 }
 
