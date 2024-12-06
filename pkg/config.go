@@ -1,4 +1,3 @@
-// Package internal /
 /*
 MIT License
 
@@ -22,11 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-package internal
+
+package pkg
 
 import (
 	"fmt"
-	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -84,6 +83,11 @@ type FTPConfig struct {
 	port       string
 	remotePath string
 }
+type AzureConfig struct {
+	accountName   string
+	accountKey    string
+	containerName string
+}
 
 // SSHConfig holds the SSH connection details
 type SSHConfig struct {
@@ -116,8 +120,8 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 
 	err := utils.CheckEnvVars(dbHVars)
 	if err != nil {
-		logger.Error("Please make sure all required environment variables for database are set")
-		logger.Fatal("Error checking environment variables: %s", err)
+		utils.Error("Please make sure all required environment variables for database are set")
+		utils.Fatal("Error checking environment variables: %s", err)
 	}
 	return &dConf
 }
@@ -159,10 +163,24 @@ func loadFtpConfig() *FTPConfig {
 	fConfig.remotePath = os.Getenv("REMOTE_PATH")
 	err := utils.CheckEnvVars(ftpVars)
 	if err != nil {
-		logger.Error("Please make sure all required environment variables for FTP are set")
-		logger.Fatal("Error missing environment variables: %s", err)
+		utils.Error("Please make sure all required environment variables for FTP are set")
+		utils.Fatal("Error missing environment variables: %s", err)
 	}
 	return &fConfig
+}
+func loadAzureConfig() *AzureConfig {
+	// Initialize data configs
+	aConfig := AzureConfig{}
+	aConfig.containerName = os.Getenv("AZURE_STORAGE_CONTAINER_NAME")
+	aConfig.accountName = os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
+	aConfig.accountKey = os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
+
+	err := utils.CheckEnvVars(azureVars)
+	if err != nil {
+		utils.Error("Please make sure all required environment variables for Azure Blob storage are set")
+		utils.Fatal("Error missing environment variables: %s", err)
+	}
+	return &aConfig
 }
 func initAWSConfig() *AWSConfig {
 	// Initialize AWS configs
@@ -186,8 +204,8 @@ func initAWSConfig() *AWSConfig {
 	aConfig.forcePathStyle = forcePathStyle
 	err = utils.CheckEnvVars(awsVars)
 	if err != nil {
-		logger.Error("Please make sure all required environment variables for AWS S3 are set")
-		logger.Fatal("Error checking environment variables: %s", err)
+		utils.Error("Please make sure all required environment variables for AWS S3 are set")
+		utils.Fatal("Error checking environment variables: %s", err)
 	}
 	return &aConfig
 }
@@ -284,8 +302,8 @@ func initTargetDbConfig() *targetDbConfig {
 
 	err := utils.CheckEnvVars(tdbRVars)
 	if err != nil {
-		logger.Error("Please make sure all required environment variables for the target database are set")
-		logger.Fatal("Error checking target database environment variables: %s", err)
+		utils.Error("Please make sure all required environment variables for the target database are set")
+		utils.Fatal("Error checking target database environment variables: %s", err)
 	}
 	return &tdbConfig
 }

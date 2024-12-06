@@ -1,4 +1,3 @@
-// Package internal /
 /*
 MIT License
 
@@ -22,12 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-package internal
+
+package pkg
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -44,7 +43,7 @@ func intro() {
 
 // copyToTmp copy file to temporary directory
 func deleteTemp() {
-	logger.Info("Deleting %s ...", tmpPath)
+	utils.Info("Deleting %s ...", tmpPath)
 	err := filepath.Walk(tmpPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -60,16 +59,16 @@ func deleteTemp() {
 		return nil
 	})
 	if err != nil {
-		logger.Error("Error deleting files: %v", err)
+		utils.Error("Error deleting files: %v", err)
 	} else {
-		logger.Info("Deleting %s ... done", tmpPath)
+		utils.Info("Deleting %s ... done", tmpPath)
 	}
 }
 
 // TestDatabaseConnection  tests the database connection
 func testDatabaseConnection(db *dbConfig) {
 
-	logger.Info("Connecting to %s database ...", db.dbName)
+	utils.Info("Connecting to %s database ...", db.dbName)
 	// Test database connection
 	query := "SELECT version();"
 
@@ -94,10 +93,10 @@ func testDatabaseConnection(db *dbConfig) {
 	// Run the command and capture any errors
 	err = cmd.Run()
 	if err != nil {
-		logger.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
+		utils.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
 		return
 	}
-	logger.Info("Successfully connected to %s database", db.dbName)
+	utils.Info("Successfully connected to %s database", db.dbName)
 
 }
 

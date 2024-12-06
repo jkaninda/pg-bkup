@@ -1,6 +1,3 @@
-// Package utils /
-package utils
-
 /*
 MIT License
 
@@ -25,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+package utils
+
 import "os"
 
 const RestoreExample = "restore --dbname database --file db_20231219_022941.sql.gz\n" +
@@ -35,6 +34,7 @@ const BackupExample = "backup --dbname database --disable-compression\n" +
 const MainExample = "backup --dbname database --disable-compression\n" +
 	"backup --dbname database --storage s3 --path /custom-path\n" +
 	"restore --dbname database --file db_20231219_022941.sql.gz"
+const traceLog = "trace"
 
 func VERSION(def string) string {
 	build := os.Getenv("VERSION")

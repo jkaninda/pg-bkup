@@ -1,13 +1,3 @@
-package logger
-
-import (
-	"fmt"
-	"log"
-	"os"
-	"runtime"
-	"strings"
-)
-
 /*
 MIT License
 
@@ -32,6 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+package utils
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"strings"
+)
+
 // Info returns info log
 func Info(msg string, args ...interface{}) {
 	log.SetOutput(getStd("/dev/stdout"))
@@ -54,7 +54,13 @@ func Error(msg string, args ...interface{}) {
 
 func Fatal(msg string, args ...interface{}) {
 	log.SetOutput(os.Stdout)
+	// Format message if there are additional arguments
+	formattedMessage := msg
+	if len(args) > 0 {
+		formattedMessage = fmt.Sprintf(msg, args...)
+	}
 	logWithCaller("ERROR", msg, args...)
+	NotifyError(formattedMessage)
 	os.Exit(1)
 }
 

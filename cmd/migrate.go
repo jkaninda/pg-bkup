@@ -1,4 +1,3 @@
-// Package cmd /
 /*
 MIT License
 
@@ -22,11 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 package cmd
 
 import (
-	"github.com/jkaninda/pg-bkup/internal"
-	"github.com/jkaninda/pg-bkup/pkg/logger"
+	"github.com/jkaninda/pg-bkup/pkg"
+	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -35,9 +35,9 @@ var MigrateCmd = &cobra.Command{
 	Short: "Migrate database from a source database to a target database",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			internal.StartMigration(cmd)
+			pkg.StartMigration(cmd)
 		} else {
-			logger.Fatal(`"migrate" accepts no argument %q`, args)
+			utils.Fatal(`"migrate" accepts no argument %q`, args)
 
 		}
 
