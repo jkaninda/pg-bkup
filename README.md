@@ -16,6 +16,7 @@ It supports a variety of storage options and ensures data security through GPG e
     - AWS S3 or any S3-compatible object storage
     - FTP
     - SSH-compatible storage
+    - Azure Blob storage
 
 - **Data Security:**
     - Backups can be encrypted using **GPG** to ensure confidentiality.
