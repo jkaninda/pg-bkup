@@ -163,11 +163,6 @@ docker pull ghcr.io/jkaninda/pg-bkup
 
 Documentation references Docker Hub, but all examples will work using ghcr.io just as well.
 
-## Supported Engines
-
-This image is developed and tested against the Docker CE engine and Kubernetes exclusively.
-While it may work against different implementations, there are no guarantees about support for non-Docker engines.
-
 ## References
 
 We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
