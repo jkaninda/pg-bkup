@@ -4,13 +4,40 @@ layout: home
 nav_order: 1
 ---
 
-# About pg-bkup
+# About PG-BKUP
 {:.no_toc}
-PostreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, ftp and SSH compatible storage.
-It also supports database __encryption__ using GPG.
 
-Telegram and Email notifications on successful and failed backups.
+**PG-BKUP** is a Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
+It supports a variety of storage options and ensures data security through GPG encryption.
 
+## Features
+
+- **Storage Options:**
+    - Local storage
+    - AWS S3 or any S3-compatible object storage
+    - FTP
+    - SSH-compatible storage
+
+- **Data Security:**
+    - Backups can be encrypted using **GPG** to ensure confidentiality.
+
+- **Deployment Flexibility:**
+    - Available as the [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image.
+    - Deployable on **Docker**, **Docker Swarm**, and **Kubernetes**.
+    - Supports recurring backups of PostgreSQL databases when deployed:
+        - On Docker for automated backup schedules.
+        - As a **Job** or **CronJob** on Kubernetes.
+
+- **Notifications:**
+    - Get real-time updates on backup success or failure via:
+        - **Telegram**
+        - **Email**
+
+## Use Cases
+
+- **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
+- **Cross-Environment Migration:** Easily migrate your PostgreSQL databases across different environments using supported storage options.
+- **Secure Backup Management:** Protect your data with GPG encryption.
 
 
 We are open to receiving stars, PRs, and issues!
@@ -19,13 +46,6 @@ We are open to receiving stars, PRs, and issues!
 {: .fs-6 .fw-300 }
 
 ---
-
-The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image can be deployed on Docker, Docker Swarm and Kubernetes. 
-It handles __recurring__ backups of postgres database on Docker and can be deployed as __CronJob on Kubernetes__ using local, AWS S3 or SSH compatible storage.
-
-It also supports database __encryption__ using GPG.
-
-
 
 {: .note }
 Code and documentation for `v1` version on [this branch][v1-branch].
