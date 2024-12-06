@@ -1,4 +1,3 @@
-// Package utils /
 /*
 MIT License
 
@@ -22,11 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 package utils
 
 import (
 	"fmt"
-	"github.com/jkaninda/pg-bkup/pkg/logger"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
@@ -35,6 +34,8 @@ import (
 	"strconv"
 	"time"
 )
+
+var Version = ""
 
 // FileExists checks if the file does exist
 func FileExists(filename string) bool {
@@ -110,7 +111,7 @@ func CopyFile(src, dst string) error {
 }
 func ChangePermission(filePath string, mod int) {
 	if err := os.Chmod(filePath, fs.FileMode(mod)); err != nil {
-		logger.Fatal("Error changing permissions of %s: %v\n", filePath, err)
+		Fatal("Error changing permissions of %s: %v\n", filePath, err)
 	}
 
 }
@@ -172,7 +173,7 @@ func GetEnvVariable(envName, oldEnvName string) string {
 			if err != nil {
 				return value
 			}
-			logger.Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
+			Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
 		}
 	}
 	return value
@@ -219,7 +220,7 @@ func GetIntEnv(envName string) int {
 	}
 	ret, err := strconv.Atoi(val)
 	if err != nil {
-		logger.Error("Error: %v", err)
+		Error("Error: %v", err)
 	}
 	return ret
 }
@@ -244,7 +245,7 @@ func CronNextTime(cronExpr string) time.Time {
 	// Parse the cron expression
 	schedule, err := cron.ParseStandard(cronExpr)
 	if err != nil {
-		logger.Error("Error parsing cron expression: %s", err)
+		Error("Error parsing cron expression: %s", err)
 		return time.Time{}
 	}
 	// Get the current time

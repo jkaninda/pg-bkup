@@ -1,6 +1,3 @@
-// Package internal /
-package internal
-
 /*
 MIT License
 
@@ -24,6 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+package pkg
 
 const tmpPath = "/tmp/backup"
 const gpgHome = "/config/gnupg"
@@ -67,6 +66,12 @@ var ftpVars = []string{
 	"FTP_USER",
 	"FTP_PASSWORD",
 	"FTP_PORT",
+}
+
+var azureVars = []string{
+	"AZURE_STORAGE_CONTAINER_NAME",
+	"AZURE_STORAGE_ACCOUNT_NAME",
+	"AZURE_STORAGE_ACCOUNT_KEY",
 }
 
 // AwsVars Required environment variables for AWS S3 storage
