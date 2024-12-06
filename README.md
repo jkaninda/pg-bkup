@@ -1,20 +1,42 @@
-# PostgreSQL Backup
-PostgreSQL Backup is a Docker container image that can be used to backup, restore and migrate Postgres database. It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, FTP and SSH compatible storage.
-It also supports __encrypting__ your backups using GPG.
+# PG-BKUP
 
-The [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image can be deployed on Docker, Docker Swarm and Kubernetes.
-It handles __recurring__ backups of postgres database on Docker and can be deployed as __Job or CronJob  on Kubernetes__ using local, AWS S3 or SSH compatible storage.
-
-It also supports __encrypting__ your backups using GPG.
-
-Telegram and Email notifications on successful and failed backups.
-
+**PG-BKUP** is a Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
+It supports a variety of storage options and ensures data security through GPG encryption.
 
 [![Build](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/pg-bkup)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/jkaninda/pg-bkup?style=flat-square)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jkaninda/pg-bkup?style=flat-square)
 <a href="https://ko-fi.com/jkaninda"><img src="https://uploads-ssl.webflow.com/5c14e387dab576fe667689cf/5cbed8a4ae2b88347c06c923_BuyMeACoffee_blue.png" height="20" alt="buy ma a coffee"></a>
+
+## Features
+
+- **Storage Options:**
+    - Local storage
+    - AWS S3 or any S3-compatible object storage
+    - FTP
+    - SSH-compatible storage
+
+- **Data Security:**
+    - Backups can be encrypted using **GPG** to ensure confidentiality.
+
+- **Deployment Flexibility:**
+    - Available as the [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image.
+    - Deployable on **Docker**, **Docker Swarm**, and **Kubernetes**.
+    - Supports recurring backups of PostgreSQL databases when deployed:
+        - On Docker for automated backup schedules.
+        - As a **Job** or **CronJob** on Kubernetes.
+
+- **Notifications:**
+    - Get real-time updates on backup success or failure via:
+        - **Telegram**
+        - **Email**
+
+## Use Cases
+
+- **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
+- **Cross-Environment Migration:** Easily migrate your PostgreSQL databases across different environments using supported storage options.
+- **Secure Backup Management:** Protect your data with GPG encryption.
 
 
 Successfully tested on:
@@ -88,7 +110,7 @@ services:
       - TZ=Europe/Paris
     # pg-bkup container must be connected to the same network with your database
     networks:
-       - web
+      - web
 networks:
   web:
 ```
@@ -162,11 +184,6 @@ docker pull ghcr.io/jkaninda/pg-bkup
 ```
 
 Documentation references Docker Hub, but all examples will work using ghcr.io just as well.
-
-## Supported Engines
-
-This image is developed and tested against the Docker CE engine and Kubernetes exclusively.
-While it may work against different implementations, there are no guarantees about support for non-Docker engines.
 
 ## References
 
