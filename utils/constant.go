@@ -36,8 +36,6 @@ const MainExample = "backup --dbname database --disable-compression\n" +
 	"backup --dbname database --storage s3 --path /custom-path\n" +
 	"restore --dbname database --file db_20231219_022941.sql.gz"
 
-var Version string
-
 func VERSION(def string) string {
 	build := os.Getenv("VERSION")
 	if build == "" {

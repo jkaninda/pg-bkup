@@ -37,8 +37,9 @@ import (
 )
 
 func intro() {
-	fmt.Println("Starting PostgreSQL Backup...")
-	fmt.Println("Copyright (c) 2024 Jonas Kaninda ")
+	fmt.Println("Starting PosgreSQL Backup...")
+	fmt.Printf("Version: %s\n", utils.Version)
+	fmt.Println("Copyright (c) 2024 Jonas Kaninda")
 }
 
 // copyToTmp copy file to temporary directory

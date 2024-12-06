@@ -1,13 +1,13 @@
 FROM golang:1.23.3 AS build
 WORKDIR /app
-
+ARG appVersion=""
 # Copy the source code.
 COPY . .
 # Installs Go dependencies
 RUN go mod download
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/pg-bkup
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X 'github.com/jkaninda/pg-bkup/utils.Version=${appVersion}'" -o /app/pg-bkup
 
 FROM alpine:3.20.3
 ENV TZ=UTC
