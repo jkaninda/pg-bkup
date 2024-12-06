@@ -63,6 +63,7 @@ Successfully tested on:
 - AWS S3 or any S3 Alternatives for Object Storage
 - SSH remote storage server
 - FTP remote storage server
+- Azure Blob storage
 
 ## Quickstart
 
