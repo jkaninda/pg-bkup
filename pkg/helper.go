@@ -69,6 +69,9 @@ func deleteTemp() {
 func testDatabaseConnection(db *dbConfig) {
 
 	utils.Info("Connecting to %s database ...", db.dbName)
+	// Set database name for notification error
+	utils.DatabaseName = db.dbName
+
 	// Test database connection
 	query := "SELECT version();"
 

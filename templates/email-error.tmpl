@@ -1,18 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🔴 Urgent: Database Backup Failure Notification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔴 Urgent: Database Backup Failure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #d9534f;
+        }
+        .details {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .details ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .details li {
+            margin: 5px 0;
+        }
+        a {
+            color: #0275d8;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
-<h2>Hi,</h2>
-<p>An error occurred during database backup.</p>
-<h3>Failure Details:</h3>
-<ul>
-<li>Error Message: {{.Error}}</li>
-<li>Date: {{.EndTime}}</li>
-<li>Backup Reference: {{.BackupReference}} </li>
-</ul>
-<p>©2024 <a href="https://github.com/jkaninda/pg-bkup">pg-bkup</a></p>
+    <h2>🔴 Urgent: Database Backup Failure Notification</h2>
+    <p>Dear Team,</p>
+    <p>An error occurred during the database backup process. Please review the details below and take the necessary actions:</p>
+
+    <div class="details">
+        <h3>Failure Details:</h3>
+        <ul>
+            <li><strong>Database Name:</strong> {{.DatabaseName}}</li>
+            <li><strong>Error Message:</strong> {{.Error}}</li>
+            <li><strong>Date:</strong> {{.EndTime}}</li>
+            <li><strong>Backup Reference:</strong> {{.BackupReference}}</li>
+        </ul>
+    </div>
+
+    <p>We recommend investigating the issue as soon as possible to prevent potential data loss or service disruptions.</p>
+
+    <p>For more information, visit the <a href="https://jkaninda.github.io/pg-bkup">pg-bkup documentation</a>.</p>
+
+    <footer>
+        &copy; 2024 <a href="https://github.com/jkaninda/pg-bkup">pg-bkup</a> | Automated Backup System
+    </footer>
 </body>
 </html>
