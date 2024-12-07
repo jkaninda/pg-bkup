@@ -36,7 +36,7 @@ import (
 )
 
 func intro() {
-	fmt.Println("Starting PosgreSQL Backup...")
+	fmt.Println("Starting PostgresSQL Backup...")
 	fmt.Printf("Version: %s\n", utils.Version)
 	fmt.Println("Copyright (c) 2024 Jonas Kaninda")
 }
