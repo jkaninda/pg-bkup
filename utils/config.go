@@ -50,6 +50,7 @@ type ErrorMessage struct {
 	EndTime         string
 	Error           string
 	BackupReference string
+	DatabaseName    string
 }
 
 // loadMailConfig gets mail environment variables and returns MailConfig
@@ -81,3 +82,5 @@ func backupReference() string {
 }
 
 const templatePath = "/config/templates"
+
+var DatabaseName = ""

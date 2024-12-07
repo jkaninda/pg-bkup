@@ -167,6 +167,7 @@ func NotifyError(error string) {
 			Error:           error,
 			EndTime:         time.Now().Format(TimeFormat()),
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
+			DatabaseName:    DatabaseName,
 		}, "email-error.tmpl")
 		if err != nil {
 			Error("Could not parse error template: %v", err)
@@ -183,6 +184,7 @@ func NotifyError(error string) {
 			Error:           error,
 			EndTime:         time.Now().Format(TimeFormat()),
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
+			DatabaseName:    DatabaseName,
 		}, "telegram-error.tmpl")
 		if err != nil {
 			Error("Could not parse error template: %v", err)
