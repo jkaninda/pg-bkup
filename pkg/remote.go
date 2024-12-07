@@ -52,12 +52,13 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	}
 
 	sshStorage, err := ssh.NewStorage(ssh.Config{
-		Host:       sshConfig.hostName,
-		Port:       sshConfig.port,
-		User:       sshConfig.user,
-		Password:   sshConfig.password,
-		RemotePath: config.remotePath,
-		LocalPath:  tmpPath,
+		Host:         sshConfig.hostName,
+		Port:         sshConfig.port,
+		User:         sshConfig.user,
+		Password:     sshConfig.password,
+		IdentifyFile: sshConfig.identifyFile,
+		RemotePath:   config.remotePath,
+		LocalPath:    tmpPath,
 	})
 	if err != nil {
 		utils.Fatal("Error creating SSH storage: %s", err)
@@ -102,6 +103,51 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	deleteTemp()
 	utils.Info("Backup completed successfully")
 
+}
+func remoteRestore(db *dbConfig, conf *RestoreConfig) {
+	utils.Info("Restore database from remote server")
+	sshConfig, err := loadSSHConfig()
+	if err != nil {
+		utils.Fatal("Error loading ssh config: %s", err)
+	}
+
+	sshStorage, err := ssh.NewStorage(ssh.Config{
+		Host:         sshConfig.hostName,
+		Port:         sshConfig.port,
+		User:         sshConfig.user,
+		Password:     sshConfig.password,
+		IdentifyFile: sshConfig.identifyFile,
+		RemotePath:   conf.remotePath,
+		LocalPath:    tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = sshStorage.CopyFrom(conf.file)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
+	}
+	RestoreDatabase(db, conf)
+}
+func ftpRestore(db *dbConfig, conf *RestoreConfig) {
+	utils.Info("Restore database from FTP server")
+	ftpConfig := loadFtpConfig()
+	ftpStorage, err := ftp.NewStorage(ftp.Config{
+		Host:       ftpConfig.host,
+		Port:       ftpConfig.port,
+		User:       ftpConfig.user,
+		Password:   ftpConfig.password,
+		RemotePath: conf.remotePath,
+		LocalPath:  tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = ftpStorage.CopyFrom(conf.file)
+	if err != nil {
+		utils.Fatal("Error copying backup file: %s", err)
+	}
+	RestoreDatabase(db, conf)
 }
 func ftpBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to the remote FTP server")
@@ -168,49 +214,4 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	// Delete temp
 	deleteTemp()
 	utils.Info("Backup completed successfully")
-}
-func remoteRestore(db *dbConfig, conf *RestoreConfig) {
-	utils.Info("Restore database from remote server")
-	sshConfig, err := loadSSHConfig()
-	if err != nil {
-		utils.Fatal("Error loading ssh config: %s", err)
-	}
-
-	sshStorage, err := ssh.NewStorage(ssh.Config{
-		Host:         sshConfig.hostName,
-		Port:         sshConfig.port,
-		User:         sshConfig.user,
-		Password:     sshConfig.password,
-		IdentifyFile: sshConfig.identifyFile,
-		RemotePath:   conf.remotePath,
-		LocalPath:    tmpPath,
-	})
-	if err != nil {
-		utils.Fatal("Error creating SSH storage: %s", err)
-	}
-	err = sshStorage.CopyFrom(conf.file)
-	if err != nil {
-		utils.Fatal("Error copying backup file: %s", err)
-	}
-	RestoreDatabase(db, conf)
-}
-func ftpRestore(db *dbConfig, conf *RestoreConfig) {
-	utils.Info("Restore database from FTP server")
-	ftpConfig := loadFtpConfig()
-	ftpStorage, err := ftp.NewStorage(ftp.Config{
-		Host:       ftpConfig.host,
-		Port:       ftpConfig.port,
-		User:       ftpConfig.user,
-		Password:   ftpConfig.password,
-		RemotePath: conf.remotePath,
-		LocalPath:  tmpPath,
-	})
-	if err != nil {
-		utils.Fatal("Error creating SSH storage: %s", err)
-	}
-	err = ftpStorage.CopyFrom(conf.file)
-	if err != nil {
-		utils.Fatal("Error copying backup file: %s", err)
-	}
-	RestoreDatabase(db, conf)
 }

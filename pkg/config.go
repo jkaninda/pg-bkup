@@ -80,7 +80,7 @@ type FTPConfig struct {
 	host       string
 	user       string
 	password   string
-	port       string
+	port       int
 	remotePath string
 }
 type AzureConfig struct {
@@ -94,7 +94,7 @@ type SSHConfig struct {
 	user         string
 	password     string
 	hostName     string
-	port         string
+	port         int
 	identifyFile string
 }
 type AWSConfig struct {
@@ -149,7 +149,7 @@ func loadSSHConfig() (*SSHConfig, error) {
 		user:         os.Getenv("SSH_USER"),
 		password:     os.Getenv("SSH_PASSWORD"),
 		hostName:     os.Getenv("SSH_HOST"),
-		port:         os.Getenv("SSH_PORT"),
+		port:         utils.GetIntEnv("SSH_PORT"),
 		identifyFile: os.Getenv("SSH_IDENTIFY_FILE"),
 	}, nil
 }
@@ -159,7 +159,7 @@ func loadFtpConfig() *FTPConfig {
 	fConfig.host = utils.GetEnvVariable("FTP_HOST", "FTP_HOST_NAME")
 	fConfig.user = os.Getenv("FTP_USER")
 	fConfig.password = os.Getenv("FTP_PASSWORD")
-	fConfig.port = os.Getenv("FTP_PORT")
+	fConfig.port = utils.GetIntEnv("FTP_PORT")
 	fConfig.remotePath = os.Getenv("REMOTE_PATH")
 	err := utils.CheckEnvVars(ftpVars)
 	if err != nil {
