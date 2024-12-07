@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/jkaninda/encryptor v0.0.0-20241013064832-ed4bd6a1b221
-	github.com/jkaninda/go-storage v0.1.2
+	github.com/jkaninda/go-storage v0.1.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
