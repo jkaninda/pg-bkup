@@ -254,7 +254,3 @@ func CronNextTime(cronExpr string) time.Time {
 	next := schedule.Next(now)
 	return next
 }
-func UsageErrorf(cmd *cobra.Command, message string, args ...interface{}) error {
-	msg := fmt.Sprintf(message, args...)
-	return fmt.Errorf("%s\nSee '%s -h' for help and examples", msg, cmd.CommandPath())
-}
