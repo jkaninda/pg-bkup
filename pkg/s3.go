@@ -58,7 +58,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		Region:         awsConfig.region,
 		DisableSsl:     awsConfig.disableSsl,
 		ForcePathStyle: awsConfig.forcePathStyle,
-		RemotePath:     awsConfig.remotePath,
+		RemotePath:     config.remotePath,
 		LocalPath:      tmpPath,
 	})
 	if err != nil {
@@ -119,7 +119,7 @@ func s3Restore(db *dbConfig, conf *RestoreConfig) {
 		Region:         awsConfig.region,
 		DisableSsl:     awsConfig.disableSsl,
 		ForcePathStyle: awsConfig.forcePathStyle,
-		RemotePath:     awsConfig.remotePath,
+		RemotePath:     conf.remotePath,
 		LocalPath:      tmpPath,
 	})
 	if err != nil {
