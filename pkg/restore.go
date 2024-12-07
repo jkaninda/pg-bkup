@@ -1,4 +1,3 @@
-// Package internal /
 /*
 MIT License
 
