@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"github.com/jkaninda/pg-bkup/utils"
 	"gopkg.in/yaml.v3"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -195,4 +196,38 @@ func RemoveLastExtension(filename string) string {
 		return filename[:idx]
 	}
 	return filename
+}
+func convertJDBCToDbConfig(jdbcURI string) (*dbConfig, error) {
+	// Remove the "jdbc:" prefix
+	if strings.HasPrefix(jdbcURI, "jdbc:") {
+		jdbcURI = strings.TrimPrefix(jdbcURI, "jdbc:")
+	}
+
+	// Parse the URI
+	u, err := url.Parse(jdbcURI)
+	if err != nil {
+		return &dbConfig{}, fmt.Errorf("failed to parse JDBC URI: %v", err)
+	}
+	// Extract components
+	host := u.Hostname()
+	port := u.Port()
+	if port == "" {
+		port = "5432" // Default PostgreSQL port
+	}
+	database := strings.TrimPrefix(u.Path, "/")
+	params, _ := url.ParseQuery(u.RawQuery)
+	username := params.Get("user")
+	password := params.Get("password")
+	// Validate essential fields
+	if host == "" || database == "" || username == "" {
+		return &dbConfig{}, fmt.Errorf("incomplete JDBC URI: missing host, database, or username")
+	}
+
+	return &dbConfig{
+		dbHost:     host,
+		dbPort:     port,
+		dbName:     database,
+		dbUserName: username,
+		dbPassword: password,
+	}, nil
 }
