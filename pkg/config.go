@@ -109,6 +109,14 @@ type AWSConfig struct {
 }
 
 func initDbConfig(cmd *cobra.Command) *dbConfig {
+	jdbcUri := os.Getenv("DB_URL")
+	if len(jdbcUri) != 0 {
+		config, err := convertJDBCToDbConfig(jdbcUri)
+		if err != nil {
+			utils.Fatal("Error: %v", err.Error())
+		}
+		return config
+	}
 	// Set env
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	dConf := dbConfig{}
@@ -293,6 +301,20 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	return &rConfig
 }
 func initTargetDbConfig() *targetDbConfig {
+	jdbcUri := os.Getenv("TARGET_DB_URL")
+	if len(jdbcUri) != 0 {
+		config, err := convertJDBCToDbConfig(jdbcUri)
+		if err != nil {
+			utils.Fatal("Error: %v", err.Error())
+		}
+		return &targetDbConfig{
+			targetDbHost:     config.dbHost,
+			targetDbPort:     config.dbPort,
+			targetDbName:     config.dbName,
+			targetDbPassword: config.dbPassword,
+			targetDbUserName: config.dbUserName,
+		}
+	}
 	tdbConfig := targetDbConfig{}
 	tdbConfig.targetDbHost = os.Getenv("TARGET_DB_HOST")
 	tdbConfig.targetDbPort = utils.EnvWithDefault("TARGET_DB_PORT", "5432")

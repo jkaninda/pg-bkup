@@ -32,43 +32,48 @@ Backup, restore and migrate targets, schedule and retention are configured using
 
 ## Environment variables
 
-| Name                   | Requirement                                                   | Description                                                     |
-|------------------------|---------------------------------------------------------------|-----------------------------------------------------------------|
-| DB_PORT                | Optional, default 5432                                        | Database port number                                            |
-| DB_HOST                | Required                                                      | Database host                                                   |
-| DB_NAME                | Optional if it was provided from the -d flag                  | Database name                                                   |
-| DB_USERNAME            | Required                                                      | Database user name                                              |
-| DB_PASSWORD            | Required                                                      | Database password                                               |
-| AWS_ACCESS_KEY         | Optional, required for S3 storage                             | AWS S3 Access Key                                               |
-| AWS_SECRET_KEY         | Optional, required for S3 storage                             | AWS S3 Secret Key                                               |
-| AWS_BUCKET_NAME        | Optional, required for S3 storage                             | AWS S3 Bucket Name                                              |
-| AWS_BUCKET_NAME        | Optional, required for S3 storage                             | AWS S3 Bucket Name                                              |
-| AWS_REGION             | Optional, required for S3 storage                             | AWS Region                                                      |
-| AWS_DISABLE_SSL        | Optional, required for S3 storage                             | Disable SSL                                                     |
-| AWS_FORCE_PATH_STYLE   | Optional, required for S3 storage                             | Force path style                                                |
-| FILE_NAME              | Optional if it was provided from the --file flag              | Database file to restore (extensions: .sql, .sql.gz)            |
-| GPG_PASSPHRASE         | Optional, required to encrypt and restore backup              | GPG passphrase                                                  |
-| GPG_PUBLIC_KEY         | Optional, required to encrypt backup                          | GPG public key, used to encrypt backup (/config/public_key.asc) |
-| BACKUP_CRON_EXPRESSION | Optional if it was provided from the `--cron-expression` flag | Backup cron expression for docker in scheduled mode             |
-| BACKUP_RETENTION_DAYS  | Optional                                                      | Delete old backup created more than specified days ago          |
-| SSH_HOST               | Optional, required for SSH storage                            | ssh remote hostname or ip                                       |
-| SSH_USER               | Optional, required for SSH storage                            | ssh remote user                                                 |
-| SSH_PASSWORD           | Optional, required for SSH storage                            | ssh remote user's password                                      |
-| SSH_IDENTIFY_FILE      | Optional, required for SSH storage                            | ssh remote user's private key                                   |
-| SSH_PORT               | Optional, required for SSH storage                            | ssh remote server port                                          |
-| REMOTE_PATH            | Optional, required for SSH or FTP storage                     | remote path (/home/toto/backup)                                 |
-| FTP_HOST               | Optional, required for FTP storage                            | FTP host name                                                   |
-| FTP_PORT               | Optional, required for FTP storage                            | FTP server port number                                          |
-| FTP_USER               | Optional, required for FTP storage                            | FTP user                                                        |
-| FTP_PASSWORD           | Optional, required for FTP storage                            | FTP user password                                               |
-| TARGET_DB_HOST         | Optional, required for database migration                     | Target database host                                            |
-| TARGET_DB_PORT         | Optional, required for database migration                     | Target database port                                            |
-| TARGET_DB_NAME         | Optional, required for database migration                     | Target database name                                            |
-| TARGET_DB_USERNAME     | Optional, required for database migration                     | Target database username                                        |
-| TARGET_DB_PASSWORD     | Optional, required for database migration                     | Target database password                                        |
-| TG_TOKEN               | Optional, required for Telegram notification                  | Telegram token (`BOT-ID:BOT-TOKEN`)                             |
-| TG_CHAT_ID             | Optional, required for Telegram notification                  | Telegram Chat ID                                                |
-| TZ                     | Optional                                                      | Time Zone                                                       |
+| Name                         | Requirement                                                   | Description                                                     |
+|------------------------------|---------------------------------------------------------------|-----------------------------------------------------------------|
+| DB_PORT                      | Optional, default 5432                                        | Database port number                                            |
+| DB_HOST                      | Required                                                      | Database host                                                   |
+| DB_NAME                      | Optional if it was provided from the -d flag                  | Database name                                                   |
+| DB_USERNAME                  | Required                                                      | Database user name                                              |
+| DB_PASSWORD                  | Required                                                      | Database password                                               |
+| DB_URL                       | Optional                                                      | Database URL in JDBC URI format                                 |
+| AWS_ACCESS_KEY               | Optional, required for S3 storage                             | AWS S3 Access Key                                               |
+| AWS_SECRET_KEY               | Optional, required for S3 storage                             | AWS S3 Secret Key                                               |
+| AWS_BUCKET_NAME              | Optional, required for S3 storage                             | AWS S3 Bucket Name                                              |
+| AWS_BUCKET_NAME              | Optional, required for S3 storage                             | AWS S3 Bucket Name                                              |
+| AWS_REGION                   | Optional, required for S3 storage                             | AWS Region                                                      |
+| AWS_DISABLE_SSL              | Optional, required for S3 storage                             | Disable SSL                                                     |
+| AWS_FORCE_PATH_STYLE         | Optional, required for S3 storage                             | Force path style                                                |
+| FILE_NAME                    | Optional if it was provided from the --file flag              | Database file to restore (extensions: .sql, .sql.gz)            |
+| GPG_PASSPHRASE               | Optional, required to encrypt and restore backup              | GPG passphrase                                                  |
+| GPG_PUBLIC_KEY               | Optional, required to encrypt backup                          | GPG public key, used to encrypt backup (/config/public_key.asc) |
+| BACKUP_CRON_EXPRESSION       | Optional if it was provided from the `--cron-expression` flag | Backup cron expression for docker in scheduled mode             |
+| BACKUP_RETENTION_DAYS        | Optional                                                      | Delete old backup created more than specified days ago          |
+| SSH_HOST                     | Optional, required for SSH storage                            | ssh remote hostname or ip                                       |
+| SSH_USER                     | Optional, required for SSH storage                            | ssh remote user                                                 |
+| SSH_PASSWORD                 | Optional, required for SSH storage                            | ssh remote user's password                                      |
+| SSH_IDENTIFY_FILE            | Optional, required for SSH storage                            | ssh remote user's private key                                   |
+| SSH_PORT                     | Optional, required for SSH storage                            | ssh remote server port                                          |
+| REMOTE_PATH                  | Optional, required for SSH or FTP storage                     | remote path (/home/toto/backup)                                 |
+| FTP_HOST                     | Optional, required for FTP storage                            | FTP host name                                                   |
+| FTP_PORT                     | Optional, required for FTP storage                            | FTP server port number                                          |
+| FTP_USER                     | Optional, required for FTP storage                            | FTP user                                                        |
+| FTP_PASSWORD                 | Optional, required for FTP storage                            | FTP user password                                               |
+| TARGET_DB_HOST               | Optional, required for database migration                     | Target database host                                            |
+| TARGET_DB_PORT               | Optional, required for database migration                     | Target database port                                            |
+| TARGET_DB_NAME               | Optional, required for database migration                     | Target database name                                            |
+| TARGET_DB_USERNAME           | Optional, required for database migration                     | Target database username                                        |
+| TARGET_DB_URL                | Optional                                                      | Database URL in JDBC URI format                                 |
+| TARGET_DB_PASSWORD           | Optional, required for database migration                     | Target database password                                        |
+| TG_TOKEN                     | Optional, required for Telegram notification                  | Telegram token (`BOT-ID:BOT-TOKEN`)                             |
+| TG_CHAT_ID                   | Optional, required for Telegram notification                  | Telegram Chat ID                                                |
+| TZ                           | Optional                                                      | Time Zone                                                       |
+| AZURE_STORAGE_CONTAINER_NAME | Optional, required for Azure Blob Storage storage             | Azure storage container name                                    |
+| AZURE_STORAGE_ACCOUNT_NAME   | Optional, required for Azure Blob Storage storage             | Azure storage account name                                      |
+| AZURE_STORAGE_ACCOUNT_KEY    | Optional, required for Azure Blob Storage storage             | Azure storage account key                                       |
 
 ---
 ## Run in Scheduled mode
