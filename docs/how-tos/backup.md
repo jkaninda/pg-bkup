@@ -38,6 +38,8 @@ services:
       - DB_NAME=database
       - DB_USERNAME=username
       - DB_PASSWORD=password
+      # You can also use JDBC format
+      #- DB_URL=jdbc:postgresql://postgres:5432/database?user=user&password=password
     # pg-bkup container must be connected to the same network with your database
     networks:
       - web
@@ -67,7 +69,7 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command:  backup -d database --cron-expression "0 1 * * *"
+    command:  backup -d database --cron-expression @midnight
     volumes:
       - ./backup:/backup
     environment:
@@ -76,7 +78,9 @@ services:
       - DB_NAME=database
       - DB_USERNAME=username
       - DB_PASSWORD=password
-      - BACKUP_CRON_EXPRESSION=0 1 * * *
+      - BACKUP_CRON_EXPRESSION=@midnight
+      # You can also use JDBC format
+      #- DB_URL=jdbc:postgresql://postgres:5432/database?user=user&password=password
       #Delete old backup created more than specified days ago
       #- BACKUP_RETENTION_DAYS=7
     # pg-bkup container must be connected to the same network with your database

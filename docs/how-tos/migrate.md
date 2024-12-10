@@ -38,12 +38,16 @@ services:
       - DB_NAME=database
       - DB_USERNAME=username
       - DB_PASSWORD=password
+      # You can also use JDBC format
+      #- DB_URL=jdbc:postgresql://postgres:5432/database?user=username&password=password
       ## Target database
       - TARGET_DB_HOST=target-postgres
       - TARGET_DB_PORT=5432
       - TARGET_DB_NAME=dbname
       - TARGET_DB_USERNAME=username
       - TARGET_DB_PASSWORD=password
+      # You can also use JDBC format
+      #- TARGET_DB_URL=jdbc:postgresql://target-postgres:5432/dbname?user=username&password=password
     # mysql-bkup container must be connected to the same network with your database
     networks:
       - web
