@@ -93,7 +93,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
-		BackupSize:     backupSize,
+		BackupSize:     utils.BytesToMb(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        config.storage,
 		BackupLocation: filepath.Join(config.remotePath, finalFileName),
