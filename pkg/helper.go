@@ -199,10 +199,7 @@ func RemoveLastExtension(filename string) string {
 }
 func convertJDBCToDbConfig(jdbcURI string) (*dbConfig, error) {
 	// Remove the "jdbc:" prefix
-	if strings.HasPrefix(jdbcURI, "jdbc:") {
-		jdbcURI = strings.TrimPrefix(jdbcURI, "jdbc:")
-	}
-
+	jdbcURI = strings.TrimPrefix(jdbcURI, "jdbc:")
 	// Parse the URI
 	u, err := url.Parse(jdbcURI)
 	if err != nil {
