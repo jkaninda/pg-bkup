@@ -254,3 +254,7 @@ func CronNextTime(cronExpr string) time.Time {
 	next := schedule.Next(now)
 	return next
 }
+
+func BytesToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
