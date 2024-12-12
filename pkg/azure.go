@@ -57,13 +57,14 @@ func azureBackup(db *dbConfig, config *BackupConfig) {
 		}
 
 	}
-
+	utils.Info("Backup name is %s", finalFileName)
+	utils.Info("Backup size: %s", utils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Uploading backup archive to Azure Blob storage ... done ")
 
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
-		BackupSize:     utils.BytesToMb(uint64(backupSize)),
+		BackupSize:     utils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        config.storage,
 		BackupLocation: filepath.Join(config.remotePath, finalFileName),

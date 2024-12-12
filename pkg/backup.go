@@ -277,7 +277,6 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 		utils.Error("Error: %s", err)
 	}
 	backupSize = fileInfo.Size()
-	utils.Info("Backup name is %s", finalFileName)
 	localStorage := local.NewStorage(local.Config{
 		LocalPath:  tmpPath,
 		RemotePath: storagePath,
@@ -286,11 +285,13 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	if err != nil {
 		utils.Fatal("Error copying backup file: %s", err)
 	}
+	utils.Info("Backup name is %s", finalFileName)
+	utils.Info("Backup size: %s", utils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Backup saved in %s", filepath.Join(storagePath, finalFileName))
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
-		BackupSize:     utils.BytesToMb(uint64(backupSize)),
+		BackupSize:     utils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        config.storage,
 		BackupLocation: filepath.Join(storagePath, finalFileName),
