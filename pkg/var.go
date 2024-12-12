@@ -45,14 +45,12 @@ var (
 // dbHVars Required environment variables for database
 var dbHVars = []string{
 	"DB_HOST",
-	"DB_PORT",
 	"DB_PASSWORD",
 	"DB_USERNAME",
 	"DB_NAME",
 }
 var tdbRVars = []string{
 	"TARGET_DB_HOST",
-	"TARGET_DB_PORT",
 	"TARGET_DB_NAME",
 	"TARGET_DB_USERNAME",
 	"TARGET_DB_PASSWORD",

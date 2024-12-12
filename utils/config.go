@@ -37,7 +37,7 @@ type MailConfig struct {
 }
 type NotificationData struct {
 	File            string
-	BackupSize      int64
+	BackupSize      string
 	Database        string
 	StartTime       string
 	EndTime         string

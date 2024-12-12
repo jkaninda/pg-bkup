@@ -89,11 +89,12 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		}
 	}
 	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
+	utils.Info("Backup size: %s", utils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Uploading backup archive to remote storage S3 ... done ")
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
-		BackupSize:     backupSize,
+		BackupSize:     utils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        config.storage,
 		BackupLocation: filepath.Join(config.remotePath, finalFileName),

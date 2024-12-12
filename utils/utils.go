@@ -254,3 +254,19 @@ func CronNextTime(cronExpr string) time.Time {
 	next := schedule.Next(now)
 	return next
 }
+
+// ConvertBytes converts bytes to a human-readable string with the appropriate unit (bytes, MiB, or GiB).
+func ConvertBytes(bytes uint64) string {
+	const (
+		MiB = 1024 * 1024
+		GiB = MiB * 1024
+	)
+	switch {
+	case bytes >= GiB:
+		return fmt.Sprintf("%.2f GiB", float64(bytes)/float64(GiB))
+	case bytes >= MiB:
+		return fmt.Sprintf("%.2f MiB", float64(bytes)/float64(MiB))
+	default:
+		return fmt.Sprintf("%d bytes", bytes)
+	}
+}
