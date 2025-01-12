@@ -19,8 +19,8 @@ description: >- # this means to ignore newlines until "baseurl:"
   PostgreSQL Backup is a Docker container image that can be used to backup and restore Postgres database.
   It supports local storage, AWS S3 or any S3 Alternatives for Object Storage, and SSH compatible storage.
 
-baseurl: "https://jkaninda.github.io/mysql-bkup/" # the subpath of your site, e.g. /blog
-url: "jkaninda.github.io/pg-bkup/" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: jonaskaninda
 github_username:  jkaninda
 
