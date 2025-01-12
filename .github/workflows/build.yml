@@ -5,6 +5,9 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
     steps:
       -
         name: Set up QEMU
@@ -18,6 +21,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push
         uses: docker/build-push-action@v3
@@ -29,4 +38,5 @@ jobs:
             appVersion=nightly
           tags: |
             "${{vars.BUILDKIT_IMAGE}}:nightly"
+            "ghcr.io/${{vars.BUILDKIT_IMAGE}}:nightly"
 
