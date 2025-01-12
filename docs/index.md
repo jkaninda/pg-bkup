@@ -5,75 +5,81 @@ nav_order: 1
 ---
 
 # About PG-BKUP
-{:.no_toc}
 
-**PG-BKUP** is a Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
-It supports a variety of storage options and ensures data security through GPG encryption.
+**PG-BKUP** is a lightweight and versatile Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
 
-## Features
+It supports multiple storage options and ensures data security through GPG encryption.
 
-- **Storage Options:**
-    - Local storage
-    - AWS S3 or any S3-compatible object storage
-    - FTP
-    - SSH-compatible storage
-    - Azure Blob storage
+---
 
-- **Data Security:**
-    - Backups can be encrypted using **GPG** to ensure confidentiality.
+## Key Features
 
-- **Deployment Flexibility:**
-    - Available as the [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image.
-    - Deployable on **Docker**, **Docker Swarm**, and **Kubernetes**.
-    - Supports recurring backups of PostgreSQL databases when deployed:
-        - On Docker for automated backup schedules.
-        - As a **Job** or **CronJob** on Kubernetes.
+### Storage Options
+- **Local storage**
+- **AWS S3** or any S3-compatible object storage
+- **FTP**
+- **SFTP**
+- **SSH-compatible storage**
+- **Azure Blob storage**
 
-- **Notifications:**
-    - Get real-time updates on backup success or failure via:
-        - **Telegram**
-        - **Email**
+### Data Security
+- Backups can be encrypted using **GPG** to ensure data confidentiality.
+
+### Deployment Flexibility
+- Available as the [jkaninda/pg-bkup](https://hub.docker.com/r/jkaninda/pg-bkup) Docker image.
+- Deployable on **Docker**, **Docker Swarm**, and **Kubernetes**.
+- Supports recurring backups of PostgreSQL databases:
+    - On Docker for automated backup schedules.
+    - As a **Job** or **CronJob** on Kubernetes.
+
+### Notifications
+- Receive real-time updates on backup success or failure via:
+    - **Telegram**
+    - **Email**
+
+---
 
 ## Use Cases
 
 - **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
-- **Cross-Environment Migration:** Easily migrate your PostgreSQL databases across different environments using supported storage options.
+- **Cross-Environment Migration:** Easily migrate PostgreSQL databases across different environments using supported storage options.
 - **Secure Backup Management:** Protect your data with GPG encryption.
 
+---
 
-We are open to receiving stars, PRs, and issues!
+## Get Involved
 
+We welcome contributions! Feel free to give us a ⭐, submit PRs, or open issues on our [GitHub repository](https://github.com/jkaninda/pg-bkup).
 
 {: .fs-6 .fw-300 }
 
 ---
 
 {: .note }
-Code and documentation for `v1` version on [this branch][v1-branch].
+Code and documentation for the `v1` version are available on [this branch][v1-branch].
 
 [v1-branch]: https://github.com/jkaninda/pg-bkup
 
 ---
 
+## Available Image Registries
 
-## Available image registries
+The Docker image is published to both **Docker Hub** and the **GitHub Container Registry**. You can use either of the following:
 
-This Docker image is published to both Docker Hub and the GitHub container registry.
-Depending on your preferences and needs, you can reference both `jkaninda/pg-bkup` as well as `ghcr.io/jkaninda/pg-bkup`:
-
-```
+```bash
 docker pull jkaninda/pg-bkup
 docker pull ghcr.io/jkaninda/pg-bkup
 ```
 
-Documentation references Docker Hub, but all examples will work using ghcr.io just as well.
+While the documentation references Docker Hub, all examples work seamlessly with `ghcr.io`.
+
+---
 
 ## References
 
-We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
+We created this image as a simpler and more lightweight alternative to existing solutions. Here’s why:
 
-- The original image is based on `Alpine` and requires additional tools, making it heavy.
-- This image is written in Go.
-- `arm64` and `arm/v7` architectures are supported.
-- Docker in Swarm mode is supported.
-- Kubernetes is supported.
+- **Lightweight:** Written in Go, the image is optimized for performance and minimal resource usage.
+- **Multi-Architecture Support:** Supports `arm64` and `arm/v7` architectures.
+- **Docker Swarm Support:** Fully compatible with Docker in Swarm mode.
+- **Kubernetes Support:** Designed to work seamlessly with Kubernetes.

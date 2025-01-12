@@ -6,11 +6,15 @@ nav_order: 2
 
 # Quickstart
 
+This guide provides quick examples for running backups using Docker CLI, Docker Compose, and Kubernetes.
+
+---
+
 ## Simple Backup Using Docker CLI
 
-To run a one-time backup, bind your local volume to `/backup` in the container and run the `backup` command:
+To run a one-time backup, bind your local volume to `/backup` in the container and execute the `backup` command:
 
-```shell
+```bash
 docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
@@ -19,26 +23,28 @@ docker run --rm --network your_network_name \
   jkaninda/pg-bkup backup -d database_name
 ```
 
-### Using a Full Configuration File
+### Using an Environment File
 
 Alternatively, you can use an `--env-file` to pass a full configuration:
 
-```shell
+```bash
 docker run --rm --network your_network_name \
   --env-file your-env-file \
   -v $PWD/backup:/backup/ \
   jkaninda/pg-bkup backup -d database_name
 ```
 
+---
+
 ## Simple Backup Using Docker Compose
 
-Here is an example `docker-compose.yml` configuration:
+Below is an example `docker-compose.yml` configuration for running a backup:
 
 ```yaml
 services:
   pg-bkup:
-    # In production, lock the image tag to a release version.
-    # See https://github.com/jkaninda/pg-bkup/releases for available releases.
+    # In production, lock the image tag to a specific release version.
+    # Check https://github.com/jkaninda/pg-bkup/releases for available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     command: backup
@@ -51,7 +57,7 @@ services:
       - DB_USERNAME=bar
       - DB_PASSWORD=password
       - TZ=Europe/Paris
-    # Connect pg-bkup to the same network as your database.
+    # Ensure the pg-bkup container is connected to the same network as your database.
     networks:
       - web
 
@@ -59,11 +65,13 @@ networks:
   web:
 ```
 
+---
+
 ## Recurring Backup with Docker
 
 To schedule recurring backups, use the `--cron-expression` flag:
 
-```shell
+```bash
 docker run --rm --network network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=hostname" \
@@ -72,11 +80,13 @@ docker run --rm --network network_name \
   jkaninda/pg-bkup backup -d dbName --cron-expression "@every 15m"
 ```
 
-For predefined schedules, see the [documentation](https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules).
+For predefined schedules, refer to the [documentation](https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules).
+
+---
 
 ## Backup Using Kubernetes
 
-Here is an example Kubernetes `Job` configuration for backups:
+Below is an example Kubernetes `Job` configuration for running a backup:
 
 ```yaml
 apiVersion: batch/v1
@@ -89,8 +99,8 @@ spec:
     spec:
       containers:
         - name: pg-bkup
-          # In production, lock the image tag to a release version.
-          # See https://github.com/jkaninda/pg-bkup/releases for available releases.
+          # In production, lock the image tag to a specific release version.
+          # Check https://github.com/jkaninda/pg-bkup/releases for available releases.
           image: jkaninda/pg-bkup
           command:
             - /bin/sh
@@ -113,9 +123,16 @@ spec:
       volumes:
         - name: backup
           hostPath:
-            path: /home/toto/backup # Directory location on host
-            type: Directory # Optional field
+            path: /home/toto/backup  # Directory location on the host
+            type: Directory  # Optional field
       restartPolicy: Never
 ```
 
+---
 
+## Key Notes
+
+- **Volume Binding**: Ensure the `/backup` directory is mounted to persist backup files.
+- **Environment Variables**: Use environment variables or an `--env-file` to pass database credentials and other configurations.
+- **Cron Expressions**: Use standard cron expressions or predefined schedules for recurring backups.
+- **Kubernetes Jobs**: Use Kubernetes `Job` or `CronJob` for running backups in a Kubernetes cluster.

@@ -4,44 +4,35 @@ layout: default
 parent: How Tos
 nav_order: 8
 ---
-# Encrypt backup
+# Encrypt Backup
 
-The image supports encrypting backups using one of two available methods: GPG with passphrase or GPG with a public key.
-
-
-The image supports encrypting backups using GPG out of the box. In case a `GPG_PASSPHRASE` or `GPG_PUBLIC_KEY` environment variable is set, the backup archive will be encrypted using the given key and saved as a sql.gpg file instead or sql.gz.gpg.
+The image supports encrypting backups using one of two methods: **GPG with a passphrase** or **GPG with a public key**. When a `GPG_PASSPHRASE` or `GPG_PUBLIC_KEY` environment variable is set, the backup archive will be encrypted and saved as a `.sql.gpg` or `.sql.gz.gpg` file.
 
 {: .warning }
-To restore an encrypted backup, you need to provide the same GPG passphrase used during backup process.
+To restore an encrypted backup, you must provide the same GPG passphrase or private key used during the backup process.
 
-- GPG home directory `/config/gnupg`
-- Cipher algorithm `aes256`
+---
 
-{: .note }
-The backup encrypted using `GPG passphrase` method can be restored automatically, no need to decrypt it before restoration.
-Suppose you used a GPG public key during the backup process. In that case, you need to decrypt your backup before restoration because decryption using a `GPG private` key is not fully supported.
+## Key Features
 
-To decrypt manually, you need to install `gnupg`
+- **Cipher Algorithm**: `aes256`
+- **Automatic Restoration**: Backups encrypted with a GPG passphrase can be restored automatically without manual decryption.
+- **Manual Decryption**: Backups encrypted with a GPG public key require manual decryption before restoration.
 
-```shell
-gpg --batch --passphrase "my-passphrase" \
---output database_20240730_044201.sql.gz \
---decrypt database_20240730_044201.sql.gz.gpg
-```
-Using your private key
+---
 
-```shell
-gpg --output database_20240730_044201.sql.gz --decrypt database_20240730_044201.sql.gz.gpg
-```
-## Using GPG passphrase
+## Using GPG Passphrase
 
-```yml
+To encrypt backups using a GPG passphrase, set the `GPG_PASSPHRASE` environment variable. The backup will be encrypted and can be restored automatically.
+
+### Example Configuration
+
+```yaml
 services:
   pg-bkup:
-    # In production, it is advised to lock your image tag to a proper
-    # release version instead of using `latest`.
-    # Check https://github.com/jkaninda/pg-bkup/releases
-    # for a list of available releases.
+    # In production, lock your image tag to a specific release version
+    # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
+    # for available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     command: backup -d database
@@ -55,27 +46,34 @@ services:
       - DB_PASSWORD=password
       ## Required to encrypt backup
       - GPG_PASSPHRASE=my-secure-passphrase
-    # pg-bkup container must be connected to the same network with your database
+    # Ensure the pg-bkup container is connected to the same network as your database
     networks:
       - web
+
 networks:
   web:
 ```
 
+---
+
 ## Using GPG Public Key
 
-```yml
+To encrypt backups using a GPG public key, set the `GPG_PUBLIC_KEY` environment variable to the path of your public key file. Backups encrypted with a public key require manual decryption before restoration.
+
+### Example Configuration
+
+```yaml
 services:
   pg-bkup:
-    # In production, it is advised to lock your image tag to a proper
-    # release version instead of using `latest`.
-    # Check https://github.com/jkaninda/pg-bkup/releases
-    # for a list of available releases.
+    # In production, lock your image tag to a specific release version
+    # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
+    # for available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     command: backup -d database
     volumes:
       - ./backup:/backup
+      - ./public_key.asc:/config/public_key.asc
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
@@ -84,9 +82,39 @@ services:
       - DB_PASSWORD=password
       ## Required to encrypt backup
       - GPG_PUBLIC_KEY=/config/public_key.asc
-    # pg-bkup container must be connected to the same network with your database
+    # Ensure the pg-bkup container is connected to the same network as your database
     networks:
       - web
+
 networks:
   web:
 ```
+
+---
+
+## Manual Decryption
+
+If you encrypted your backup using a GPG public key, you must manually decrypt it before restoration. Use the `gnupg` tool for decryption.
+
+### Decrypt Using a Passphrase
+
+```bash
+gpg --batch --passphrase "my-passphrase" \
+  --output database_20240730_044201.sql.gz \
+  --decrypt database_20240730_044201.sql.gz.gpg
+```
+
+### Decrypt Using a Private Key
+
+```bash
+gpg --output database_20240730_044201.sql.gz \
+  --decrypt database_20240730_044201.sql.gz.gpg
+```
+
+---
+
+## Key Notes
+
+- **Automatic Restoration**: Backups encrypted with a GPG passphrase can be restored directly without manual decryption.
+- **Manual Decryption**: Backups encrypted with a GPG public key require manual decryption using the corresponding private key.
+- **Security**: Always keep your GPG passphrase and private key secure. Use Kubernetes Secrets or other secure methods to manage sensitive data.

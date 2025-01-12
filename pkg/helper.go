@@ -171,6 +171,8 @@ func readConf(configFile string) (*Config, error) {
 
 // checkConfigFile checks config files and returns one config file
 func checkConfigFile(filePath string) (string, error) {
+	// Remove the quotes
+	filePath = strings.Trim(filePath, `"`)
 	// Define possible config file names
 	configFiles := []string{filepath.Join(workingDir, "config.yaml"), filepath.Join(workingDir, "config.yml"), filePath}
 

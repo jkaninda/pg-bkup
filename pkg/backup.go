@@ -128,7 +128,7 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 	}
 }
 func startMultiBackup(bkConfig *BackupConfig, configFile string) {
-	utils.Info("Starting backup task...")
+	utils.Info("Starting Multi backup task...")
 	conf, err := readConf(configFile)
 	if err != nil {
 		utils.Fatal("Error reading config file: %s", err)
