@@ -4,22 +4,43 @@ layout: default
 parent: How Tos
 nav_order: 5
 ---
-# Azure Blob storage
 
-{: .note }
-As described on local backup section, to change the storage of your backup and use Azure Blob as storage. You need to add `--storage azure` (-s azure).
-You can also specify a folder where you want to save you data by adding `--path my-custom-path` flag.
+# Backup to Azure Blob Storage
 
+To store your backups on Azure Blob Storage, you can configure the backup process to use the `--storage azure` option. 
 
-## Backup to Azure Blob storage
+This section explains how to set up and configure Azure Blob-based backups.
 
-```yml
+---
+
+## Configuration Steps
+
+1. **Specify the Storage Type**  
+   Add the `--storage azure` flag to your backup command.
+
+2. **Set the Blob Path**  
+   Optionally, specify a custom folder within your Azure Blob container where backups will be stored using the `--path` flag.  
+   Example: `--path my-custom-path`.
+
+3. **Required Environment Variables**  
+   The following environment variables are mandatory for Azure Blob-based backups:
+
+    - `AZURE_STORAGE_CONTAINER_NAME`: The name of the Azure Blob container where backups will be stored.
+    - `AZURE_STORAGE_ACCOUNT_NAME`: The name of your Azure Storage account.
+    - `AZURE_STORAGE_ACCOUNT_KEY`: The access key for your Azure Storage account.
+
+---
+
+## Example Configuration
+
+Below is an example `docker-compose.yml` configuration for backing up to Azure Blob Storage:
+
+```yaml
 services:
   mysql-bkup:
-    # In production, it is advised to lock your image tag to a proper
-    # release version instead of using `latest`.
-    # Check https://github.com/jkaninda/pg-bkup/releases
-    # for a list of available releases.
+    # In production, lock your image tag to a specific release version
+    # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
+    # for available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     command: backup --storage azure -d database --path my-custom-path
@@ -29,16 +50,23 @@ services:
       - DB_NAME=database
       - DB_USERNAME=username
       - DB_PASSWORD=password
-      ## Azure Blob configurations
+      ## Azure Blob Configuration
       - AZURE_STORAGE_CONTAINER_NAME=backup-container
       - AZURE_STORAGE_ACCOUNT_NAME=account-name
       - AZURE_STORAGE_ACCOUNT_KEY=Ppby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
-    # pg-bkup container must be connected to the same network with your database
+
+    # Ensure the pg-bkup container is connected to the same network as your database
     networks:
       - web
+
 networks:
   web:
 ```
 
+---
 
+## Key Notes
 
+- **Custom Path**: Use the `--path` flag to specify a folder within your Azure Blob container for organizing backups.
+- **Security**: Ensure your `AZURE_STORAGE_ACCOUNT_KEY` is kept secure and not exposed in public repositories.
+- **Compatibility**: This configuration works with Azure Blob Storage and other compatible storage solutions.

@@ -15,6 +15,7 @@ It supports a variety of storage options and ensures data security through GPG e
     - Local storage
     - AWS S3 or any S3-compatible object storage
     - FTP
+    - SFTP
     - SSH-compatible storage
     - Azure Blob storage
 
@@ -36,7 +37,7 @@ It supports a variety of storage options and ensures data security through GPG e
 ## Use Cases
 
 - **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
-- **Cross-Environment Migration:** Easily migrate your PostgreSQL databases across different environments using supported storage options.
+- **Cross-Environment Migration:** Easily migrate PostgreSQL databases across different environments using supported storage options.
 - **Secure Backup Management:** Protect your data with GPG encryption.
 
 
@@ -189,13 +190,13 @@ Documentation references Docker Hub, but all examples will work using ghcr.io ju
 
 ## References
 
-We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
+We created this image as a simpler and more lightweight alternative to existing solutions. Here’s why:
 
-- The original image is based on `Alpine` and requires additional tools, making it heavy.
-- This image is written in Go.
-- `arm64` and `arm/v7` architectures are supported.
-- Docker in Swarm mode is supported.
-- Kubernetes is supported.
+- **Lightweight:** Written in Go, the image is optimized for performance and minimal resource usage.
+- **Multi-Architecture Support:** Supports `arm64` and `arm/v7` architectures.
+- **Docker Swarm Support:** Fully compatible with Docker in Swarm mode.
+- **Kubernetes Support:** Designed to work seamlessly with Kubernetes.
+
 
 
 ## License
