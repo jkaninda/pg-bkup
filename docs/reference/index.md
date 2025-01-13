@@ -25,7 +25,7 @@ Backup, restore, and migration targets, schedules, and retention policies are co
 | `--dbname`              | `-d`       | Database name.                                                                |
 | `--port`                | `-p`       | Database port. Default: `5432`.                                               |
 | `--disable-compression` |            | Disable compression for database backups.                                     |
-| `--cron-expression`     | `-e`       | Cron expression for scheduled backups (e.g., `* * * * *` or `@daily`).        |
+| `--cron-expression`     | `-e`       | Cron expression for scheduled backups (e.g., `0 0 * * *` or `@daily`).        |
 | `--help`                | `-h`       | Display help message and exit.                                                |
 | `--version`             | `-V`       | Display version information and exit.                                         |
 
