@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/go-storage/pkg/local"
+	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
@@ -106,6 +107,7 @@ func multiBackupTask(databases []Database, bkConfig *BackupConfig) {
 // BackupTask backups database
 func BackupTask(db *dbConfig, config *BackupConfig) {
 	utils.Info("Starting backup task...")
+	startTime = time.Now()
 	// Generate file name
 	backupFileName := fmt.Sprintf("%s_%s.sql.gz", db.dbName, time.Now().Format("20060102_150405"))
 	if config.disableCompression {
@@ -117,7 +119,7 @@ func BackupTask(db *dbConfig, config *BackupConfig) {
 		localBackup(db, config)
 	case "s3", "S3":
 		s3Backup(db, config)
-	case "ssh", "SSH", "remote":
+	case "ssh", "SSH", "remote", "sftp":
 		sshBackup(db, config)
 	case "ftp", "FTP":
 		ftpBackup(db, config)
@@ -265,7 +267,6 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 }
 func localBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to local storage")
-	startTime = time.Now().Format(utils.TimeFormat())
 	BackupDatabase(db, config.backupFileName, disableCompression)
 	finalFileName := config.backupFileName
 	if config.encryption {
@@ -286,17 +287,18 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error copying backup file: %s", err)
 	}
 	utils.Info("Backup name is %s", finalFileName)
-	utils.Info("Backup size: %s", utils.ConvertBytes(uint64(backupSize)))
+	utils.Info("Backup size: %s", goutils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Backup saved in %s", filepath.Join(storagePath, finalFileName))
+	duration := goutils.FormatDuration(time.Since(startTime), 0)
+
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
-		BackupSize:     utils.ConvertBytes(uint64(backupSize)),
+		BackupSize:     goutils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        config.storage,
 		BackupLocation: filepath.Join(storagePath, finalFileName),
-		StartTime:      startTime,
-		EndTime:        time.Now().Format(utils.TimeFormat()),
+		Duration:       duration,
 	})
 	// Delete old backup
 	if config.prune {
@@ -308,7 +310,7 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	}
 	// Delete temp
 	deleteTemp()
-	utils.Info("Backup completed successfully")
+	utils.Info("Backup successfully completed in %s", duration)
 }
 func encryptBackup(config *BackupConfig) {
 	backupFile, err := os.ReadFile(filepath.Join(tmpPath, config.backupFileName))
