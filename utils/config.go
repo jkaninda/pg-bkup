@@ -24,7 +24,10 @@ SOFTWARE.
 
 package utils
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 type MailConfig struct {
 	MailHost     string
@@ -39,8 +42,7 @@ type NotificationData struct {
 	File            string
 	BackupSize      string
 	Database        string
-	StartTime       string
-	EndTime         string
+	Duration        string
 	Storage         string
 	BackupLocation  string
 	BackupReference string
@@ -61,7 +63,7 @@ func loadMailConfig() *MailConfig {
 		MailUserName: os.Getenv("MAIL_USERNAME"),
 		MailPassword: os.Getenv("MAIL_PASSWORD"),
 		MailTo:       os.Getenv("MAIL_TO"),
-		MailFrom:     os.Getenv("MAIL_FROM"),
+		MailFrom:     strings.Trim(os.Getenv("MAIL_FROM"), `"`),
 		SkipTls:      os.Getenv("MAIL_SKIP_TLS") == "false",
 	}
 

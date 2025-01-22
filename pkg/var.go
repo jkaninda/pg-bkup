@@ -24,6 +24,8 @@ SOFTWARE.
 
 package pkg
 
+import "time"
+
 const tmpPath = "/tmp/backup"
 const gpgHome = "/config/gnupg"
 const gpgExtension = "gpg"
@@ -39,7 +41,7 @@ var (
 	encryption               = false
 	usingKey                 = false
 	backupSize         int64 = 0
-	startTime          string
+	startTime                = time.Now()
 )
 
 // dbHVars Required environment variables for database
