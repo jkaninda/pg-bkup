@@ -8,51 +8,62 @@ nav_order: 11
 
 # Multiple Backup Schedules
 
-You can configure multiple backup schedules with different configurations by using a configuration file. 
-
-This file can be mounted into the container at `/config/config.yaml`, `/config/config.yml`, or specified via the `BACKUP_CONFIG_FILE` environment variable.
+This tool supports running multiple database backup schedules within the same container. 
+You can configure these schedules with different settings using a **configuration file**. This flexibility allows you to manage backups for multiple databases efficiently.
 
 ---
 
-## Configuration File
+## Configuration File Setup
 
-The configuration file allows you to define multiple databases and their respective backup settings. 
+The configuration file can be mounted into the container at `/config/config.yaml`, `/config/config.yml`, or specified via the `BACKUP_CONFIG_FILE` environment variable.
 
-Below is an example configuration file:
+### Key Features:
+- **Global Environment Variables**: Use these for databases that share the same configuration.
+- **Database-Specific Overrides**: Override global settings for individual databases by specifying them in the configuration file or using the database name as a suffix in the variable name (e.g., `DB_HOST_DATABASE1`).
+- **Global Cron Expression**: Define a global `cronExpression` in the configuration file to schedule backups for all databases. If omitted, backups will run immediately.
+- **Configuration File Path**: Specify the configuration file path using:
+    - The `BACKUP_CONFIG_FILE` environment variable.
+    - The `--config` or `-c` flag for the backup command.
+
+---
+
+## Configuration File Example
+
+Below is an example configuration file (`config.yaml`) that defines multiple databases and their respective backup settings:
 
 ```yaml
-# Optional: Define a global cron expression for scheduled backups
-# cronExpression: "@every 20m"
+# Optional: Define a global cron expression for scheduled backups.
+# Example: "@every 20m" (runs every 20 minutes). If omitted, backups run immediately.
 cronExpression: ""
 
 databases:
-  - host: postgres1
-    port: 5432
-    name: database1
-    user: database1
-    password: password
-    path: /s3-path/database1  # For SSH or FTP, define the full path (e.g., /home/toto/backup/)
-  
-  - host: postgres2
-    port: 5432
-    name: lldap
-    user: lldap
-    password: password
-    path: /s3-path/lldap  # For SSH or FTP, define the full path (e.g., /home/toto/backup/)
-  
-  - host: postgres3
-    port: 5432
-    name: keycloak
-    user: keycloak
-    password: password
-    path: /s3-path/keycloak  # For SSH or FTP, define the full path (e.g., /home/toto/backup/)
-  
-  - host: postgres4
-    port: 5432
-    name: joplin
-    user: joplin
-    password: password
-    path: /s3-path/joplin  # For SSH or FTP, define the full path (e.g., /home/toto/backup/)
+  - host: postgres1       # Optional: Overrides DB_HOST or uses DB_HOST_DATABASE1.
+    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_DATABASE1.
+    name: database1       # Required: Database name.
+    user: database1       # Optional: Overrides DB_USERNAME or uses DB_USERNAME_DATABASE1.
+    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_DATABASE1.
+    path: /s3-path/database1  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+
+  - host: postgres2       # Optional: Overrides DB_HOST or uses DB_HOST_LLAP.
+    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_LLAP.
+    name: lldap           # Required: Database name.
+    user: lldap           # Optional: Overrides DB_USERNAME or uses DB_USERNAME_LLAP.
+    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_LLAP.
+    path: /s3-path/lldap  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+
+  - host: postgres3       # Optional: Overrides DB_HOST or uses DB_HOST_KEYCLOAK.
+    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_KEYCLOAK.
+    name: keycloak        # Required: Database name.
+    user: keycloak        # Optional: Overrides DB_USERNAME or uses DB_USERNAME_KEYCLOAK.
+    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_KEYCLOAK.
+    path: /s3-path/keycloak  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+
+  - host: postgres4       # Optional: Overrides DB_HOST or uses DB_HOST_JOPLIN.
+    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_JOPLIN.
+    name: joplin          # Required: Database name.
+    user: joplin          # Optional: Overrides DB_USERNAME or uses DB_USERNAME_JOPLIN.
+    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_JOPLIN.
+    path: /s3-path/joplin  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
 ```
 
 ---
@@ -88,9 +99,5 @@ networks:
 
 ---
 
-## Key Notes
 
-- **Global Cron Expression**: You can define a global `cronExpression` in the configuration file to schedule backups for all databases. If omitted, backups will run immediately.
-- **Database-Specific Paths**: For SSH or FTP storage, ensure the `path` field contains the full remote path (e.g., `/home/toto/backup/`).
-- **Environment Variables**: Use the `BACKUP_CONFIG_FILE` environment variable to specify the path to the configuration file.
-- **Security**: Avoid hardcoding sensitive information like passwords in the configuration file. Use environment variables or secrets management tools instead.
+
