@@ -114,8 +114,6 @@ func NotifySuccess(notificationData *NotificationData) {
 	var mailVars = []string{
 		"MAIL_HOST",
 		"MAIL_PORT",
-		"MAIL_USERNAME",
-		"MAIL_PASSWORD",
 		"MAIL_FROM",
 		"MAIL_TO",
 	}
@@ -154,8 +152,6 @@ func NotifyError(error string) {
 	var mailVars = []string{
 		"MAIL_HOST",
 		"MAIL_PORT",
-		"MAIL_USERNAME",
-		"MAIL_PASSWORD",
 		"MAIL_FROM",
 		"MAIL_TO",
 	}
