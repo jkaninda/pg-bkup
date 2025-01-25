@@ -135,6 +135,11 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 }
 
 func getDatabase(database Database) *dbConfig {
+	// Set default values from environment variables if not provided
+	database.User = getEnvOrDefault(database.User, "DB_USERNAME", "")
+	database.Password = getEnvOrDefault(database.Password, "DB_PASSWORD", "")
+	database.Host = getEnvOrDefault(database.Host, "DB_HOST", "")
+	database.Port = getEnvOrDefault(database.Port, "DB_PORT", "5432")
 	return &dbConfig{
 		dbHost:     database.Host,
 		dbPort:     database.Port,
@@ -142,6 +147,17 @@ func getDatabase(database Database) *dbConfig {
 		dbUserName: database.User,
 		dbPassword: database.Password,
 	}
+}
+
+// Helper function to get environment variable or use a default value
+func getEnvOrDefault(currentValue, envKey, defaultValue string) string {
+	if currentValue != "" {
+		return currentValue
+	}
+	if defaultValue != "" {
+		return utils.EnvWithDefault(envKey, defaultValue)
+	}
+	return os.Getenv(envKey)
 }
 
 // loadSSHConfig loads the SSH configuration from environment variables
