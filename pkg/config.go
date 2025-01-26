@@ -122,7 +122,7 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	dConf := dbConfig{}
 	dConf.dbHost = os.Getenv("DB_HOST")
-	dConf.dbPort = os.Getenv("DB_PORT")
+	dConf.dbPort = utils.EnvWithDefault("DB_PORT", "5432")
 	dConf.dbName = os.Getenv("DB_NAME")
 	dConf.dbUserName = os.Getenv("DB_USERNAME")
 	dConf.dbPassword = os.Getenv("DB_PASSWORD")
