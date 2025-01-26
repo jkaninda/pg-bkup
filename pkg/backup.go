@@ -207,7 +207,7 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 	}
 	err = testDatabaseConnection(db)
 	if err != nil {
-		return fmt.Errorf(err.Error())
+		return fmt.Errorf("error connecting to the database %v", err)
 	}
 	// Backup Database database
 	utils.Info("Backing up database...")
@@ -361,11 +361,11 @@ func recoverMode(err error, msg string) {
 	if err != nil {
 		if backupRescueMode {
 			utils.NotifyError(fmt.Sprintf("%s : %v", msg, err))
-			utils.Error(msg)
+			utils.Error("Error: %s", msg)
 			utils.Error("Backup rescue mode is enabled")
 			utils.Error("Backup will continue")
 		} else {
-			utils.Error(msg)
+			utils.Error("Error: %s", msg)
 			utils.Fatal("Error: %v", err)
 		}
 	}
