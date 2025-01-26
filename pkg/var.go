@@ -42,6 +42,7 @@ var (
 	usingKey                 = false
 	backupSize         int64 = 0
 	startTime                = time.Now()
+	backupRescueMode         = false
 )
 
 // dbHVars Required environment variables for database

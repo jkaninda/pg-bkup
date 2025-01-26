@@ -71,13 +71,17 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	// Test backup
 	utils.Info("Testing backup configurations...")
-	testDatabaseConnection(db)
+	err := testDatabaseConnection(db)
+	if err != nil {
+		utils.Error("Error connecting to database: %s", db.dbName)
+		utils.Fatal("Error: %s", err)
+	}
 	utils.Info("Testing backup configurations...done")
 	utils.Info("Creating backup job...")
 	// Create a new cron instance
 	c := cron.New()
 
-	_, err := c.AddFunc(config.cronExpression, func() {
+	_, err = c.AddFunc(config.cronExpression, func() {
 		BackupTask(db, config)
 		utils.Info("Next backup time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat))
 
@@ -146,6 +150,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 	if bkConfig.cronExpression == "" {
 		multiBackupTask(conf.Databases, bkConfig)
 	} else {
+		backupRescueMode = conf.BackupRescueMode
 		// Check if cronExpression is valid
 		if utils.IsValidCronExpression(bkConfig.cronExpression) {
 			utils.Info("Running backup in Scheduled mode")
@@ -156,7 +161,11 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 			// Test backup
 			utils.Info("Testing backup configurations...")
 			for _, db := range conf.Databases {
-				testDatabaseConnection(getDatabase(db))
+				err = testDatabaseConnection(getDatabase(db))
+				if err != nil {
+					recoverMode(err, fmt.Sprintf("Error connecting to database: %s", db.Name))
+					continue
+				}
 			}
 			utils.Info("Testing backup configurations...done")
 			utils.Info("Creating backup job...")
@@ -186,7 +195,7 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 }
 
 // BackupDatabase backup database
-func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool) {
+func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool) error {
 
 	storagePath = os.Getenv("STORAGE_PATH")
 
@@ -194,9 +203,12 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 
 	err := os.Setenv("PGPASSWORD", db.dbPassword)
 	if err != nil {
-		return
+		return fmt.Errorf("failed to set PGPASSWORD environment variable: %v", err)
 	}
-	testDatabaseConnection(db)
+	err = testDatabaseConnection(db)
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
 	// Backup Database database
 	utils.Info("Backing up database...")
 
@@ -211,12 +223,12 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 		)
 		output, err := cmd.Output()
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error during backup %v", err)
 		}
 		// save output
 		file, err := os.Create(filepath.Join(tmpPath, backupFileName))
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error creating backup file %v", err)
 		}
 		defer func(file *os.File) {
 			err := file.Close()
@@ -228,7 +240,7 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 
 		_, err = file.Write(output)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error writing to backup file %v", err)
 		}
 
 	} else {
@@ -249,25 +261,29 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression bool
 		gzipCmd.Stdout, err = os.Create(filepath.Join(tmpPath, backupFileName))
 		err2 := gzipCmd.Start()
 		if err2 != nil {
-			return
+			return fmt.Errorf("error starting gzip %v", err2)
 		}
 		if err != nil {
 			log.Fatal(err)
 		}
 		if err := cmd.Run(); err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error during backup %v", err)
 		}
 		if err := gzipCmd.Wait(); err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("error during backup %v", err)
 		}
 
 	}
 	utils.Info("Database has been backed up")
-
+	return nil
 }
 func localBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to local storage")
-	BackupDatabase(db, config.backupFileName, disableCompression)
+	err := BackupDatabase(db, config.backupFileName, disableCompression)
+	if err != nil {
+		recoverMode(err, "Error backing up database")
+		return
+	}
 	finalFileName := config.backupFileName
 	if config.encryption {
 		encryptBackup(config)
@@ -338,6 +354,20 @@ func encryptBackup(config *BackupConfig) {
 		}
 		utils.Info("Encrypting backup using passphrase...done")
 
+	}
+
+}
+func recoverMode(err error, msg string) {
+	if err != nil {
+		if backupRescueMode {
+			utils.NotifyError(fmt.Sprintf("%s : %v", msg, err))
+			utils.Error(msg)
+			utils.Error("Backup rescue mode is enabled")
+			utils.Error("Backup will continue")
+		} else {
+			utils.Error(msg)
+			utils.Fatal("Error: %v", err)
+		}
 	}
 
 }

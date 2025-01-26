@@ -42,8 +42,9 @@ type Database struct {
 	Path     string `yaml:"path"`
 }
 type Config struct {
-	Databases      []Database `yaml:"databases"`
-	CronExpression string     `yaml:"cronExpression"`
+	CronExpression   string     `yaml:"cronExpression"`
+	BackupRescueMode bool       `yaml:"backupRescueMode"`
+	Databases        []Database `yaml:"databases"`
 }
 
 type dbConfig struct {
