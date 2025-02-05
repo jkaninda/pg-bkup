@@ -67,7 +67,7 @@ func deleteTemp() {
 }
 
 // TestDatabaseConnection  tests the database connection
-func testDatabaseConnection(db *dbConfig) {
+func testDatabaseConnection(db *dbConfig) error {
 
 	utils.Info("Connecting to %s database ...", db.dbName)
 	// Set database name for notification error
@@ -79,7 +79,7 @@ func testDatabaseConnection(db *dbConfig) {
 	// Set the environment variable for the database password
 	err := os.Setenv("PGPASSWORD", db.dbPassword)
 	if err != nil {
-		return
+		return fmt.Errorf("failed to set PGPASSWORD environment variable: %v", err)
 	}
 	// Prepare the psql command
 	cmd := exec.Command("psql",
@@ -97,10 +97,10 @@ func testDatabaseConnection(db *dbConfig) {
 	// Run the command and capture any errors
 	err = cmd.Run()
 	if err != nil {
-		utils.Fatal("Error running psql command: %v\nOutput: %s\n", err, out.String())
-		return
+		return fmt.Errorf("failed to connect to %s database: %v", db.dbName, err)
 	}
 	utils.Info("Successfully connected to %s database", db.dbName)
+	return nil
 
 }
 

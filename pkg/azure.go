@@ -14,7 +14,11 @@ func azureBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to Azure Blob Storage")
 
 	// Backup database
-	BackupDatabase(db, config.backupFileName, disableCompression)
+	err := BackupDatabase(db, config.backupFileName, disableCompression)
+	if err != nil {
+		recoverMode(err, "Error backing up database")
+		return
+	}
 	finalFileName := config.backupFileName
 	if config.encryption {
 		encryptBackup(config)
