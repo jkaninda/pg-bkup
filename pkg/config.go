@@ -153,15 +153,26 @@ func getDatabase(database Database) *dbConfig {
 
 // Helper function to get environment variable or use a default value
 func getEnvOrDefault(currentValue, envKey, suffix, defaultValue string) string {
+	// Return the current value if it's already set
 	if currentValue != "" {
 		return currentValue
 	}
+
+	// Check for suffixed or prefixed environment variables if a suffix is provided
 	if suffix != "" {
-		envSuffix := os.Getenv(fmt.Sprintf("%s_%s", envKey, strings.ToUpper(suffix)))
+		suffixUpper := strings.ToUpper(suffix)
+		envSuffix := os.Getenv(fmt.Sprintf("%s_%s", envKey, suffixUpper))
 		if envSuffix != "" {
 			return envSuffix
 		}
+
+		envPrefix := os.Getenv(fmt.Sprintf("%s_%s", suffixUpper, envKey))
+		if envPrefix != "" {
+			return envPrefix
+		}
 	}
+
+	// Fall back to the default value using a helper function
 	return utils.EnvWithDefault(envKey, defaultValue)
 }
 
