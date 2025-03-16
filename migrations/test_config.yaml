@@ -4,7 +4,7 @@ databases:
   - host: 127.0.0.1
     port: 5432
     name: testdb
-    user: user
+    #user: postgres # TESTDB_DB_PASSWORD
     password: password
   - name: testdb2
     # database credentials from environment variables
