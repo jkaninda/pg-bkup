@@ -2,6 +2,7 @@
 
 **PG-BKUP** is a Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
 It supports a variety of storage options and ensures data security through GPG encryption.
+
 [![Tests](https://github.com/jkaninda/pg-bkup/actions/workflows/tests.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/tests.yml)
 [![Build](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/release.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/jkaninda/mysql-bkup)](https://goreportcard.com/report/github.com/jkaninda/pg-bkup)
