@@ -38,7 +38,7 @@ It supports a variety of storage options and ensures data security through GPG e
 ## Use Cases
 
 - **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
-- **Cross-Environment Migration:** Easily migrate PostgreSQL databases across different environments using supported storage options.
+- **Cross-Environment Migration:**  Easily migrate PostgreSQL databases across different environments using `migration` feature.
 - **Secure Backup Management:** Protect your data with GPG encryption.
 
 
@@ -69,50 +69,72 @@ Successfully tested on:
 
 ## Quickstart
 
-### Simple backup using Docker CLI
+### Simple Backup Using Docker CLI
 
-To run a one time backup, bind your local volume to `/backup` in the container and run the `backup` command:
-
-```shell
- docker run --rm --network your_network_name \
- -v $PWD/backup:/backup/ \
- -e "DB_HOST=dbhost" \
- -e "DB_PORT=5432" \
- -e "DB_USERNAME=username" \
- -e "DB_PASSWORD=password" \
- jkaninda/pg-bkup backup -d database_name
-```
-
-Alternatively, pass a `--env-file` in order to use a full config as described below.
-
-```yaml
- docker run --rm --network your_network_name \
- --env-file your-env-file \
- -v $PWD/backup:/backup/ \
- jkaninda/pg-bkup backup -d database_name
-```
-### Simple restore using Docker CLI
-
-To restore a database, bind your local volume to `/backup` in the container and run the `restore` command:
+To perform a one-time backup, bind your local volume to `/backup` in the container and run the `backup` command:
 
 ```shell
- docker run --rm --network your_network_name \
- -v $PWD/backup:/backup/ \
- -e "DB_HOST=dbhost" \
- -e "DB_PORT=5432" \
- -e "DB_USERNAME=username" \
- -e "DB_PASSWORD=password" \
- jkaninda/pg-bkup restore -d database_name -f backup_file.sql.gz
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup -d database_name
 ```
-### Simple backup in docker compose file
+
+Alternatively, use an environment file (`--env-file`) for configuration:
+
+```shell
+docker run --rm --network your_network_name \
+  --env-file your-env-file \
+  -v $PWD/backup:/backup/ \
+  jkaninda/pg-bkup backup -d database_name
+```
+
+### Backup All Databases
+
+To back up all databases on the server, use the `--all-databases` or `-a` flag. By default, this creates individual backup files for each database.
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup --all-databases --disable-compression
+```
+
+> **Note:** Use the `--all-in-one` or `-A` flag to combine backups into a single file.
+
+---
+
+### Simple Restore Using Docker CLI
+
+To restore a database, bind your local volume to `/backup` and run the `restore` command:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup restore -d database_name -f backup_file.sql.gz
+```
+
+---
+
+### Backup with Docker Compose
+
+Below is an example of a `docker-compose.yml` file for running a one-time backup:
 
 ```yaml
 services:
   pg-bkup:
-    # In production, it is advised to lock your image tag to a proper
-    # release version instead of using `latest`.
-    # Check https://github.com/jkaninda/pg-bkup/releases
-    # for a list of available releases.
+    # In production, pin your image tag to a specific release version instead of `latest`.
+    # See available releases: https://github.com/jkaninda/pg-bkup/releases
     image: jkaninda/pg-bkup
     container_name: pg-bkup
     command: backup
@@ -125,29 +147,39 @@ services:
       - DB_USERNAME=bar
       - DB_PASSWORD=password
       - TZ=Europe/Paris
-    # pg-bkup container must be connected to the same network with your database
     networks:
       - web
+
 networks:
   web:
 ```
-### Docker recurring backup
+
+---
+
+### Recurring Backups with Docker
+
+You can schedule recurring backups using the `--cron-expression` or `-e` flag:
 
 ```shell
- docker run --rm --network network_name \
- -v $PWD/backup:/backup/ \
- -e "DB_HOST=hostname" \
- -e "DB_USERNAME=user" \
- -e "DB_PASSWORD=password" \
- jkaninda/pg-bkup backup -d dbName --cron-expression "@every 15m" #@midnight
+docker run --rm --network network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=hostname" \
+  -e "DB_USERNAME=user" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup -d dbName --cron-expression "@every 15m"
 ```
-See: https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules
+
+For predefined schedules, refer to the [documentation](https://jkaninda.github.io/pg-bkup/reference/#predefined-schedules).
+
+---
 
 ## Deploy on Kubernetes
 
-For Kubernetes, you don't need to run it in scheduled mode. You can deploy it as Job or CronJob.
+For Kubernetes, you can deploy `pg-bkup` as a Job or CronJob. Below are examples for both.
 
-### Simple Kubernetes backup Job :
+### Kubernetes Backup Job
+
+This example defines a one-time backup job:
 
 ```yaml
 apiVersion: batch/v1
@@ -160,10 +192,8 @@ spec:
     spec:
       containers:
         - name: pg-bkup
-          # In production, it is advised to lock your image tag to a proper
-          # release version instead of using `latest`.
-          # Check https://github.com/jkaninda/pg-bkup/releases
-          # for a list of available releases.
+          # Pin the image tag to a specific release version in production.
+          # See available releases: https://github.com/jkaninda/pg-bkup/releases
           image: jkaninda/pg-bkup
           command:
             - /bin/sh
@@ -186,10 +216,52 @@ spec:
       volumes:
         - name: backup
           hostPath:
-            path: /home/toto/backup # directory location on host
-            type: Directory # this field is optional
+            path: /home/toto/backup # Directory location on the host
+            type: Directory # Optional field
       restartPolicy: Never
 ```
+
+### Kubernetes CronJob for Scheduled Backups
+
+For scheduled backups, use a `CronJob`:
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-bkup-cronjob
+spec:
+  schedule: "0 2 * * *" # Runs daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: pg-bkup
+              image: jkaninda/pg-bkup
+              command:
+                - /bin/sh
+                - -c
+                - backup -d dbname
+              env:
+                - name: DB_HOST
+                  value: "postgres"
+                - name: DB_USERNAME
+                  value: "postgres"
+                - name: DB_PASSWORD
+                  value: "password"
+              volumeMounts:
+                - mountPath: /backup
+                  name: backup
+          volumes:
+            - name: backup
+              hostPath:
+                path: /home/toto/backup
+                type: Directory
+          restartPolicy: OnFailure
+```
+
+---
 ## Available image registries
 
 This Docker image is published to both Docker Hub and the GitHub container registry.
