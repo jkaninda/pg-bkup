@@ -30,6 +30,7 @@ import (
 	"github.com/jkaninda/go-storage/pkg/ssh"
 	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/pg-bkup/utils"
+
 	"os"
 	"path/filepath"
 	"time"
@@ -38,7 +39,7 @@ import (
 func sshBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to Remote server")
 	// Backup database
-	err := BackupDatabase(db, config.backupFileName, disableCompression)
+	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
 		return
@@ -49,7 +50,6 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to remote storage ... ")
-	utils.Info("Backup name is %s", finalFileName)
 	sshConfig, err := loadSSHConfig()
 	if err != nil {
 		utils.Fatal("Error loading ssh config: %s", err)
@@ -77,6 +77,8 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 		utils.Error("Error: %s", err)
 	}
 	backupSize = fileInfo.Size()
+	utils.Info("Backup name is %s", finalFileName)
+	utils.Info("Backup size: %s", goutils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
 
 	// Delete backup file from tmp folder
@@ -92,8 +94,6 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 		}
 
 	}
-	utils.Info("Backup name is %s", finalFileName)
-	utils.Info("Backup size: %s", goutils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Uploading backup archive to remote storage ... done ")
 	duration := goutils.FormatDuration(time.Since(startTime), 0)
 
@@ -108,7 +108,7 @@ func sshBackup(db *dbConfig, config *BackupConfig) {
 	})
 	// Delete temp
 	deleteTemp()
-	utils.Info("Backup completed successfully in %s", duration)
+	utils.Info("The backup of the %s database has been completed in %s", db.dbName, duration)
 
 }
 func remoteRestore(db *dbConfig, conf *RestoreConfig) {
@@ -158,8 +158,9 @@ func ftpRestore(db *dbConfig, conf *RestoreConfig) {
 }
 func ftpBackup(db *dbConfig, config *BackupConfig) {
 	utils.Info("Backup database to the remote FTP server")
+
 	// Backup database
-	err := BackupDatabase(db, config.backupFileName, disableCompression)
+	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
 		return
@@ -170,6 +171,7 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
 	utils.Info("Uploading backup archive to the remote FTP server ... ")
+	utils.Info("Backup name is %s", finalFileName)
 	ftpConfig := loadFtpConfig()
 	ftpStorage, err := ftp.NewStorage(ftp.Config{
 		Host:       ftpConfig.host,
@@ -222,5 +224,5 @@ func ftpBackup(db *dbConfig, config *BackupConfig) {
 	})
 	// Delete temp
 	deleteTemp()
-	utils.Info("Backup successfully completed in %s", duration)
+	utils.Info("The backup of the %s database has been completed in %s", db.dbName, duration)
 }

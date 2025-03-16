@@ -25,13 +25,14 @@ SOFTWARE.
 package pkg
 
 import (
-	"bytes"
+	"context"
+	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jkaninda/pg-bkup/utils"
 	"gopkg.in/yaml.v3"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -70,34 +71,35 @@ func deleteTemp() {
 func testDatabaseConnection(db *dbConfig) error {
 
 	utils.Info("Connecting to %s database ...", db.dbName)
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", db.dbUserName, db.dbPassword, db.dbHost, db.dbPort, db.dbName)
+	// Create the PostgresSQL client config file
+	if err := createPGConfigFile(*db); err != nil {
+		return errors.New(err.Error())
+	}
 	// Set database name for notification error
 	utils.DatabaseName = db.dbName
-
-	// Test database connection
-	query := "SELECT version();"
-
-	// Set the environment variable for the database password
-	err := os.Setenv("PGPASSWORD", db.dbPassword)
-	if err != nil {
-		return fmt.Errorf("failed to set PGPASSWORD environment variable: %v", err)
+	if db.dbName == "" {
+		connString = fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable", db.dbUserName, db.dbPassword, db.dbHost, db.dbPort)
 	}
-	// Prepare the psql command
-	cmd := exec.Command("psql",
-		"-U", db.dbUserName, // database user
-		"-d", db.dbName, // database name
-		"-h", db.dbHost, // host
-		"-p", db.dbPort, // port
-		"-c", query, // SQL command to execute
-	)
-	// Capture the output
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
 
-	// Run the command and capture any errors
-	err = cmd.Run()
+	// Attempt to connect to the PostgreSQL server
+	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
-		return fmt.Errorf("failed to connect to %s database: %v", db.dbName, err)
+		return fmt.Errorf("failed to connect to PostgreSQL: %w", err)
+	}
+	defer func(conn *pgx.Conn, ctx context.Context) {
+		err = conn.Close(ctx)
+		if err != nil {
+			utils.Error("Error closing connexion: %v", err)
+
+		}
+	}(conn, context.Background())
+
+	// Optionally, execute a simple query to verify the connection
+	var version string
+	err = conn.QueryRow(context.Background(), "SELECT version()").Scan(&version)
+	if err != nil {
+		return fmt.Errorf("failed to execute query: %w", err)
 	}
 	utils.Info("Successfully connected to %s database", db.dbName)
 	return nil
@@ -229,4 +231,15 @@ func convertJDBCToDbConfig(jdbcURI string) (*dbConfig, error) {
 		dbUserName: username,
 		dbPassword: password,
 	}, nil
+}
+
+// Create mysql client config file
+func createPGConfigFile(db dbConfig) error {
+
+	// Set the environment variable for the database password
+	err := os.Setenv("PGPASSWORD", db.dbPassword)
+	if err != nil {
+		return fmt.Errorf("failed to set PGPASSWORD environment variable: %v", err)
+	}
+	return nil
 }

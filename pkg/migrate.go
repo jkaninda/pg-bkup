@@ -51,7 +51,7 @@ func StartMigration(cmd *cobra.Command) {
 	conf := &RestoreConfig{}
 	conf.file = backupFileName
 	// Backup source Database
-	err := BackupDatabase(dbConf, backupFileName, true)
+	err := BackupDatabase(dbConf, backupFileName, true, false, false)
 	if err != nil {
 		utils.Fatal("Error backing up database: %s", err)
 	}

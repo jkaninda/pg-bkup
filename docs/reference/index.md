@@ -12,22 +12,25 @@ Backup, restore, and migration targets, schedules, and retention policies are co
 
 ## CLI Utility Usage
 
-| Option                  | Short Flag | Description                                                                   |
-|-------------------------|------------|-------------------------------------------------------------------------------|
-| `pg-bkup`               | `bkup`     | CLI utility for managing PostgreSQL backups.                                  |
-| `backup`                |            | Perform a backup operation.                                                   |
-| `restore`               |            | Perform a restore operation.                                                  |
-| `migrate`               |            | Migrate a database from one instance to another.                              |
-| `--storage`             | `-s`       | Storage type (`local`, `s3`, `ssh`, etc.). Default: `local`.                  |
-| `--file`                | `-f`       | File name for restoration.                                                    |
-| `--path`                |            | Path for storage (e.g., `/custom_path` for S3 or `/home/foo/backup` for SSH). |
-| `--config`              | `-c`       | Configuration file for multi database backup. (e.g: `/backup/config.yaml`).   |
-| `--dbname`              | `-d`       | Database name.                                                                |
-| `--port`                | `-p`       | Database port. Default: `5432`.                                               |
-| `--disable-compression` |            | Disable compression for database backups.                                     |
-| `--cron-expression`     | `-e`       | Cron expression for scheduled backups (e.g., `0 0 * * *` or `@daily`).        |
-| `--help`                | `-h`       | Display help message and exit.                                                |
-| `--version`             | `-V`       | Display version information and exit.                                         |
+| Option                  | Short Flag | Description                                                                             |
+|-------------------------|------------|-----------------------------------------------------------------------------------------|
+| `pg-bkup`               | `bkup`     | CLI utility for managing PostgreSQL backups.                                            |
+| `backup`                |            | Perform a backup operation.                                                             |
+| `restore`               |            | Perform a restore operation.                                                            |
+| `migrate`               |            | Migrate a database from one instance to another.                                        |
+| `--storage`             | `-s`       | Storage type (`local`, `s3`, `ssh`, etc.). Default: `local`.                            |
+| `--file`                | `-f`       | File name for restoration.                                                              |
+| `--path`                |            | Path for storage (e.g., `/custom_path` for S3 or `/home/foo/backup` for SSH).           |
+| `--config`              | `-c`       | Configuration file for multi database backup. (e.g: `/backup/config.yaml`).             |
+| `--dbname`              | `-d`       | Database name.                                                                          |
+| `--port`                | `-p`       | Database port. Default: `5432`.                                                         |
+| `--disable-compression` |            | Disable compression for database backups.                                               |
+| `--cron-expression`     | `-e`       | Cron expression for scheduled backups (e.g., `0 0 * * *` or `@daily`).                  |
+| `--all-databases`       | `-a`       | Backs up all databases separately (e.g., `backup --all-databases`).                     |
+| `--all-in-one`          | `-A`       | Backs up all databases in a single file (e.g., `backup --all-databases --single-file`). |
+| `--custom-name`         | ``         | Sets custom backup name for one time backup                                             |
+| `--help`                | `-h`       | Display help message and exit.                                                          |
+| `--version`             | `-V`       | Display version information and exit.                                                   |
 
 ---
 

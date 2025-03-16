@@ -24,7 +24,9 @@ SOFTWARE.
 
 package pkg
 
-import "time"
+import (
+	"time"
+)
 
 const tmpPath = "/tmp/backup"
 const gpgHome = "/config/gnupg"
@@ -50,7 +52,6 @@ var dbHVars = []string{
 	"DB_HOST",
 	"DB_PASSWORD",
 	"DB_USERNAME",
-	"DB_NAME",
 }
 var tdbRVars = []string{
 	"TARGET_DB_HOST",
@@ -68,7 +69,6 @@ var ftpVars = []string{
 	"FTP_PASSWORD",
 	"FTP_PORT",
 }
-
 var azureVars = []string{
 	"AZURE_STORAGE_CONTAINER_NAME",
 	"AZURE_STORAGE_ACCOUNT_NAME",

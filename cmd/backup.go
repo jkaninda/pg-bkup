@@ -51,5 +51,7 @@ func init() {
 	BackupCmd.PersistentFlags().StringP("cron-expression", "e", "", "Backup cron expression (e.g., `0 0 * * *` or `@daily`)")
 	BackupCmd.PersistentFlags().StringP("config", "c", "", "Configuration file for multi database backup. (e.g: `/backup/config.yaml`)")
 	BackupCmd.PersistentFlags().BoolP("disable-compression", "", false, "Disable backup compression")
-
+	BackupCmd.PersistentFlags().BoolP("all-databases", "a", false, "Backup all databases")
+	BackupCmd.PersistentFlags().BoolP("all-in-one", "A", false, "Backup all databases in a single file")
+	BackupCmd.PersistentFlags().StringP("custom-name", "", "", "Custom backup name")
 }

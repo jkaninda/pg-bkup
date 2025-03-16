@@ -29,6 +29,7 @@ import (
 	"github.com/jkaninda/go-storage/pkg/s3"
 	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/pg-bkup/utils"
+
 	"os"
 	"path/filepath"
 	"time"
@@ -38,7 +39,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 
 	utils.Info("Backup database to s3 storage")
 	// Backup database
-	err := BackupDatabase(db, config.backupFileName, disableCompression)
+	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
 		return
@@ -93,10 +94,8 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		}
 	}
 	utils.Info("Backup saved in %s", filepath.Join(config.remotePath, finalFileName))
-	utils.Info("Backup size: %s", goutils.ConvertBytes(uint64(backupSize)))
 	utils.Info("Uploading backup archive to remote storage S3 ... done ")
 	duration := goutils.FormatDuration(time.Since(startTime), 0)
-
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
@@ -108,7 +107,7 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	})
 	// Delete temp
 	deleteTemp()
-	utils.Info("Backup successfully completed in %s", duration)
+	utils.Info("The backup of the %s database has been completed in %s", db.dbName, duration)
 
 }
 func s3Restore(db *dbConfig, conf *RestoreConfig) {
