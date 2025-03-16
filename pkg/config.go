@@ -258,6 +258,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.GetEnv(cmd, "cron-expression", "BACKUP_CRON_EXPRESSION")
 	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 	utils.GetEnv(cmd, "config", "BACKUP_CONFIG_FILE")
+	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	// Get flag value and set env
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
