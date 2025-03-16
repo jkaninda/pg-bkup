@@ -128,9 +128,6 @@ func backupAll(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error listing databases: %s", err)
 	}
 	for _, dbName := range databases {
-		if dbName == "information_schema" || dbName == "performance_schema" || dbName == "mysql" || dbName == "sys" || dbName == "innodb" || dbName == "Database" {
-			continue
-		}
 		db.dbName = dbName
 		config.backupFileName = fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
 		backupTask(db, config)
