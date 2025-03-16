@@ -1,0 +1,286 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - nightly
+      - develop
+  pull_request:
+    branches:
+      - main
+env:
+  IMAGE_NAME: pg-bkup
+  DB_USERNAME: postgres
+  DB_PASSWORD: password
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ${{ env.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      postgres15:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ env.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: testdb
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      postgres10:
+        image: postgres:10
+        env:
+          POSTGRES_USER: ${{ env.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: testdb
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Create Minio container
+        run: |
+          docker run -d --rm --name minio \
+            --network host \
+            -p 9000:9000 \
+            -e MINIO_ACCESS_KEY=minioadmin \
+            -e MINIO_SECRET_KEY=minioadmin \
+            -e MINIO_REGION_NAME="eu" \
+            minio/minio server /data
+          echo "Create Minio container completed"
+      - name: Install MinIO Client (mc)
+        run: |
+          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/
+
+      - name: Wait for MinIO to be ready
+        run: sleep 5
+
+      - name: Configure MinIO Client
+        run: |
+          mc alias set local http://localhost:9000 minioadmin minioadmin
+          mc alias list
+
+      - name: Create MinIO Bucket
+        run: |
+          mc mb local/backups
+          echo "Bucket backups created successfully."
+      # Build the Docker image
+      - name: Build Docker Image
+        run: |
+          docker buildx build --build-arg appVersion=test -t ${{ env.IMAGE_NAME }}:latest --load .
+
+      - name: Verify Docker images
+        run: |
+          docker images
+
+      - name: Test restore
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest restore -f init.sql
+          echo "Database restore completed"
+      - name: Test restore Postgres15
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_PORT=5433 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest restore -f init.sql
+          echo "Test restore Postgres15 completed"
+      - name: Test restore Postgres10
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_PORT=5434 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest restore -f init.sql
+          echo "Test restore Postgres10 completed"
+      - name: Test backup
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup
+          echo "Database backup completed"
+      - name: Test backup Postgres15
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_PORT=5433 \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup
+          echo "Test backup Postgres15 completed"
+      - name: Test backup Postgres10
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_PORT=5434 \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup
+          echo "Test backup Postgres10 completed"
+      - name: Test encrypted backup
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e GPG_PASSPHRASE=password \
+            ${{ env.IMAGE_NAME }}:latest backup -d testdb --disable-compression --custom-name encrypted-bkup
+          echo "Database encrypted backup completed"
+      - name: Test restore encrypted backup | testdb -> testdb2
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e GPG_PASSPHRASE=password \
+            -e DB_NAME=testdb2 \
+            ${{ env.IMAGE_NAME }}:latest restore -f /backup/encrypted-bkup.sql.gpg
+          echo "Test restore encrypted backup completed"
+      - name: Test migrate database testdb -> testdb3
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e GPG_PASSPHRASE=password \
+            -e DB_NAME=testdb \
+            -e TARGET_DB_HOST=127.0.0.1 \
+            -e TARGET_DB_PORT=5432 \
+            -e TARGET_DB_NAME=testdb3 \
+            -e TARGET_DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e TARGET_DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            ${{ env.IMAGE_NAME }}:latest migrate
+          echo "Test migrate database testdb -> testdb3 completed"
+      - name: Test backup all databases
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup --all-databases
+          echo "Database backup completed"
+      - name: Test multiple backup
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e TESTDB2_DB_USERNAME=root \
+            -e TESTDB2_DB_PASSWORD=password \
+            -e TESTDB2_DB_HOST=127.0.0.1 \
+            ${{ env.IMAGE_NAME }}:latest backup -c /backup/test_config.yaml
+          echo "Database backup completed"
+      - name: Test backup Minio (s3)
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            -e AWS_S3_ENDPOINT="http://127.0.0.1:9000" \
+            -e AWS_S3_BUCKET_NAME=backups \
+            -e AWS_ACCESS_KEY=minioadmin \
+            -e AWS_SECRET_KEY=minioadmin \
+            -e AWS_DISABLE_SSL="true" \
+            -e AWS_REGION="eu" \
+            -e AWS_FORCE_PATH_STYLE="true" ${{ env.IMAGE_NAME }}:latest backup -s s3  --custom-name minio-backup
+          echo "Test backup Minio (s3) completed"
+      - name: Test restore Minio (s3)
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            -e AWS_S3_ENDPOINT="http://127.0.0.1:9000" \
+            -e AWS_S3_BUCKET_NAME=backups \
+            -e AWS_ACCESS_KEY=minioadmin \
+            -e AWS_SECRET_KEY=minioadmin \
+            -e AWS_DISABLE_SSL="true" \
+            -e AWS_REGION="eu" \
+            -e AWS_FORCE_PATH_STYLE="true" ${{ env.IMAGE_NAME }}:latest restore -s s3 -f minio-backup.sql.gz
+          echo "Test backup Minio (s3) completed"
+      - name: Test scheduled backup
+        run: |
+          docker run -d --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup -e "@every 10s"
+          
+          echo "Waiting for backup to be done..."
+          sleep 25
+          docker logs ${{ env.IMAGE_NAME }}
+          echo "Test scheduled backup completed"
+      # Cleanup: Stop and remove containers
+      - name: Clean up
+        run: |
+          docker stop ${{ env.IMAGE_NAME }} || true
+          docker rm ${{ env.IMAGE_NAME }} || true

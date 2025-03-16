@@ -1,0 +1,13 @@
+#cronExpression: "@every 20s"
+#backupRescueMode: false
+databases:
+  - host: 127.0.0.1
+    port: 5432
+    name: testdb
+    user: user
+    password: password
+  - name: testdb2
+    # database credentials from environment variables
+    #TESTDB2_DB_USERNAME
+    #TESTDB2_DB_PASSWORD
+    #TESTDB2_DB_HOST
