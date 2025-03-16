@@ -244,6 +244,7 @@ jobs:
             -v ./migrations:/backup/ \
             --network host \
             -e DB_HOST=127.0.0.1 \
+            -e TESTDB_DB_USERNAME=${{ env.DB_USERNAME }} \
             -e TESTDB_DB_PASSWORD=${{ env.DB_PASSWORD }} \
             -e TESTDB2_DB_USERNAME=${{ env.DB_USERNAME }} \
             -e TESTDB2_DB_PASSWORD=${{ env.DB_PASSWORD }} \
