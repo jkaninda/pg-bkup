@@ -1,6 +1,6 @@
 -- Create the 'users' table
 CREATE TABLE users (
-                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       id SERIAL PRIMARY KEY,
                        name VARCHAR(100) NOT NULL,
                        email VARCHAR(100) NOT NULL UNIQUE,
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -8,10 +8,10 @@ CREATE TABLE users (
 
 -- Create the 'orders' table
 CREATE TABLE orders (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        id SERIAL PRIMARY KEY,
                         user_id INT NOT NULL,
                         amount DECIMAL(10,2) NOT NULL,
-                        status ENUM('pending', 'completed', 'canceled') NOT NULL DEFAULT 'pending',
+                        status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'canceled')),
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
