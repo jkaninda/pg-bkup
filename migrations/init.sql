@@ -1,9 +1,3 @@
--- Create the database testdb2 and testdb3
-CREATE DATABASE IF NOT EXISTS testdb2;
-CREATE DATABASE IF NOT EXISTS testdb3;
-CREATE DATABASE IF NOT EXISTS fakedb;
-USE testdb;
-
 -- Create the 'users' table
 CREATE TABLE users (
                        id INT AUTO_INCREMENT PRIMARY KEY,

@@ -73,6 +73,25 @@ jobs:
             -e MINIO_REGION_NAME="eu" \
             minio/minio server /data
           echo "Create Minio container completed"
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Create additional databases
+        run: |
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5432 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb2;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5432 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb3;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5432 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE fakedb;"
+
+        # Postgres 15
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5433 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb2;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5433 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb3;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5433 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE fakedb;"
+          
+        # Postgres 10
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5434 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb2;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5434 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE testdb3;"
+          PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -p 5434 -U ${{ env.DB_USERNAME }} -c "CREATE DATABASE fakedb;"
       - name: Install MinIO Client (mc)
         run: |
           curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
