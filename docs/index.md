@@ -42,7 +42,7 @@ It supports multiple storage options and ensures data security through GPG encry
 ## Use Cases
 
 - **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
-- **Cross-Environment Migration:** Easily migrate PostgreSQL databases across different environments using supported storage options.
+- **Cross-Environment Migration:** Easily migrate PostgreSQL  databases across different environments using `migration` feature.
 - **Secure Backup Management:** Protect your data with GPG encryption.
 
 ---

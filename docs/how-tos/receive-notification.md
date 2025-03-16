@@ -2,7 +2,7 @@
 title: Receive notifications
 layout: default
 parent: How Tos
-nav_order: 12
+nav_order: 13
 ---
 
 # Receive Notifications
