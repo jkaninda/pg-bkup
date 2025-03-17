@@ -258,12 +258,10 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	utils.GetEnv(cmd, "cron-expression", "BACKUP_CRON_EXPRESSION")
 	utils.GetEnv(cmd, "path", "REMOTE_PATH")
 	utils.GetEnv(cmd, "config", "BACKUP_CONFIG_FILE")
-	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	// Get flag value and set env
 	remotePath := utils.GetEnvVariable("REMOTE_PATH", "SSH_REMOTE_PATH")
 	storage = utils.GetEnv(cmd, "storage", "STORAGE")
 	prune := false
-	configFile := os.Getenv("BACKUP_CONFIG_FILE")
 	backupRetention := utils.GetIntEnv("BACKUP_RETENTION_DAYS")
 	if backupRetention > 0 {
 		prune = true
@@ -287,10 +285,6 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	} else if passphrase != "" {
 		encryption = true
 		usingKey = false
-	}
-	dbName := os.Getenv("DB_NAME")
-	if dbName == "" && !all && configFile == "" {
-		utils.Fatal("Database name is required, use DB_NAME environment variable or -d flag")
 	}
 	// Initialize backup configs
 	config := BackupConfig{}
