@@ -117,6 +117,9 @@ func createBackupTask(db *dbConfig, config *BackupConfig) {
 	if config.all && !config.allInOne {
 		backupAll(db, config)
 	} else {
+		if db.dbName == "" && !config.all {
+			utils.Fatal("Database name is required, use DB_NAME environment variable or -d flag")
+		}
 		backupTask(db, config)
 	}
 }
@@ -128,9 +131,6 @@ func backupAll(db *dbConfig, config *BackupConfig) {
 		utils.Fatal("Error listing databases: %s", err)
 	}
 	for _, dbName := range databases {
-		if dbName == "information_schema" || dbName == "performance_schema" || dbName == "mysql" || dbName == "sys" || dbName == "innodb" || dbName == "Database" {
-			continue
-		}
 		db.dbName = dbName
 		config.backupFileName = fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
 		backupTask(db, config)
@@ -241,7 +241,6 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 // BackupDatabase backup database
 func BackupDatabase(db *dbConfig, backupFileName string, disableCompression, all, singleFile bool) error {
 	storagePath = os.Getenv("STORAGE_PATH")
-	utils.Info("Starting database backup...")
 	if err := testDatabaseConnection(db); err != nil {
 		return fmt.Errorf("database connection failed: %w", err)
 	}
@@ -250,8 +249,10 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression, all
 	// Construct pg_dump arguments
 	dumpArgs = []string{"-h", db.dbHost, "-p", db.dbPort, "-U", db.dbUserName}
 	if all && singleFile {
+		utils.Info("Backing up all databases...")
 		dumpCmd = "pg_dumpall"
 	} else {
+		utils.Info("Backing up %s database...", db.dbName)
 		dumpCmd = "pg_dump"
 		dumpArgs = append(dumpArgs, db.dbName)
 
