@@ -24,6 +24,10 @@ The migration process is **irreversible**. Always create a backup of your target
 3. **Run Migration**: Execute the `migrate` command to initiate the process.
 4. **Migrate All Databases** (Optional): Use the `--all-databases` (`-a`) flag to migrate all databases.
 
+### Use cases:
+- **Database Migration**: Transfer data from one database to another.
+- **Database Upgrade**: Upgrade your database to a new version.
+
 ---
 
 ## Migrate Database Using Docker CLI
