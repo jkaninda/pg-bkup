@@ -119,9 +119,7 @@ docker run --rm --network your_network_name \
   jkaninda/pg-bkup migrate
 ```
 
-> Use the `--all-databases` (`-a`) flag to migrate all databases.
-
-> **Note:** Use the `--all-in-one` or `-A` flag to combine backups into a single file.
+>  **Note:** Use the `--all-databases` (`-a`) flag to migrate all databases.
 
 ---
 
