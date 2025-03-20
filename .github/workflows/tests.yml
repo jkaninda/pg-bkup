@@ -227,6 +227,24 @@ jobs:
             -e TARGET_DB_PASSWORD=${{ env.DB_PASSWORD }} \
             ${{ env.IMAGE_NAME }}:latest migrate
           echo "Test migrate database testdb -> testdb3 completed"
+
+      - name: Test migrate all databases
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e GPG_PASSPHRASE=password \
+            -e DB_NAME=testdb \
+            -e TARGET_DB_HOST=127.0.0.1 \
+            -e TARGET_DB_PORT=5432 \
+            -e TARGET_DB_NAME=testdb3 \
+            -e TARGET_DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e TARGET_DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            ${{ env.IMAGE_NAME }}:latest migrate --all-databases
+          echo "Test migrate all databases completed"
       - name: Test backup all databases
         run: |
           docker run --rm --name ${{ env.IMAGE_NAME }} \
