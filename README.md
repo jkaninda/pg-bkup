@@ -108,6 +108,19 @@ docker run --rm --network your_network_name \
 
 > **Note:** Use the `--all-in-one` or `-A` flag to combine backups into a single file.
 
+### Migrate database
+
+The `migrate` command allows you to transfer a PostgreSQL database from a source to a target database in a single step, combining backup and restore operations.
+
+
+```bash
+docker run --rm --network your_network_name \
+  --env-file your-env \
+  jkaninda/pg-bkup migrate
+```
+
+>  **Note:** Use the `--all-databases` (`-a`) flag to migrate all databases.
+
 ---
 
 ### Simple Restore Using Docker CLI
