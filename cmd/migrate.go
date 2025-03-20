@@ -43,3 +43,7 @@ var MigrateCmd = &cobra.Command{
 
 	},
 }
+
+func init() {
+	MigrateCmd.PersistentFlags().BoolP("all-databases", "a", false, "Migrate all databases")
+}
