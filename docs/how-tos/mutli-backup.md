@@ -25,6 +25,9 @@ The configuration file can be mounted into the container at `/config/config.yaml
     - The `BACKUP_CONFIG_FILE` environment variable.
     - The `--config` or `-c` flag for the backup command.
 
+{: .note }
+The bulk backup or migration process requires administrative privileges on the database.
+
 ---
 
 ## Configuration File Example

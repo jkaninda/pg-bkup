@@ -121,6 +121,9 @@ docker run --rm --network your_network_name \
 
 >  **Note:** Use the `--all-databases` (`-a`) flag to migrate all databases.
 
+For database migration, refer to the [documentation](https://jkaninda.github.io/pg-bkup/how-tos/migrate.html).
+
+
 ---
 
 ### Simple Restore Using Docker CLI
