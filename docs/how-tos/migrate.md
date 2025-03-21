@@ -28,6 +28,9 @@ The migration process is **irreversible**. Always create a backup of your target
 - **Database Migration**: Transfer data from one database to another.
 - **Database Upgrade**: Upgrade your database to a new version.
 
+{: .note }
+The bulk backup or migration process requires administrative privileges on the database.
+
 ---
 
 ## Migrate Database Using Docker CLI
