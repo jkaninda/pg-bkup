@@ -10,7 +10,7 @@ nav_order: 1
 
 It supports multiple storage options and ensures data security through GPG encryption.
 
-**PG-BKUP** is designed for seamless deployment on **Docker** and **Kubernetes**, simplifying PostgreSQL backup, restoration, and migration across environments.
+PG-BKUP is designed for seamless deployment on **Docker** and **Kubernetes**, simplifying PostgreSQL backup, restoration, and migration across environments.
 It is a lightweight, multi-architecture solution compatible with **Docker**, **Docker Swarm**, **Kubernetes**, and other container orchestration platforms.
 ---
 
