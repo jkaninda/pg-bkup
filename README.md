@@ -3,7 +3,7 @@
 **PG-BKUP** is a Docker container image designed to **backup, restore, and migrate PostgreSQL databases**.
 It supports a variety of storage options and ensures data security through GPG encryption.
 
-**PG-BKUP** is designed for seamless deployment on **Docker** and **Kubernetes**, simplifying PostgreSQL backup, restoration, and migration across environments.
+PG-BKUP is designed for seamless deployment on **Docker** and **Kubernetes**, simplifying PostgreSQL backup, restoration, and migration across environments.
 It is a lightweight, multi-architecture solution compatible with **Docker**, **Docker Swarm**, **Kubernetes**, and other container orchestration platforms.
 
 [![Tests](https://github.com/jkaninda/pg-bkup/actions/workflows/tests.yml/badge.svg)](https://github.com/jkaninda/pg-bkup/actions/workflows/tests.yml)
@@ -45,7 +45,7 @@ It is a lightweight, multi-architecture solution compatible with **Docker**, **D
 - **Secure Archiving:** Keep backups encrypted and safely stored in the cloud or remote servers.
 
 
-## ✅ Verified Platforms:
+## ✅ Verified Platforms
 PG-BKUP has been tested and runs successfully on:
 
 - Docker
@@ -56,21 +56,15 @@ PG-BKUP has been tested and runs successfully on:
 ## Documentation is found at <https://jkaninda.github.io/pg-bkup>
 
 
-## Links:
+## Useful links
 
 - [Docker Hub](https://hub.docker.com/r/jkaninda/pg-bkup)
 - [Github](https://github.com/jkaninda/pg-bkup)
 
-## MySQL solution :
+### MySQL solution :
 
 - [MySQL](https://github.com/jkaninda/mysql-bkup)
 
-## Storage:
-- Local
-- AWS S3 or any S3 Alternatives for Object Storage
-- SSH remote storage server
-- FTP remote storage server
-- Azure Blob storage
 
 ## Quickstart
 
@@ -124,7 +118,8 @@ docker run --rm --network your_network_name \
   jkaninda/pg-bkup migrate
 ```
 
->  **Note:** Use the `--all-databases` (`-a`) flag to migrate all databases.
+>  **Note:** Use the `--all-databases` (`-a`) flag to migrate all databases, PG-BKUP supports database creation if it does not exist on the target database.
+
 
 For database migration, refer to the [documentation](https://jkaninda.github.io/pg-bkup/how-tos/migrate.html).
 
@@ -281,8 +276,53 @@ spec:
                 type: Directory
           restartPolicy: OnFailure
 ```
+---
+
+## 🚀 Why Use PG-BKUP?
+
+**PG-BKUP** isn't just another PostgreSQL backup tool, it's a robust, production-ready solution purpose-built for modern DevOps workflows.
+
+Here’s why developers, sysadmins, and DevOps choose **PG-BKUP**:
+
+### ✅ All-in-One Backup, Restore & Migration
+
+Whether you're backing up a single database, restoring critical data, or migrating across environments, PG-BKUP handles it all with a **single, unified CLI** no scripting gymnastics required.
+
+
+### 🔄 Works Everywhere You Deploy
+
+Designed to be cloud-native:
+
+* **Runs seamlessly on Docker, Docker Swarm, and Kubernetes**
+* Supports **CronJobs** for automated scheduled backups
+* Compatible with GitOps and CI/CD workflows
+
+### ☁️ Flexible Storage Integrations
+
+Store your backups **anywhere**:
+
+* Local disks
+* Amazon S3, MinIO, Wasabi, Azure Blob, FTP, SSH
+
+### 🔒 Enterprise-Grade Security
+
+* **GPG Encryption**: Protect sensitive data with optional encryption before storing backups locally or in the cloud.
+* **Secure Storage** Options: Supports S3, Azure Blob, SFTP, and SSH with encrypted transfers, keeping backups safe from unauthorized access.
+
+### 📬 Instant Notifications
+
+Stay in the loop with real-time notifications via **Telegram** and **Email**. Know immediately when a backup succeeds—or fails.
+
+### 🏃‍♂️ Lightweight and Fast
+
+Written in **Go**, PG-BKUP is fast, multi-arch compatible (`amd64`, `arm64`, `arm/v7`), and optimized for minimal memory and CPU usage. Ideal for both cloud and edge deployments.
+
+### 🧪 Tested. Verified. Trusted.
+
+Actively maintained with **automated testing**, **Docker image size optimizations**, and verified support across major container platforms.
 
 ---
+
 ## Available image registries
 
 This Docker image is published to both Docker Hub and the GitHub container registry.
