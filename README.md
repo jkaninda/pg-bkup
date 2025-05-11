@@ -211,10 +211,7 @@ spec:
           # Pin the image tag to a specific release version in production.
           # See available releases: https://github.com/jkaninda/pg-bkup/releases
           image: jkaninda/pg-bkup
-          command:
-            - /bin/sh
-            - -c
-            - backup -d dbname
+          command: ["backup", "-d", "db_name"]
           resources:
             limits:
               memory: "128Mi"
@@ -255,10 +252,7 @@ spec:
           containers:
             - name: pg-bkup
               image: jkaninda/pg-bkup
-              command:
-                - /bin/sh
-                - -c
-                - backup -d dbname
+              command: ["backup", "-d", "db_name"]
               env:
                 - name: DB_HOST
                   value: "postgres"
