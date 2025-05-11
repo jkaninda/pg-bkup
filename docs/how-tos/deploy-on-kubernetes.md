@@ -29,10 +29,7 @@ spec:
         # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
         # for available releases.
         image: jkaninda/pg-bkup
-        command:
-        - /bin/sh
-        - -c
-        - backup --storage s3
+        command: ["backup", "--storage", "s3"]
         resources:
           limits:
             memory: "128Mi"
@@ -87,10 +84,7 @@ spec:
         # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
         # for available releases.
         image: jkaninda/pg-bkup
-        command:
-        - /bin/sh
-        - -c
-        - backup --storage ssh --disable-compression
+        command: ["backup", "--storage", "ssh", "--disable-compression"]
         resources:
           limits:
             memory: "128Mi"
@@ -144,10 +138,7 @@ spec:
         # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
         # for available releases.
         image: jkaninda/pg-bkup
-        command:
-        - /bin/sh
-        - -c
-        - restore --storage ssh --file store_20231219_022941.sql.gz
+        command: ["restore", "--storage", "ssh", "--file", "store_20231219_022941.sql.gz"]
         resources:
           limits:
             memory: "128Mi"
@@ -203,10 +194,7 @@ spec:
             # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
             # for available releases.
             image: jkaninda/pg-bkup
-            command:
-            - /bin/sh
-            - -c
-            - backup --storage ssh --disable-compression
+            command: ["backup", "--storage", "ssh", "--disable-compression"]
             resources:
               limits:
                 memory: "128Mi"
@@ -266,10 +254,7 @@ spec:
             # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
             # for available releases.
             image: jkaninda/pg-bkup
-            command:
-            - /bin/sh
-            - -c
-            - backup --storage ssh --disable-compression
+            command: ["backup", "--storage", "ssh", "--disable-compression"]
             resources:
               limits:
                 memory: "128Mi"
@@ -323,10 +308,7 @@ spec:
         # instead of using `latest`. Check https://github.com/jkaninda/pg-bkup/releases
         # for available releases.
         image: jkaninda/pg-bkup
-        command:
-        - /bin/sh
-        - -c
-        - migrate
+        command: ["migrate"]
         resources:
           limits:
             memory: "128Mi"

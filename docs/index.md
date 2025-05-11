@@ -10,6 +10,8 @@ nav_order: 1
 
 It supports multiple storage options and ensures data security through GPG encryption.
 
+PG-BKUP is designed for seamless deployment on **Docker** and **Kubernetes**, simplifying PostgreSQL backup, restoration, and migration across environments.
+It is a lightweight, multi-architecture solution compatible with **Docker**, **Docker Swarm**, **Kubernetes**, and other container orchestration platforms.
 ---
 
 ## Key Features
@@ -39,11 +41,21 @@ It supports multiple storage options and ensures data security through GPG encry
 
 ---
 
-## Use Cases
+## 💡Use Cases
 
-- **Automated Recurring Backups:** Schedule regular backups for PostgreSQL databases.
-- **Cross-Environment Migration:** Easily migrate PostgreSQL databases across different environments using `migration` feature.
-- **Secure Backup Management:** Protect your data with GPG encryption.
+- **Scheduled Backups**: Automate recurring backups using Docker or Kubernetes.
+- **Disaster Recovery:** Quickly restore backups to a clean PostgreSQL instance.
+- **Database Migration**: Seamlessly move data across environments using the built-in `migrate` feature.
+- **Secure Archiving:** Keep backups encrypted and safely stored in the cloud or remote servers.
+
+
+## ✅ Verified Platforms:
+PG-BKUP has been tested and runs successfully on:
+
+- Docker
+- Docker Swarm
+- Kubernetes
+- OpenShift
 
 ---
 
