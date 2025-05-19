@@ -1,9 +1,10 @@
 module github.com/jkaninda/pg-bkup
 
 go 1.23.2
+
 require (
 	github.com/go-mail/mail v2.3.1+incompatible
-	github.com/jackc/pgx/v5 v5.7.4
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jkaninda/encryptor v0.0.0-20241013064832-ed4bd6a1b221
 	github.com/jkaninda/go-storage v0.1.3
 	github.com/jkaninda/go-utils v0.1.1
@@ -31,10 +32,10 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 )
