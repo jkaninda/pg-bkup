@@ -44,6 +44,54 @@ It is a lightweight, multi-architecture solution compatible with **Docker**, **D
 - **Database Migration**: Seamlessly move data across environments using the built-in `migrate` feature.
 - **Secure Archiving:** Keep backups encrypted and safely stored in the cloud or remote servers.
 
+## 🚀 Why Use PG-BKUP?
+
+**PG-BKUP** isn't just another PostgreSQL backup tool, it's a robust, production-ready solution purpose-built for modern DevOps workflows.
+
+Here’s why developers, sysadmins, and DevOps choose **PG-BKUP**:
+
+### ✅ All-in-One Backup, Restore & Migration
+
+Whether you're backing up a single database, restoring critical data, or migrating across environments, PG-BKUP handles it all with a **single, unified CLI** no scripting gymnastics required.
+
+
+### 🔄 Works Everywhere You Deploy
+
+Designed to be cloud-native:
+
+* **Runs seamlessly on Docker, Docker Swarm, and Kubernetes**
+* Supports **CronJobs** for automated scheduled backups
+* Compatible with GitOps and CI/CD workflows
+
+### ☁️ Flexible Storage Integrations
+
+Store your backups **anywhere**:
+
+* Local disks
+* Amazon S3, MinIO, Wasabi, Azure Blob, FTP, SSH
+
+### 🔒 Enterprise-Grade Security
+
+* **GPG Encryption**: Protect sensitive data with optional encryption before storing backups locally or in the cloud.
+* **Secure Storage** Options: Supports S3, Azure Blob, SFTP, and SSH with encrypted transfers, keeping backups safe from unauthorized access.
+
+### 📬 Instant Notifications
+
+Stay in the loop with real-time notifications via **Telegram** and **Email**. Know immediately when a backup succeeds—or fails.
+
+### 🏃‍♂️ Lightweight and Fast
+
+Written in **Go**, PG-BKUP is fast, multi-arch compatible (`amd64`, `arm64`, `arm/v7`), and optimized for minimal memory and CPU usage. Ideal for both cloud and edge deployments.
+
+### 🧪 Tested. Verified. Trusted.
+
+Actively maintained with **automated testing**, **Docker image size optimizations**, and verified support across major container platforms.
+
+---
+
+## Supported PostgreSQL Versions
+
+PG-BKUP supports PostgreSQL versions **9.5** and above, ensuring compatibility with most modern PostgreSQL deployments.
 
 ## ✅ Verified Platforms
 PG-BKUP has been tested and runs successfully on:
@@ -189,6 +237,81 @@ For predefined schedules, refer to the [documentation](https://jkaninda.github.i
 
 ---
 
+## Running Multiple Backups in a Single Container
+
+**PG-BKUP** supports backing up multiple PostgreSQL databases in a single run using a configuration file. You can pass the file using the `--config` or `-c` flag, or by setting the `BACKUP_CONFIG_FILE` environment variable.
+
+This is ideal for setups where multiple services or applications each require independent database backups.
+
+---
+
+### Example Configuration File
+
+Below is a sample `config.yaml` file that defines multiple databases along with their respective connection and backup settings:
+
+```yaml
+# Optional: Global cron expression for scheduled backups.
+# Examples: "@daily", "@every 5m", "0 3 * * *"
+cronExpression: ""
+
+databases:
+  - host: lldap-db             # Optional: Overrides DB_HOST or uses DB_HOST_LLDAP.
+    port: 5432                 # Optional: Defaults to 5432. Overrides DB_PORT or uses DB_PORT_LLDAP.
+    name: lldap                # Required: Database name
+    user: lldap                # Optional: Can override via DB_USERNAME or uses DB_USERNAME_LLDAP.
+    password: password         # Optional: Can override via DB_PASSWORD or uses DB_PASSWORD_LLDAP.
+    path: /s3-path/lldap       # Required: Destination path (S3, FTP, SSH, etc.)
+
+  - host: keycloak-db
+    port: 5432
+    name: keycloak
+    user: keycloak
+    password: password
+    path: /s3-path/keycloak
+
+  - host: gitea-db
+    port: 5432
+    name: gitea
+    user: gitea
+    password: ""               # Can be empty or sourced from DB_PASSWORD_GITEA
+    path: /s3-path/gitea
+```
+
+> 🔹 **Tip:** You can override any field using environment variables. For example, `DB_PASSWORD_KEYCLOAK` takes precedence over the `password` field for the `keycloak` entry.
+
+---
+
+## Docker Compose Setup
+
+To run backups using this configuration in Docker Compose:
+
+1. Mount the configuration file into the container.
+2. Set the `BACKUP_CONFIG_FILE` environment variable or use the `-c` flag in the command.
+
+### Sample `docker-compose.yaml`
+
+```yaml
+services:
+  pg-bkup:
+    image: jkaninda/pg-bkup
+    container_name: pg-bkup
+    command: backup -c /backup/config.yaml
+    volumes:
+      - ./backup:/backup                # Backup target directory
+      - ./config.yaml:/backup/config.yaml  # Mount configuration file
+    environment:
+      - DB_PASSWORD_GITEA=password
+      - BACKUP_CRON_EXPRESSION=@daily   # Optional: Overrides config file cronExpression
+    networks:
+      - web
+
+networks:
+  web:
+```
+
+> ⚠️ Ensure the `pg-bkup` container shares a network with the target databases to allow proper connectivity.
+
+---
 ## Deploy on Kubernetes
 
 For Kubernetes, you can deploy `pg-bkup` as a Job or CronJob. Below are examples for both.
@@ -271,51 +394,10 @@ spec:
           restartPolicy: OnFailure
 ```
 ---
+## Give a Star! ⭐
 
-## 🚀 Why Use PG-BKUP?
+If this project helped you, do not skip on giving it a star on [GitHub](https://github.com/jkaninda/goma-gateway).Thanks!
 
-**PG-BKUP** isn't just another PostgreSQL backup tool, it's a robust, production-ready solution purpose-built for modern DevOps workflows.
-
-Here’s why developers, sysadmins, and DevOps choose **PG-BKUP**:
-
-### ✅ All-in-One Backup, Restore & Migration
-
-Whether you're backing up a single database, restoring critical data, or migrating across environments, PG-BKUP handles it all with a **single, unified CLI** no scripting gymnastics required.
-
-
-### 🔄 Works Everywhere You Deploy
-
-Designed to be cloud-native:
-
-* **Runs seamlessly on Docker, Docker Swarm, and Kubernetes**
-* Supports **CronJobs** for automated scheduled backups
-* Compatible with GitOps and CI/CD workflows
-
-### ☁️ Flexible Storage Integrations
-
-Store your backups **anywhere**:
-
-* Local disks
-* Amazon S3, MinIO, Wasabi, Azure Blob, FTP, SSH
-
-### 🔒 Enterprise-Grade Security
-
-* **GPG Encryption**: Protect sensitive data with optional encryption before storing backups locally or in the cloud.
-* **Secure Storage** Options: Supports S3, Azure Blob, SFTP, and SSH with encrypted transfers, keeping backups safe from unauthorized access.
-
-### 📬 Instant Notifications
-
-Stay in the loop with real-time notifications via **Telegram** and **Email**. Know immediately when a backup succeeds—or fails.
-
-### 🏃‍♂️ Lightweight and Fast
-
-Written in **Go**, PG-BKUP is fast, multi-arch compatible (`amd64`, `arm64`, `arm/v7`), and optimized for minimal memory and CPU usage. Ideal for both cloud and edge deployments.
-
-### 🧪 Tested. Verified. Trusted.
-
-Actively maintained with **automated testing**, **Docker image size optimizations**, and verified support across major container platforms.
-
----
 
 ## Available image registries
 

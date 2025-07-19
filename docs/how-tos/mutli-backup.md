@@ -35,39 +35,34 @@ The bulk backup or migration process requires administrative privileges on the d
 Below is an example configuration file (`config.yaml`) that defines multiple databases and their respective backup settings:
 
 ```yaml
-# Optional: Define a global cron expression for scheduled backups.
-# Example: "@every 20m" (runs every 20 minutes). If omitted, backups run immediately.
-cronExpression: ""
+# Optional: Global cron expression for scheduled backups.
+# Examples: "@daily", "@every 5m", "0 3 * * *"
+cronExpression: "@daily"
 
 databases:
-  - host: postgres1       # Optional: Overrides DB_HOST or uses DB_HOST_DATABASE1.
-    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_DATABASE1.
-    name: database1       # Required: Database name.
-    user: database1       # Optional: Overrides DB_USERNAME or uses DB_USERNAME_DATABASE1.
-    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_DATABASE1.
-    path: /s3-path/database1  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+  - host: lldap-db             # Optional: Overrides DB_HOST or uses DB_HOST_LLDAP.
+    port: 5432                 # Optional: Defaults to 5432. Overrides DB_PORT or uses DB_PORT_LLDAP.
+    name: lldap                # Required: Database name
+    user: lldap                # Optional: Can override via DB_USERNAME or uses DB_USERNAME_LLDAP.
+    password: password         # Optional: Can override via DB_PASSWORD or uses DB_PASSWORD_LLDAP.
+    path: /s3-path/lldap       # Required: Destination path (S3, FTP, SSH, etc.)
 
-  - host: postgres2       # Optional: Overrides DB_HOST or uses DB_HOST_LLAP.
-    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_LLAP.
-    name: lldap           # Required: Database name.
-    user: lldap           # Optional: Overrides DB_USERNAME or uses DB_USERNAME_LLAP.
-    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_LLAP.
-    path: /s3-path/lldap  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+  - host: keycloak-db
+    port: 5432
+    name: keycloak
+    user: keycloak
+    password: password
+    path: /s3-path/keycloak
 
-  - host: postgres3       # Optional: Overrides DB_HOST or uses DB_HOST_KEYCLOAK.
-    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_KEYCLOAK.
-    name: keycloak        # Required: Database name.
-    user: keycloak        # Optional: Overrides DB_USERNAME or uses DB_USERNAME_KEYCLOAK.
-    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_KEYCLOAK.
-    path: /s3-path/keycloak  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
-
-  - host: postgres4       # Optional: Overrides DB_HOST or uses DB_HOST_JOPLIN.
-    port: 5432            # Optional: Default is 5432. Overrides DB_PORT or uses DB_PORT_JOPLIN.
-    name: joplin          # Required: Database name.
-    user: joplin          # Optional: Overrides DB_USERNAME or uses DB_USERNAME_JOPLIN.
-    password: password    # Optional: Overrides DB_PASSWORD or uses DB_PASSWORD_JOPLIN.
-    path: /s3-path/joplin  # Required: Backup path for SSH, FTP, or S3 (e.g., /home/toto/backup/).
+  - host: gitea-db
+    port: 5432
+    name: gitea
+    user: gitea
+    password: ""               # Can be empty or sourced from DB_PASSWORD_GITEA
+    path: /s3-path/gitea
 ```
+
+> 🔹 **Tip:** You can override any field using environment variables. For example, `DB_PASSWORD_KEYCLOAK` takes precedence over the `password` field for the `keycloak` entry.
 
 ---
 
@@ -92,6 +87,7 @@ services:
     environment:
       ## Specify the path to the configuration file
       - BACKUP_CONFIG_FILE=/backup/config.yaml
+      - DB_PASSWORD_GITEA=password
     # Ensure the pg-bkup container is connected to the same network as your database
     networks:
       - web
