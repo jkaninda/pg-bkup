@@ -1,26 +1,26 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2023 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package utils
 
@@ -30,6 +30,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-mail/mail"
+	"github.com/jkaninda/logger"
 	"html/template"
 	"io"
 	"net/http"
@@ -55,7 +56,7 @@ func parseTemplate[T any](data T, fileName string) (string, error) {
 }
 
 func SendEmail(subject, body string) error {
-	Info("Start sending email notification....")
+	logger.Info("Start sending email notification....")
 	config := loadMailConfig()
 	emails := strings.Split(config.MailTo, ",")
 	m := mail.NewMessage()
@@ -67,16 +68,16 @@ func SendEmail(subject, body string) error {
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: config.SkipTls}
 
 	if err := d.DialAndSend(m); err != nil {
-		Error("Error could not send email : %v", err)
+		logger.Error("Error could not send email", "error", err)
 		return err
 	}
-	Info("Email notification has been sent")
+	logger.Info("Email notification has been sent")
 	return nil
 
 }
 func sendMessage(msg string) error {
 
-	Info("Sending Telegram notification... ")
+	logger.Info("Sending Telegram notification... ")
 	chatId := os.Getenv("TG_CHAT_ID")
 	body, _ := json.Marshal(map[string]string{
 		"chat_id": chatId,
@@ -96,11 +97,11 @@ func sendMessage(msg string) error {
 	}
 	code := response.StatusCode
 	if code == 200 {
-		Info("Telegram notification has been sent")
+		logger.Info("Telegram notification has been sent")
 		return nil
 	} else {
 		body, _ := io.ReadAll(response.Body)
-		Error("Error could not send message, error: %s", string(body))
+		logger.Error("Error could not send message", "error", string(body))
 		return fmt.Errorf("error could not send message %s", string(body))
 	}
 
@@ -112,11 +113,11 @@ func NotifySuccess(notificationData *NotificationData) {
 	if err == nil {
 		body, err := parseTemplate(*notificationData, "email.tmpl")
 		if err != nil {
-			Error("Could not parse email template: %v", err)
+			logger.Error("Could not parse email template", "error", err)
 		}
 		err = SendEmail(fmt.Sprintf("✅  Database Backup Notification – %s", notificationData.Database), body)
 		if err != nil {
-			Error("Could not send email: %v", err)
+			logger.Error("Could not send email", "error", err)
 		}
 	}
 	// Telegram notification
@@ -124,12 +125,12 @@ func NotifySuccess(notificationData *NotificationData) {
 	if err == nil {
 		message, err := parseTemplate(*notificationData, "telegram.tmpl")
 		if err != nil {
-			Error("Could not parse telegram template: %v", err)
+			logger.Error("Could not parse telegram template", "error", err)
 		}
 
 		err = sendMessage(message)
 		if err != nil {
-			Error("Could not send Telegram message: %v", err)
+			logger.Error("Could not send Telegram message", "error", err)
 		}
 	}
 }
@@ -145,11 +146,11 @@ func NotifyError(error string) {
 			DatabaseName:    DatabaseName,
 		}, "email-error.tmpl")
 		if err != nil {
-			Error("Could not parse error template: %v", err)
+			logger.Error("Could not parse error template", "error", err)
 		}
 		err = SendEmail("🔴 Urgent: Database Backup Failure Notification", body)
 		if err != nil {
-			Error("Could not send email: %v", err)
+			logger.Error("Could not send email", "error", err)
 		}
 	}
 	// Telegram notification
@@ -162,13 +163,13 @@ func NotifyError(error string) {
 			DatabaseName:    DatabaseName,
 		}, "telegram-error.tmpl")
 		if err != nil {
-			Error("Could not parse error template: %v", err)
+			logger.Error("Could not parse error template", "error", err)
 
 		}
 
 		err = sendMessage(message)
 		if err != nil {
-			Error("Could not send telegram message: %v", err)
+			logger.Error("Could not send telegram message", "error", err)
 		}
 	}
 }

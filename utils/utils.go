@@ -1,31 +1,32 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2023 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package utils
 
 import (
 	"fmt"
+	"github.com/jkaninda/logger"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
@@ -111,7 +112,7 @@ func CopyFile(src, dst string) error {
 }
 func ChangePermission(filePath string, mod int) {
 	if err := os.Chmod(filePath, fs.FileMode(mod)); err != nil {
-		Fatal("Error changing permissions of %s: %v\n", filePath, err)
+		logger.Error("Error changing permissions", "file", filePath, "error", err)
 	}
 
 }
@@ -173,7 +174,7 @@ func GetEnvVariable(envName, oldEnvName string) string {
 			if err != nil {
 				return value
 			}
-			Warn("%s is deprecated, please use %s instead! ", oldEnvName, envName)
+			logger.Warn(fmt.Sprintf("Environment variable %s set to %s", oldEnvName, envName))
 		}
 	}
 	return value
@@ -220,7 +221,7 @@ func GetIntEnv(envName string) int {
 	}
 	ret, err := strconv.Atoi(val)
 	if err != nil {
-		Error("Error: %v", err)
+		logger.Error("Error converting env to int", "error", err)
 	}
 	return ret
 }
@@ -245,7 +246,7 @@ func CronNextTime(cronExpr string) time.Time {
 	// Parse the cron expression
 	schedule, err := cron.ParseStandard(cronExpr)
 	if err != nil {
-		Error("Error parsing cron expression: %s", err)
+		logger.Error("Error parsing cron expression", "error", err)
 		return time.Time{}
 	}
 	// Get the current time
