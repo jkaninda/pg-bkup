@@ -1,4 +1,4 @@
-FROM golang:1.24.4 AS build
+FROM golang:1.24.5 AS build
 WORKDIR /app
 ARG appVersion=""
 # Copy the source code.
@@ -17,14 +17,11 @@ ARG BACKUP_TMP_DIR="/tmp/backup"
 ARG TEMPLATES_DIR="/config/templates"
 ARG appVersion=""
 ENV VERSION=${appVersion}
-LABEL org.opencontainers.image.title="pg-bkup"
-LABEL org.opencontainers.image.description="A lightweight PostgreSQL backup and restore tool"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.authors="Jonas Kaninda"
-LABEL org.opencontainers.image.version=${appVersion}
-LABEL org.opencontainers.image.source="https://github.com/jkaninda/pg-bkup"
+LABEL author="Jonas Kaninda"
+LABEL version=${appVersion}
+LABEL github="github.com/jkaninda/pg-bkup"
 
-RUN apk --update --no-cache add postgresql-client tzdata ca-certificates
+RUN apk --update add --no-cache postgresql-client tzdata ca-certificates
 RUN mkdir -p $WORKDIR $BACKUPDIR $TEMPLATES_DIR $BACKUP_TMP_DIR && \
      chmod a+rw $WORKDIR $BACKUPDIR $BACKUP_TMP_DIR
 COPY --from=build /app/pg-bkup /usr/local/bin/pg-bkup
