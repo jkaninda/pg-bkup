@@ -1,26 +1,26 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2024 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package pkg
 
@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jkaninda/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"gopkg.in/yaml.v3"
 	"net/url"
@@ -45,7 +46,7 @@ func intro() {
 
 // copyToTmp copy file to temporary directory
 func deleteTemp() {
-	utils.Info("Deleting %s ...", tmpPath)
+	logger.Info(fmt.Sprintf("Deleting %s ...", tmpPath))
 	err := filepath.Walk(tmpPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -61,16 +62,16 @@ func deleteTemp() {
 		return nil
 	})
 	if err != nil {
-		utils.Error("Error deleting files: %v", err)
+		logger.Error("Error deleting files", "error", err)
 	} else {
-		utils.Info("Deleting %s ... done", tmpPath)
+		logger.Info(fmt.Sprintf("Deleting %s ... done", tmpPath))
 	}
 }
 
 // TestDatabaseConnection  tests the database connection
 func testDatabaseConnection(db *dbConfig) error {
 
-	utils.Info("Connecting to %s database ...", db.dbName)
+	logger.Info(fmt.Sprintf("Connecting to %s database ...", db.dbName))
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", db.dbUserName, db.dbPassword, db.dbHost, db.dbPort, db.dbName)
 	// Create the PostgresSQL client config file
 	if err := createPGConfigFile(*db); err != nil {
@@ -90,7 +91,7 @@ func testDatabaseConnection(db *dbConfig) error {
 	defer func(conn *pgx.Conn, ctx context.Context) {
 		err = conn.Close(ctx)
 		if err != nil {
-			utils.Error("Error closing connexion: %v", err)
+			logger.Error("Error closing connexion", "error", err)
 
 		}
 	}(conn, context.Background())
@@ -101,7 +102,7 @@ func testDatabaseConnection(db *dbConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to execute query: %w", err)
 	}
-	utils.Info("Successfully connected to %s database", db.dbName)
+	logger.Info(fmt.Sprintf("Successfully connected to %s database", db.dbName))
 	return nil
 
 }

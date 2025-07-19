@@ -1,26 +1,26 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2024 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package pkg
 
@@ -28,22 +28,23 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"github.com/jkaninda/pg-bkup/utils"
+	"github.com/jkaninda/logger"
 	"github.com/spf13/cobra"
 	"time"
 )
 
 func StartMigration(cmd *cobra.Command) {
 	intro()
-	utils.Info("Starting database migration...")
+	logger.Info("Starting database migration task...")
 	all, _ := cmd.Flags().GetBool("all-databases")
+	instance, _ := cmd.Flags().GetBool("entire-instance")
 
 	// Get DB config
 	dbConf = initDbConfig(cmd)
 	targetDbConf = initTargetDbConfig()
 
 	if targetDbConf.targetDbName == "" && !all {
-		utils.Fatal("Target database name is required, use TARGET_DB_NAME environment variable")
+		logger.Fatal("Target database name is required, use TARGET_DB_NAME environment variable")
 	}
 
 	// Defining the target database variables
@@ -56,38 +57,41 @@ func StartMigration(cmd *cobra.Command) {
 
 	if all {
 		migrateAllDatabases(dbConf, &newDbConfig)
+	} else if instance {
+		migrate(dbConf, &newDbConfig, true)
+
 	} else {
-		migrate(dbConf, &newDbConfig)
+		migrate(dbConf, &newDbConfig, false)
 	}
-	utils.Info("Database migration process finished successfully.")
+	logger.Info("Database migration process finished successfully.")
 
 }
 
-func migrate(dbConf, targetDb *dbConfig) {
+func migrate(dbConf, targetDb *dbConfig, allInstance bool) {
 	// Generate a timestamped backup file name
 	backupFileName := fmt.Sprintf("%s_%s.sql", dbConf.dbName, time.Now().Format("20060102_150405"))
 	conf := &RestoreConfig{file: backupFileName}
 
 	// Backup the source database
-	utils.Info("Starting backup for database [%s]...", dbConf.dbName)
-	err := BackupDatabase(dbConf, backupFileName, true, false, false)
+	logger.Info(fmt.Sprintf("Starting backup for database [%s]...", dbConf.dbName))
+	err := BackupDatabase(dbConf, backupFileName, true, allInstance, allInstance)
 	if err != nil {
-		utils.Fatal("Failed to back up database [%s]: %s", dbConf.dbName, err)
+		logger.Fatal("Failed to back up database", "name", dbConf.dbName, "error", err)
 	}
 
-	utils.Info("Backup completed: [%s]", backupFileName)
+	logger.Info("Backup completed", "filename", backupFileName)
 
 	// Restore the backup into the target database
-	utils.Info("Starting restoration: [%s] → [%s]...", dbConf.dbName, targetDb.dbName)
+	logger.Info(fmt.Sprintf("Starting restoration: [%s] → [%s]...", dbConf.dbName, targetDb.dbName))
 	RestoreDatabase(targetDb, conf)
-	utils.Info("Restoration completed: [%s] successfully migrated to [%s]", dbConf.dbName, targetDb.dbName)
+	logger.Info(fmt.Sprintf("Restoration completed: [%s] successfully migrated to [%s]", dbConf.dbName, targetDb.dbName))
 
 }
 
 func migrateAllDatabases(dbConf, targetDb *dbConfig) {
 	databases, err := listDatabases(*dbConf)
 	if err != nil {
-		utils.Fatal("Error listing databases: %s", err)
+		logger.Fatal("Error listing databases", "error", err)
 	}
 
 	for _, dbName := range databases {
@@ -96,21 +100,21 @@ func migrateAllDatabases(dbConf, targetDb *dbConfig) {
 
 		exists, err := targetDb.databaseExists()
 		if err != nil {
-			utils.Fatal("Error checking database existence: %s", err)
+			logger.Fatal("Error checking database existence", "error", err)
 		}
 
 		if !exists {
-			utils.Info("Database [%s] does not exist, creating...", dbName)
+			logger.Info(fmt.Sprintf("Database [%s] does not exist, creating...", dbName))
 			if err := targetDb.createDatabase(); err != nil {
-				utils.Fatal("Error creating database: %s", err)
+				logger.Fatal("Error creating database", "error", err)
 			}
 		} else {
-			utils.Info("Database [%s] already exists, skipping creation...", dbName)
+			logger.Info(fmt.Sprintf("Database [%s] already exists, skipping creation...", dbName))
 		}
 
-		migrate(dbConf, targetDb)
+		migrate(dbConf, targetDb, false)
 	}
-	utils.Info("All databases have been migrated.")
+	logger.Info("All databases have been migrated.")
 }
 
 func (db *dbConfig) databaseExists() (bool, error) {
@@ -123,7 +127,7 @@ func (db *dbConfig) databaseExists() (bool, error) {
 	defer func(dbConn *pgx.Conn, ctx context.Context) {
 		err := dbConn.Close(ctx)
 		if err != nil {
-			utils.Error("Error closing connection: %v", err)
+			logger.Error("Error closing connection", "error", err)
 		}
 	}(dbConn, context.Background())
 
@@ -148,7 +152,7 @@ func (db *dbConfig) createDatabase() error {
 	defer func(dbConn *pgx.Conn, ctx context.Context) {
 		err := dbConn.Close(ctx)
 		if err != nil {
-			utils.Error("Error closing connection: %v", err)
+			logger.Error("Error closing connection", "error", err)
 		}
 	}(dbConn, context.Background())
 

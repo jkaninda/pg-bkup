@@ -351,4 +351,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Copyright
 
-Copyright (c) [2023] [Jonas Kaninda]
+Copyright (c) [2024] [Jonas Kaninda]

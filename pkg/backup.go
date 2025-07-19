@@ -1,26 +1,26 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2024 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package pkg
 
@@ -32,18 +32,20 @@ import (
 	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/go-storage/pkg/local"
 	goutils "github.com/jkaninda/go-utils"
+	"github.com/jkaninda/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
 func StartBackup(cmd *cobra.Command) {
 	intro()
+	logger.Info("Starting backup process")
+	logger.Info("Loading configuration")
 	// Initialize backup configs
 	config := initBackupConfig(cmd)
 	// Load backup configuration file
@@ -57,7 +59,7 @@ func StartBackup(cmd *cobra.Command) {
 			if utils.IsValidCronExpression(config.cronExpression) {
 				scheduledMode(dbConf, config)
 			} else {
-				utils.Fatal("Cron expression is not valid: %s", config.cronExpression)
+				logger.Fatal("Cron expression is not valid", "expression", config.cronExpression)
 			}
 		}
 	} else {
@@ -68,26 +70,25 @@ func StartBackup(cmd *cobra.Command) {
 
 // scheduledMode Runs backup in scheduled mode
 func scheduledMode(db *dbConfig, config *BackupConfig) {
-	utils.Info("Running in Scheduled mode")
-	utils.Info("Backup cron expression:  %s", config.cronExpression)
-	utils.Info("The next scheduled time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat))
-	utils.Info("Storage type %s ", config.storage)
+	logger.Info("Running in Scheduled mode", "cron", config.cronExpression)
+	logger.Info(fmt.Sprintf("The next scheduled time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat)))
+	logger.Info(fmt.Sprintf("Storage type %s ", config.storage))
 
 	// Test backup
-	utils.Info("Testing backup configurations...")
+	logger.Info("Testing backup configurations...")
 	err := testDatabaseConnection(db)
 	if err != nil {
-		utils.Error("Error connecting to database: %s", db.dbName)
-		utils.Fatal("Error: %s", err)
+		logger.Error("Error connecting to database", "database", db.dbName)
+		logger.Fatal("Error testing database connection", "error", err)
 	}
-	utils.Info("Testing backup configurations...done")
-	utils.Info("Creating backup job...")
+	logger.Info("Testing backup configurations...done")
+	logger.Info("Creating backup task", "database", db.dbName, "storage", config.storage)
 	// Create a new cron instance
 	c := cron.New()
 
 	_, err = c.AddFunc(config.cronExpression, func() {
 		createBackupTask(db, config)
-		utils.Info("Next backup time is: %v", utils.CronNextTime(config.cronExpression).Format(timeFormat))
+		logger.Info("Next scheduled time", "time", utils.CronNextTime(config.cronExpression).Format(timeFormat))
 
 	})
 	if err != nil {
@@ -95,8 +96,8 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 	}
 	// Start the cron scheduler
 	c.Start()
-	utils.Info("Creating backup job...done")
-	utils.Info("Backup job started")
+	logger.Info("Creating backup task...done")
+	logger.Info("Backup task started")
 	defer c.Stop()
 	select {}
 }
@@ -118,7 +119,7 @@ func createBackupTask(db *dbConfig, config *BackupConfig) {
 		backupAll(db, config)
 	} else {
 		if db.dbName == "" && !config.all {
-			utils.Fatal("Database name is required, use DB_NAME environment variable or -d flag")
+			logger.Fatal("Database name is required, use DB_NAME environment variable or -d flag")
 		}
 		backupTask(db, config)
 	}
@@ -128,8 +129,9 @@ func createBackupTask(db *dbConfig, config *BackupConfig) {
 func backupAll(db *dbConfig, config *BackupConfig) {
 	databases, err := listDatabases(*db)
 	if err != nil {
-		utils.Fatal("Error listing databases: %s", err)
+		logger.Fatal("Error listing databases", "error", err)
 	}
+	logger.Info("Backing up all databases", "count", len(databases))
 	for _, dbName := range databases {
 		db.dbName = dbName
 		config.backupFileName = fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
@@ -140,7 +142,7 @@ func backupAll(db *dbConfig, config *BackupConfig) {
 
 // backupTask backup task
 func backupTask(db *dbConfig, config *BackupConfig) {
-	utils.Info("Starting backup task...")
+	logger.Info("Initiating backup task", "database", db.dbName, "storage", config.storage, "compression", !config.disableCompression)
 	startTime = time.Now()
 	prefix := db.dbName
 	if config.all && config.allInOne {
@@ -159,17 +161,16 @@ func backupTask(db *dbConfig, config *BackupConfig) {
 		}
 	}
 	config.backupFileName = backupFileName
-	s := strings.ToLower(config.storage)
-	switch s {
-	case "local":
+	switch config.storage {
+	case LocalStorage:
 		localBackup(db, config)
-	case "s3":
+	case S3Storage:
 		s3Backup(db, config)
-	case "ssh", "remote", "sftp":
+	case SFTPStorage, SSHStorage, RemoteStorage:
 		sshBackup(db, config)
-	case "ftp":
+	case FTPStorage:
 		ftpBackup(db, config)
-	case "azure":
+	case AzureStorage:
 		azureBackup(db, config)
 	default:
 		localBackup(db, config)
@@ -178,17 +179,17 @@ func backupTask(db *dbConfig, config *BackupConfig) {
 
 // startMultiBackup start multi backup
 func startMultiBackup(bkConfig *BackupConfig, configFile string) {
-	utils.Info("Starting Multi backup task...")
+	logger.Info("Starting Multi backup task...")
 	conf, err := readConf(configFile)
 	if err != nil {
-		utils.Fatal("Error reading config file: %s", err)
+		logger.Fatal("Error reading config file", "error", err)
 	}
 	// Check if cronExpression is defined in config file
 	if conf.CronExpression != "" {
 		bkConfig.cronExpression = conf.CronExpression
 	}
 	if len(conf.Databases) == 0 {
-		utils.Fatal("No databases found")
+		logger.Fatal("No databases found")
 	}
 	// Check if cronExpression is defined
 	if bkConfig.cronExpression == "" {
@@ -197,13 +198,12 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 		backupRescueMode = conf.BackupRescueMode
 		// Check if cronExpression is valid
 		if utils.IsValidCronExpression(bkConfig.cronExpression) {
-			utils.Info("Running backup in Scheduled mode")
-			utils.Info("Backup cron expression:  %s", bkConfig.cronExpression)
-			utils.Info("The next scheduled time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
-			utils.Info("Storage type %s ", bkConfig.storage)
+			logger.Info("Running in Scheduled mode", "cron", bkConfig.cronExpression)
+			logger.Info(fmt.Sprintf("The next scheduled time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat)))
+			logger.Info(fmt.Sprintf("Storage type %s ", bkConfig.storage))
 
 			// Test backup
-			utils.Info("Testing backup configurations...")
+			logger.Info("Testing backup configurations...")
 			for _, db := range conf.Databases {
 				err = testDatabaseConnection(getDatabase(db))
 				if err != nil {
@@ -211,14 +211,14 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 					continue
 				}
 			}
-			utils.Info("Testing backup configurations...done")
-			utils.Info("Creating backup job...")
+			logger.Info("Testing backup configurations...done")
+			logger.Info("Creating backup job...")
 			// Create a new cron instance
 			c := cron.New()
 
 			_, err := c.AddFunc(bkConfig.cronExpression, func() {
 				multiBackupTask(conf.Databases, bkConfig)
-				utils.Info("Next backup time is: %v", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
+				logger.Info("Next scheduled time", "time", utils.CronNextTime(bkConfig.cronExpression).Format(timeFormat))
 
 			})
 			if err != nil {
@@ -226,13 +226,13 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 			}
 			// Start the cron scheduler
 			c.Start()
-			utils.Info("Creating backup job...done")
-			utils.Info("Backup job started")
+			logger.Info("Creating backup job...done")
+			logger.Info("Backup job started")
 			defer c.Stop()
 			select {}
 
 		} else {
-			utils.Fatal("Cron expression is not valid: %s", bkConfig.cronExpression)
+			logger.Fatal("Cron expression is not valid", "cron", bkConfig.cronExpression)
 		}
 	}
 
@@ -249,10 +249,10 @@ func BackupDatabase(db *dbConfig, backupFileName string, disableCompression, all
 	// Construct pg_dump arguments
 	dumpArgs = []string{"-h", db.dbHost, "-p", db.dbPort, "-U", db.dbUserName}
 	if all && singleFile {
-		utils.Info("Backing up all databases...")
+		logger.Info("Backing up all databases...")
 		dumpCmd = "pg_dumpall"
 	} else {
-		utils.Info("Backing up %s database...", db.dbName)
+		logger.Info(fmt.Sprintf("Backing up %s database...", db.dbName))
 		dumpCmd = "pg_dump"
 		dumpArgs = append(dumpArgs, db.dbName)
 
@@ -290,30 +290,30 @@ func runCommandWithCompression(command string, args []string, outputPath string)
 		return fmt.Errorf("failed to create gzip file: %w", err)
 	}
 	defer func(gzipFile *os.File) {
-		err := gzipFile.Close()
+		err = gzipFile.Close()
 		if err != nil {
-			utils.Error("Error closing gzip file: %v", err)
+			logger.Error("Error closing gzip file", "error", err)
 		}
 	}(gzipFile)
 	gzipCmd.Stdout = gzipFile
 
-	if err := gzipCmd.Start(); err != nil {
+	if err = gzipCmd.Start(); err != nil {
 		return fmt.Errorf("failed to start gzip: %w", err)
 	}
-	if err := cmd.Run(); err != nil {
+	if err = cmd.Run(); err != nil {
 		return fmt.Errorf("failed to execute %s: %w", command, err)
 	}
-	if err := gzipCmd.Wait(); err != nil {
+	if err = gzipCmd.Wait(); err != nil {
 		return fmt.Errorf("failed to wait for gzip completion: %w", err)
 	}
 
-	utils.Info("Database has been backed up")
+	logger.Info("Database has been backed up")
 	return nil
 }
 
 // localBackup backup database to local storage
 func localBackup(db *dbConfig, config *BackupConfig) {
-	utils.Info("Backup database to local storage")
+	logger.Info("Backup database to local storage")
 	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
@@ -326,7 +326,7 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	}
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
-		utils.Error("Error: %s", err)
+		logger.Error("Error getting backup info", "error", err)
 	}
 	backupSize = fileInfo.Size()
 	localStorage := local.NewStorage(local.Config{
@@ -335,19 +335,19 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	})
 	err = localStorage.Copy(finalFileName)
 	if err != nil {
-		utils.Fatal("Error copying backup file: %s", err)
+		logger.Fatal("Error copying backup file", "error", err)
 	}
-	utils.Info("Backup name is %s", finalFileName)
-	utils.Info("Backup size: %s", goutils.ConvertBytes(uint64(backupSize)))
-	utils.Info("Backup saved in %s", filepath.Join(storagePath, finalFileName))
+
 	duration := goutils.FormatDuration(time.Since(startTime), 0)
+	logger.Info("Backup file copied to local storage", "file", finalFileName, "destination", storagePath)
+	logger.Info("Backup completed", "file", finalFileName, "size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
 
 	// Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
 		BackupSize:     goutils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
-		Storage:        config.storage,
+		Storage:        string(config.storage),
 		BackupLocation: filepath.Join(storagePath, finalFileName),
 		Duration:       duration,
 	})
@@ -355,43 +355,45 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 	if config.prune {
 		err = localStorage.Prune(config.backupRetention)
 		if err != nil {
-			utils.Fatal("Error deleting old backup from %s storage: %s ", config.storage, err)
+			logger.Fatal(fmt.Sprintf("Error deleting old backup from %s storage: %s ", config.storage, err))
 		}
 
 	}
 	// Delete temp
 	deleteTemp()
-	utils.Info("The backup of the %s database has been completed in %s", db.dbName, duration)
+	logger.Info(fmt.Sprintf("The backup of the %s database has been completed in %s", db.dbName, duration))
 }
 
 // encryptBackup encrypt backup
 func encryptBackup(config *BackupConfig) {
+	logger.Info("Starting backup encryption", "file", config.backupFileName)
 	backupFile, err := os.ReadFile(filepath.Join(tmpPath, config.backupFileName))
 	outputFile := fmt.Sprintf("%s.%s", filepath.Join(tmpPath, config.backupFileName), gpgExtension)
 	if err != nil {
-		utils.Fatal("Error reading backup file: %s ", err)
+		logger.Fatal("Error reading backup file", "error", err)
 	}
 	if config.usingKey {
-		utils.Info("Encrypting backup using public key...")
+		logger.Info("Encrypting backup using public key...")
 		pubKey, err := os.ReadFile(config.publicKey)
 		if err != nil {
-			utils.Fatal("Error reading public key: %s ", err)
+			logger.Fatal("Error reading public key", "error", err)
 		}
 		err = encryptor.EncryptWithPublicKey(backupFile, fmt.Sprintf("%s.%s", filepath.Join(tmpPath, config.backupFileName), gpgExtension), pubKey)
 		if err != nil {
-			utils.Fatal("Error encrypting backup file: %v ", err)
+			logger.Fatal("Error encrypting backup file", "error", err)
 		}
-		utils.Info("Encrypting backup using public key...done")
+		logger.Info("Encrypting backup using public key...done")
 
 	} else if config.passphrase != "" {
-		utils.Info("Encrypting backup using passphrase...")
+		logger.Info("Encrypting backup using passphrase...")
 		err := encryptor.Encrypt(backupFile, outputFile, config.passphrase)
 		if err != nil {
-			utils.Fatal("error during encrypting backup %v", err)
+			logger.Fatal("error during encrypting backup", "error", err)
 		}
-		utils.Info("Encrypting backup using passphrase...done")
+		logger.Info("Encrypting backup using passphrase...done")
 
 	}
+	logger.Info("Encryption completed", "output", outputFile)
 
 }
 
@@ -399,7 +401,7 @@ func encryptBackup(config *BackupConfig) {
 func listDatabases(db dbConfig) ([]string, error) {
 	databases := []string{}
 
-	utils.Info("Listing databases...")
+	logger.Info("Listing databases...")
 	// Create the PostgresSQL client config file
 	if err := createPGConfigFile(db); err != nil {
 		return databases, errors.New(err.Error())
@@ -415,7 +417,7 @@ func listDatabases(db dbConfig) ([]string, error) {
 	defer func(conn *pgx.Conn, ctx context.Context) {
 		err = conn.Close(ctx)
 		if err != nil {
-			utils.Error("Error closing connexion: %v", err)
+			logger.Error("Error closing connexion", "error", err)
 		}
 	}(conn, context.Background())
 
@@ -446,6 +448,7 @@ func listDatabases(db dbConfig) ([]string, error) {
 		return nil, fmt.Errorf("error during row iteration: %w", rows.Err())
 	}
 
+	logger.Info("Found databases", "count", len(databases))
 	return databases, nil
 
 }
@@ -453,12 +456,11 @@ func recoverMode(err error, msg string) {
 	if err != nil {
 		if backupRescueMode {
 			utils.NotifyError(fmt.Sprintf("%s : %v", msg, err))
-			utils.Error("Error: %s", msg)
-			utils.Error("Backup rescue mode is enabled")
-			utils.Error("Backup will continue")
+			logger.Error("Backup failed", "reason", msg, "error", err)
+			logger.Warn("Backup rescue mode is enabled,Backup will continue")
 		} else {
-			utils.Error("Error: %s", msg)
-			utils.Fatal("Error: %v", err)
+			logger.Error("Backup failed", "reason", msg, "error", err)
+			logger.Fatal("An occurred error", "error", err)
 			return
 		}
 	}

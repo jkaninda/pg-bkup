@@ -1,31 +1,32 @@
 /*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ *  MIT License
+ *
+ * Copyright (c) 2024 Jonas Kaninda
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ */
 
 package pkg
 
 import (
 	"fmt"
+	"github.com/jkaninda/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -33,93 +34,12 @@ import (
 	"strings"
 )
 
-type Database struct {
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	Name     string `yaml:"name"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Path     string `yaml:"path"`
-}
-type Config struct {
-	CronExpression   string     `yaml:"cronExpression"`
-	BackupRescueMode bool       `yaml:"backupRescueMode"`
-	Databases        []Database `yaml:"databases"`
-}
-
-type dbConfig struct {
-	dbHost     string
-	dbPort     string
-	dbName     string
-	dbUserName string
-	dbPassword string
-}
-type targetDbConfig struct {
-	targetDbHost     string
-	targetDbPort     string
-	targetDbUserName string
-	targetDbPassword string
-	targetDbName     string
-}
-type TgConfig struct {
-	Token  string
-	ChatId string
-}
-type BackupConfig struct {
-	backupFileName     string
-	backupRetention    int
-	disableCompression bool
-	prune              bool
-	remotePath         string
-	encryption         bool
-	usingKey           bool
-	passphrase         string
-	publicKey          string
-	storage            string
-	cronExpression     string
-	all                bool
-	allInOne           bool
-	customName         string
-	allowCustomName    bool
-}
-type FTPConfig struct {
-	host       string
-	user       string
-	password   string
-	port       int
-	remotePath string
-}
-type AzureConfig struct {
-	accountName   string
-	accountKey    string
-	containerName string
-}
-
-// SSHConfig holds the SSH connection details
-type SSHConfig struct {
-	user         string
-	password     string
-	hostName     string
-	port         int
-	identifyFile string
-}
-type AWSConfig struct {
-	endpoint       string
-	bucket         string
-	accessKey      string
-	secretKey      string
-	region         string
-	remotePath     string
-	disableSsl     bool
-	forcePathStyle bool
-}
-
 func initDbConfig(cmd *cobra.Command) *dbConfig {
 	jdbcUri := os.Getenv("DB_URL")
 	if len(jdbcUri) != 0 {
 		config, err := convertJDBCToDbConfig(jdbcUri)
 		if err != nil {
-			utils.Fatal("Error: %v", err.Error())
+			logger.Fatal("Error converting JDBC to DB config", "error", err.Error())
 		}
 		return config
 	}
@@ -127,15 +47,15 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 	utils.GetEnv(cmd, "dbname", "DB_NAME")
 	dConf := dbConfig{}
 	dConf.dbHost = os.Getenv("DB_HOST")
-	dConf.dbPort = utils.EnvWithDefault("DB_PORT", "5432")
+	dConf.dbPort = utils.EnvWithDefault("DB_PORT", defaultDbPort)
 	dConf.dbName = os.Getenv("DB_NAME")
 	dConf.dbUserName = os.Getenv("DB_USERNAME")
 	dConf.dbPassword = os.Getenv("DB_PASSWORD")
 
 	err := utils.CheckEnvVars(dbHVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for database are set")
-		utils.Fatal("Error checking environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for database are set")
+		logger.Fatal("Error checking environment variables", "error", err)
 	}
 	return &dConf
 }
@@ -145,7 +65,7 @@ func getDatabase(database Database) *dbConfig {
 	database.User = getEnvOrDefault(database.User, "DB_USERNAME", database.Name, "")
 	database.Password = getEnvOrDefault(database.Password, "DB_PASSWORD", database.Name, "")
 	database.Host = getEnvOrDefault(database.Host, "DB_HOST", database.Name, "")
-	database.Port = getEnvOrDefault(database.Port, "DB_PORT", database.Name, "5432")
+	database.Port = getEnvOrDefault(database.Port, "DB_PORT", database.Name, defaultDbPort)
 	return &dbConfig{
 		dbHost:     database.Host,
 		dbPort:     database.Port,
@@ -207,8 +127,8 @@ func loadFtpConfig() *FTPConfig {
 	fConfig.remotePath = os.Getenv("REMOTE_PATH")
 	err := utils.CheckEnvVars(ftpVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for FTP are set")
-		utils.Fatal("Error missing environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for FTP are set")
+		logger.Fatal("Error missing environment variables", "error", err)
 	}
 	return &fConfig
 }
@@ -221,8 +141,8 @@ func loadAzureConfig() *AzureConfig {
 
 	err := utils.CheckEnvVars(azureVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for Azure Blob storage are set")
-		utils.Fatal("Error missing environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for Azure Blob storage are set")
+		logger.Fatal("Error missing environment variables", "error", err)
 	}
 	return &aConfig
 }
@@ -248,8 +168,8 @@ func initAWSConfig() *AWSConfig {
 	aConfig.forcePathStyle = forcePathStyle
 	err = utils.CheckEnvVars(awsVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for AWS S3 are set")
-		utils.Fatal("Error checking environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for AWS S3 are set")
+		logger.Fatal("Error checking environment variables", "error", err)
 	}
 	return &aConfig
 }
@@ -278,6 +198,8 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
 	cronExpression := os.Getenv("BACKUP_CRON_EXPRESSION")
 
+	// TODO: Update cron expression
+
 	publicKeyFile, err := checkPubKeyFile(os.Getenv("GPG_PUBLIC_KEY"))
 	if err == nil {
 		encryption = true
@@ -291,7 +213,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.backupRetention = backupRetention
 	config.disableCompression = disableCompression
 	config.prune = prune
-	config.storage = storage
+	config.storage = StorageType(storage)
 	config.encryption = encryption
 	config.remotePath = remotePath
 	config.passphrase = passphrase
@@ -307,7 +229,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 type RestoreConfig struct {
 	s3Path     string
 	remotePath string
-	storage    string
+	storage    StorageType
 	file       string
 	bucket     string
 	usingKey   bool
@@ -337,10 +259,9 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	rConfig := RestoreConfig{}
 	rConfig.s3Path = s3Path
 	rConfig.remotePath = remotePath
-	rConfig.storage = storage
+	rConfig.storage = StorageType(strings.ToLower(storage))
 	rConfig.bucket = bucket
 	rConfig.file = file
-	rConfig.storage = storage
 	rConfig.passphrase = passphrase
 	rConfig.usingKey = usingKey
 	rConfig.privateKey = privateKeyFile
@@ -351,7 +272,7 @@ func initTargetDbConfig() *targetDbConfig {
 	if len(jdbcUri) != 0 {
 		config, err := convertJDBCToDbConfig(jdbcUri)
 		if err != nil {
-			utils.Fatal("Error: %v", err.Error())
+			logger.Fatal("Error", "error", err.Error())
 		}
 		return &targetDbConfig{
 			targetDbHost:     config.dbHost,
@@ -363,15 +284,15 @@ func initTargetDbConfig() *targetDbConfig {
 	}
 	tdbConfig := targetDbConfig{}
 	tdbConfig.targetDbHost = os.Getenv("TARGET_DB_HOST")
-	tdbConfig.targetDbPort = utils.EnvWithDefault("TARGET_DB_PORT", "5432")
+	tdbConfig.targetDbPort = utils.EnvWithDefault("TARGET_DB_PORT", defaultDbPort)
 	tdbConfig.targetDbName = os.Getenv("TARGET_DB_NAME")
 	tdbConfig.targetDbUserName = os.Getenv("TARGET_DB_USERNAME")
 	tdbConfig.targetDbPassword = os.Getenv("TARGET_DB_PASSWORD")
 
 	err := utils.CheckEnvVars(tdbRVars)
 	if err != nil {
-		utils.Error("Please make sure all required environment variables for the target database are set")
-		utils.Fatal("Error checking target database environment variables: %s", err)
+		logger.Error("Please make sure all required environment variables for the target database are set")
+		logger.Fatal("Error checking target database environment variables", "error", err)
 	}
 	return &tdbConfig
 }

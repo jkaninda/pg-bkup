@@ -5,61 +5,77 @@ parent: How Tos
 nav_order: 10
 ---
 
-# Migrate Database
+# Migrate PostgreSQL Database
 
-The `migrate` command allows you to transfer a PostgreSQL database from a source to a target database in a single step, combining backup and restore operations.
+The `migrate` command enables seamless data transfer between PostgreSQL databases. It combines **backup** and **restore** into a single operation — eliminating the need to run them separately.
 
 {: .note }
-The `migrate` command eliminates the need for separate backup and restore processes by directly transferring data between databases.
+> The `migrate` command directly transfers data from the source to the target database, simplifying the migration process.
 
 {: .warning }
-The migration process is **irreversible**. Always create a backup of your target database before proceeding.
+> **This process is irreversible.** Always back up the **target** database before proceeding.
 
 ---
 
 ## Configuration Steps
 
-1. **Define Source Database**: Provide connection details for the source database.
-2. **Define Target Database**: Provide connection details for the target database.
-3. **Run Migration**: Execute the `migrate` command to initiate the process.
-4. **Migrate All Databases** (Optional): Use the `--all-databases` (`-a`) flag to migrate all databases.
+1. **Set Up Source Database**
+   Define the connection details for the **source** PostgreSQL database.
 
-### Use cases:
-- **Database Migration**: Transfer data from one database to another.
-- **Database Upgrade**: Upgrade your database to a new version.
+2. **Set Up Target Database**
+   Define the connection details for the **target** PostgreSQL database.
+
+3. **Run Migration**
+   Execute the `migrate` command to begin the data transfer.
+
+4. **Optional: Migrate All Databases**
+   Use the `--all-databases` or `-a` flag to migrate **all user databases** from the source server.
+
+5. **Optional: Migrate Entire Instance**
+   Use the `--entire-instance` or `-I` flag to migrate the **entire PostgreSQL instance**, including:
+
+    * All databases
+    * Roles
+    * Tablespaces
 
 {: .note }
-The bulk backup or migration process requires administrative privileges on the database.
+> Running a full migration (`--entire-instance`) or bulk database transfer requires **admin privileges** on the PostgreSQL server.
 
 ---
 
-## Migrate Database Using Docker CLI
+## Use Cases
 
-You can also run the migration directly via the Docker CLI.
+* **Database Migration**: Move data from one PostgreSQL instance to another.
+* **Version Upgrades**: Migrate to a newer version of PostgreSQL.
+* **Environment Replication**: Clone production to staging or testing environments.
 
-### 1. Save Environment Variables
+---
 
-Create an environment file (e.g., `your-env`) with your database credentials:
+## Migrate Using Docker CLI
+
+You can run migrations using Docker by passing environment variables and mounting volumes for intermediate data.
+
+### 1. Create an Environment File
+
+Save your credentials in a `.env` file (e.g., `your-env`):
 
 ```bash
 # Source Database
 DB_HOST=postgres
 DB_PORT=5432
-DB_NAME=database
-DB_USERNAME=username
-DB_PASSWORD=password
+DB_NAME=source_db
+DB_USERNAME=source_user
+DB_PASSWORD=source_pass
 
 # Target Database
 TARGET_DB_HOST=target-postgres
 TARGET_DB_PORT=5432
-TARGET_DB_NAME=dbname
-TARGET_DB_USERNAME=username
-TARGET_DB_PASSWORD=password
+TARGET_DB_NAME=target_db
+TARGET_DB_USERNAME=target_user
+TARGET_DB_PASSWORD=target_pass
 ```
 
-### 2. Run the Migration
-
-Execute the following command:
+### 2. Run a Basic Migration
 
 ```bash
 docker run --rm --network your_network_name \
@@ -70,14 +86,23 @@ docker run --rm --network your_network_name \
 
 ### 3. Migrate All Databases
 
-To migrate all databases, use:
-
 ```bash
 docker run --rm --network your_network_name \
   --env-file your-env \
   -v $PWD/backup:/backup/ \
   jkaninda/pg-bkup migrate --all-databases
 ```
+
+### 4. Migrate the Entire PostgreSQL Instance
+
+```bash
+docker run --rm --network your_network_name \
+  --env-file your-env \
+  -v $PWD/backup:/backup/ \
+  jkaninda/pg-bkup migrate --entire-instance
+```
+
+---
 
 ### Example: Docker Compose Configuration
 
