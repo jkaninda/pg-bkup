@@ -88,8 +88,7 @@ func scheduledMode(db *dbConfig, config *BackupConfig) {
 
 	_, err = c.AddFunc(config.cronExpression, func() {
 		createBackupTask(db, config)
-		logger.Info("Next scheduled time", "time", utils.CronNextTime(config.cronExpression).Format(timeFormat))
-
+		logger.Info("Backup task executed successfully; awaiting next scheduled time", "next_time", utils.CronNextTime(config.cronExpression).Format(timeFormat))
 	})
 	if err != nil {
 		return
