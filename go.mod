@@ -7,7 +7,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jkaninda/encryptor v0.0.0-20241111100652-926393c9437e
 	github.com/jkaninda/go-storage v0.1.3
-	github.com/jkaninda/go-utils v0.1.1
+	github.com/jkaninda/go-utils v0.1.3
 	github.com/jkaninda/logger v0.0.5
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.9.1
