@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/go-mail/mail v2.3.1+incompatible
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/jkaninda/encryptor v0.0.0-20241111100652-926393c9437e
 	github.com/jkaninda/go-storage v0.1.3
 	github.com/jkaninda/go-utils v0.1.3
