@@ -73,6 +73,8 @@ type BackupConfig struct {
 	allInOne           bool
 	customName         string
 	allowCustomName    bool
+	schemaOnly         bool
+	tables             []string
 }
 type FTPConfig struct {
 	host       string

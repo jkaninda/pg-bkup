@@ -139,27 +139,26 @@ func backupAll(db *dbConfig, config *BackupConfig) {
 
 }
 
-// backupTask backup task
+// backupTask handles database backup tasks based on the provided configuration.
 func backupTask(db *dbConfig, config *BackupConfig) {
-	logger.Info("Initiating backup task", "database", db.dbName, "storage", config.storage, "compression", !config.disableCompression)
-	startTime = time.Now()
+	logger.Info(
+		"Initiating backup task",
+		"database", db.dbName,
+		"storage", config.storage,
+		"compression", !config.disableCompression,
+	)
+
+	// Determine file name prefix
 	prefix := db.dbName
 	if config.all && config.allInOne {
 		prefix = "all_databases"
 	}
 
-	// Generate file name
-	backupFileName := fmt.Sprintf("%s_%s.sql.gz", prefix, time.Now().Format("20060102_150405"))
-	if config.disableCompression {
-		backupFileName = fmt.Sprintf("%s_%s.sql", prefix, time.Now().Format("20060102_150405"))
-	}
-	if config.customName != "" && config.allowCustomName && !config.all {
-		backupFileName = fmt.Sprintf("%s.sql.gz", config.customName)
-		if config.disableCompression {
-			backupFileName = fmt.Sprintf("%s.sql", config.customName)
-		}
-	}
-	config.backupFileName = backupFileName
+	// Build backup filename
+	timestamp := time.Now().Format("20060102_150405")
+	config.backupFileName = generateBackupFileName(prefix, timestamp, config)
+
+	// Storage handler
 	switch config.storage {
 	case LocalStorage:
 		localBackup(db, config)
@@ -174,6 +173,33 @@ func backupTask(db *dbConfig, config *BackupConfig) {
 	default:
 		localBackup(db, config)
 	}
+}
+
+// generateBackupFileName creates the backup file name based on the configuration.
+func generateBackupFileName(prefix, timestamp string, config *BackupConfig) string {
+	var name string
+	switch {
+	case config.schemaOnly:
+		config.disableCompression = true
+		name = fmt.Sprintf("%s_schema_%s", prefix, timestamp)
+
+	case len(config.tables) > 0:
+		config.disableCompression = true
+		name = fmt.Sprintf("%s_tables_%d_%s", prefix, len(config.tables), timestamp)
+
+	case config.customName != "" && config.allowCustomName && !config.all:
+		name = config.customName
+
+	default:
+		name = fmt.Sprintf("%s_%s", prefix, timestamp)
+	}
+
+	ext := ".sql"
+	if !config.disableCompression {
+		ext += ".gz"
+	}
+
+	return name + ext
 }
 
 // startMultiBackup start multi backup
@@ -237,27 +263,55 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 
 }
 
-// BackupDatabase backup database
-func BackupDatabase(db *dbConfig, backupFileName string, disableCompression, all, singleFile bool) error {
+// BackupDatabase backs up the database, selected tables, or schema only.
+func BackupDatabase(db *dbConfig, config *BackupConfig) error {
 	storagePath = os.Getenv("STORAGE_PATH")
+	if storagePath == "" {
+		return fmt.Errorf("STORAGE_PATH environment variable is not set")
+	}
+
 	if err := testDatabaseConnection(db); err != nil {
 		return fmt.Errorf("database connection failed: %w", err)
 	}
-	var dumpCmd string
-	var dumpArgs []string
-	// Construct pg_dump arguments
-	dumpArgs = []string{"-h", db.dbHost, "-p", db.dbPort, "-U", db.dbUserName}
-	if all && singleFile {
+
+	var (
+		dumpCmd  string
+		dumpArgs []string
+	)
+
+	dumpArgs = []string{
+		"-h", db.dbHost,
+		"-p", db.dbPort,
+		"-U", db.dbUserName,
+	}
+
+	if config.all && config.allInOne {
 		logger.Info("Backing up all databases...")
 		dumpCmd = "pg_dumpall"
 	} else {
-		logger.Info(fmt.Sprintf("Backing up %s database...", db.dbName))
 		dumpCmd = "pg_dump"
 		dumpArgs = append(dumpArgs, db.dbName)
 
+		if config.schemaOnly {
+			dumpArgs = append(dumpArgs, "--schema-only")
+			logger.Info(fmt.Sprintf("Backing up schema for database: %s", db.dbName))
+		}
+
+		if len(config.tables) > 0 {
+			logger.Info("Backing up specified tables...")
+			for _, table := range config.tables {
+				dumpArgs = append(dumpArgs, "-t", table)
+			}
+			logger.Info(fmt.Sprintf("Backing up tables: %v", config.tables))
+		} else if !config.schemaOnly {
+			logger.Info(fmt.Sprintf("Backing up full database: %s", db.dbName))
+		}
 	}
-	backupPath := filepath.Join(tmpPath, backupFileName)
-	if disableCompression {
+
+	backupPath := filepath.Join(tmpPath, config.backupFileName)
+
+	// Handle compression
+	if config.disableCompression {
 		return runCommandAndSaveOutput(dumpCmd, dumpArgs, backupPath)
 	}
 	return runCommandWithCompression(dumpCmd, dumpArgs, backupPath)
@@ -313,7 +367,7 @@ func runCommandWithCompression(command string, args []string, outputPath string)
 // localBackup backup database to local storage
 func localBackup(db *dbConfig, config *BackupConfig) {
 	logger.Info("Backup database to local storage")
-	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
+	err := BackupDatabase(db, config)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
 		return

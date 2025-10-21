@@ -1,4 +1,4 @@
-FROM golang:1.24.5 AS build
+FROM golang:1.25.1 AS build
 WORKDIR /app
 ARG appVersion=""
 # Copy the source code.
@@ -9,7 +9,7 @@ RUN go mod download
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X 'github.com/jkaninda/pg-bkup/utils.Version=${appVersion}'" -o /app/pg-bkup
 
-FROM alpine:3.21.3
+FROM alpine:3.22.1
 ENV TZ=UTC
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
