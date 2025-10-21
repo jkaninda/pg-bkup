@@ -161,6 +161,28 @@ jobs:
             -e DB_USERNAME=${{ env.DB_USERNAME }} \
             -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
             -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup --schema-only 
+          echo "Database schema backup completed"
+      - name: Test backup selected tables
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
+            ${{ env.IMAGE_NAME }}:latest backup --tables=users
+          echo "Database table backup completed"
+      - name: Test backup schema only
+        run: |
+          docker run --rm --name ${{ env.IMAGE_NAME }} \
+            -v ./migrations:/backup/ \
+            --network host \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USERNAME=${{ env.DB_USERNAME }} \
+            -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -e DB_NAME=testdb \
             ${{ env.IMAGE_NAME }}:latest backup
           echo "Database backup completed"
       - name: Test backup Postgres15
