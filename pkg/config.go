@@ -26,6 +26,7 @@ package pkg
 
 import (
 	"fmt"
+	goutils "github.com/jkaninda/go-utils"
 	"github.com/jkaninda/logger"
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/spf13/cobra"
@@ -62,10 +63,11 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 
 func getDatabase(database Database) *dbConfig {
 	// Set default values from environment variables if not provided
-	database.User = getEnvOrDefault(database.User, "DB_USERNAME", database.Name, "")
-	database.Password = getEnvOrDefault(database.Password, "DB_PASSWORD", database.Name, "")
-	database.Host = getEnvOrDefault(database.Host, "DB_HOST", database.Name, "")
-	database.Port = getEnvOrDefault(database.Port, "DB_PORT", database.Name, defaultDbPort)
+	database.Name = goutils.ReplaceEnvVars(database.Name)
+	database.User = goutils.ReplaceEnvVars(getEnvOrDefault(database.User, "DB_USERNAME", database.Name, ""))
+	database.Password = goutils.ReplaceEnvVars(getEnvOrDefault(database.Password, "DB_PASSWORD", database.Name, ""))
+	database.Host = goutils.ReplaceEnvVars(getEnvOrDefault(database.Host, "DB_HOST", database.Name, ""))
+	database.Port = goutils.ReplaceEnvVars(getEnvOrDefault(database.Port, "DB_PORT", database.Name, defaultDbPort))
 	return &dbConfig{
 		dbHost:     database.Host,
 		dbPort:     database.Port,
