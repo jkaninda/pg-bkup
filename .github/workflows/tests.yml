@@ -161,7 +161,7 @@ jobs:
             -e DB_USERNAME=${{ env.DB_USERNAME }} \
             -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
             -e DB_NAME=testdb \
-            ${{ env.IMAGE_NAME }}:latest backup --schema-only 
+            ${{ env.IMAGE_NAME }}:latest backup
           echo "Database schema backup completed"
       - name: Test backup selected tables
         run: |
@@ -183,7 +183,7 @@ jobs:
             -e DB_USERNAME=${{ env.DB_USERNAME }} \
             -e DB_PASSWORD=${{ env.DB_PASSWORD }} \
             -e DB_NAME=testdb \
-            ${{ env.IMAGE_NAME }}:latest backup
+            ${{ env.IMAGE_NAME }}:latest backup --schema-only 
           echo "Database backup completed"
       - name: Test backup Postgres15
         run: |
