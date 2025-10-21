@@ -266,9 +266,6 @@ func startMultiBackup(bkConfig *BackupConfig, configFile string) {
 // BackupDatabase backs up the database, selected tables, or schema only.
 func BackupDatabase(db *dbConfig, config *BackupConfig) error {
 	storagePath = os.Getenv("STORAGE_PATH")
-	if storagePath == "" {
-		return fmt.Errorf("STORAGE_PATH environment variable is not set")
-	}
 
 	if err := testDatabaseConnection(db); err != nil {
 		return fmt.Errorf("database connection failed: %w", err)
