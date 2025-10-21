@@ -72,9 +72,15 @@ func migrate(dbConf, targetDb *dbConfig, allInstance bool) {
 	backupFileName := fmt.Sprintf("%s_%s.sql", dbConf.dbName, time.Now().Format("20060102_150405"))
 	conf := &RestoreConfig{file: backupFileName}
 
+	backupConfig := &BackupConfig{
+		backupFileName:     backupFileName,
+		all:                allInstance,
+		allInOne:           allInstance,
+		disableCompression: true,
+	}
 	// Backup the source database
 	logger.Info(fmt.Sprintf("Starting backup for database [%s]...", dbConf.dbName))
-	err := BackupDatabase(dbConf, backupFileName, true, allInstance, allInstance)
+	err := BackupDatabase(dbConf, backupConfig)
 	if err != nil {
 		logger.Fatal("Failed to back up database", "name", dbConf.dbName, "error", err)
 	}

@@ -193,6 +193,9 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	if allInOne {
 		all = true
 	}
+	schemaOnly, _ := cmd.Flags().GetBool("schema-only")
+	tables, _ := cmd.Flags().GetStringSlice("tables")
+
 	_, _ = cmd.Flags().GetString("mode")
 	passphrase := os.Getenv("GPG_PASSPHRASE")
 	_ = utils.GetEnv(cmd, "path", "AWS_S3_PATH")
@@ -223,6 +226,8 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.all = all
 	config.allInOne = allInOne
 	config.customName = customName
+	config.schemaOnly = schemaOnly
+	config.tables = tables
 	return &config
 }
 

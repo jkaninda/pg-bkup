@@ -40,7 +40,7 @@ func azureBackup(db *dbConfig, config *BackupConfig) {
 	logger.Info("Backup database to Azure Blob Storage")
 
 	// Backup database
-	err := BackupDatabase(db, config.backupFileName, disableCompression, config.all, config.allInOne)
+	err := BackupDatabase(db, config)
 	if err != nil {
 		recoverMode(err, "Error backing up database")
 		return
