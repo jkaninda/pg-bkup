@@ -147,7 +147,7 @@ func backupTask(db *dbConfig, config *BackupConfig) {
 		"storage", config.storage,
 		"compression", !config.disableCompression,
 	)
-
+	startTime = time.Now()
 	// Determine file name prefix
 	prefix := db.dbName
 	if config.all && config.allInOne {
