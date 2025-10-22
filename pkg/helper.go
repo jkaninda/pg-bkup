@@ -41,7 +41,7 @@ import (
 func intro() {
 	fmt.Println("Starting PG-BKUP...")
 	fmt.Printf("Version: %s\n", utils.Version)
-	fmt.Println("Copyright (c) 2024 Jonas Kaninda")
+	fmt.Println("Copyright (c) 2025 Jonas Kaninda")
 }
 
 // copyToTmp copy file to temporary directory
