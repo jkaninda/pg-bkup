@@ -56,5 +56,6 @@ func init() {
 	BackupCmd.PersistentFlags().BoolP("all-in-one", "A", false, "Backup all databases in a single file")
 	BackupCmd.PersistentFlags().String("custom-name", "", "Custom backup name")
 	BackupCmd.PersistentFlags().Bool("schema-only", false, "Backup database schema only")
+	BackupCmd.PersistentFlags().Bool("data-only", false, "Backup database data only")
 	BackupCmd.PersistentFlags().StringSliceP("tables", "t", []string{}, "List of tables to include in the backup")
 }

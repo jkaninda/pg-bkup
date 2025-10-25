@@ -74,6 +74,7 @@ type BackupConfig struct {
 	customName         string
 	allowCustomName    bool
 	schemaOnly         bool
+	dataOnly           bool
 	tables             []string
 }
 type FTPConfig struct {

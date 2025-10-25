@@ -138,6 +138,9 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   jkaninda/pg-bkup backup -d database_name
 ```
+> Note: Use `data-only` flag to back up only the data without schema.
+
+
 #### Backup Schema Only
 
 To back up only the schema of a specific database, use the `--schema-only` flag:
