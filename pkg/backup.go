@@ -292,6 +292,9 @@ func BackupDatabase(db *dbConfig, config *BackupConfig) error {
 		if config.schemaOnly {
 			dumpArgs = append(dumpArgs, "--schema-only")
 			logger.Info(fmt.Sprintf("Backing up schema for database: %s", db.dbName))
+		} else if config.dataOnly {
+			dumpArgs = append(dumpArgs, "--data-only")
+			logger.Info(fmt.Sprintf("Backing up data only for database: %s", db.dbName))
 		}
 
 		if len(config.tables) > 0 {
@@ -300,7 +303,7 @@ func BackupDatabase(db *dbConfig, config *BackupConfig) error {
 				dumpArgs = append(dumpArgs, "-t", table)
 			}
 			logger.Info(fmt.Sprintf("Backing up tables: %v", config.tables))
-		} else if !config.schemaOnly {
+		} else if !config.schemaOnly && !config.dataOnly {
 			logger.Info(fmt.Sprintf("Backing up full database: %s", db.dbName))
 		}
 	}

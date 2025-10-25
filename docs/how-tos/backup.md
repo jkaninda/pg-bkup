@@ -71,6 +71,36 @@ docker run --rm --network your_network_name \
   jkaninda/pg-bkup backup -d database_name
 ```
 
+> Note: Use `data-only` flag to back up only the data without schema.
+
+
+#### Backup Schema Only
+
+To back up only the schema of a specific database, use the `--schema-only` flag:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup -d database_name --schema-only
+```
+
+#### Backup specific tables
+
+To back up specific tables within a database, use the `--tables` or `-t` flag followed by a comma-separated list of table names:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup -d database_name --tables table1,table2
+```
 ---
 
 ## Recurring Backups

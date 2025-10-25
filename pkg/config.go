@@ -196,6 +196,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 		all = true
 	}
 	schemaOnly, _ := cmd.Flags().GetBool("schema-only")
+	dataOnly, _ := cmd.Flags().GetBool("data-only")
 	tables, _ := cmd.Flags().GetStringSlice("tables")
 
 	_, _ = cmd.Flags().GetString("mode")
@@ -229,6 +230,7 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.allInOne = allInOne
 	config.customName = customName
 	config.schemaOnly = schemaOnly
+	config.dataOnly = dataOnly
 	config.tables = tables
 	return &config
 }
