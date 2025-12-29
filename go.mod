@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/go-mail/mail v2.3.1+incompatible
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/jkaninda/encryptor v0.0.0-20241111100652-926393c9437e
 	github.com/jkaninda/go-storage v0.1.3
 	github.com/jkaninda/go-utils v0.1.3
@@ -36,7 +36,7 @@ require (
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
