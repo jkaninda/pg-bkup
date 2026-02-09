@@ -51,8 +51,8 @@ github.com/jkaninda/encryptor v0.0.0-20241111100652-926393c9437e h1:jtFKZHt/PLGQ
 github.com/jkaninda/encryptor v0.0.0-20241111100652-926393c9437e/go.mod h1:Y1EXpPWQ9PNd7y7E6ez3xgnzZc8fuDWXwX/1/dXNCE4=
 github.com/jkaninda/go-storage v0.1.3 h1:lEpHVgFLKSvjsi/6tAek96Y07za3vxmsXF2/+jiCMZU=
 github.com/jkaninda/go-storage v0.1.3/go.mod h1:zVRnLprBk/9AUz2+za6Y03MgoNYrqKLy3edVtjqMaps=
-github.com/jkaninda/go-utils v0.1.3 h1:BhVRHpR6JIGhE7JVgqOgiFketIqmNtvMvYpveVwDqqY=
-github.com/jkaninda/go-utils v0.1.3/go.mod h1:Aa54jEAcDykc3CnOdreqZG80UfSZOvrYecyusu+oPb4=
+github.com/jkaninda/go-utils v0.1.4 h1:ZdNlI+yLWc4/S0qKcCNQIPj+6lHSdJcGaxtRADAifAU=
+github.com/jkaninda/go-utils v0.1.4/go.mod h1:Aa54jEAcDykc3CnOdreqZG80UfSZOvrYecyusu+oPb4=
 github.com/jkaninda/logger v0.0.5 h1:fTHKgDsHtuN8rkSBvwe6QStfi8yIdm8O3r0g99dRDTY=
 github.com/jkaninda/logger v0.0.5/go.mod h1:ZUXJ2BdxDPG6e8t6mbKhc2ZFaFi2Iuy/4ukquFrPkFE=
 github.com/jlaffaye/ftp v0.2.0 h1:lXNvW7cBu7R/68bknOX3MrRIIqZ61zELs1P2RAiA3lg=
