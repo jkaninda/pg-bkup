@@ -460,7 +460,7 @@ func listDatabases(db dbConfig) ([]string, error) {
 		return databases, errors.New(err.Error())
 	}
 	// Construct the connection string
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable", db.dbUserName, db.dbPassword, db.dbHost, db.dbPort)
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", db.dbUserName, db.dbPassword, db.dbHost, db.dbPort, db.dbAuthDatabase, db.dbSslMode)
 
 	// Connect to the PostgreSQL server
 	conn, err := pgx.Connect(context.Background(), connString)
