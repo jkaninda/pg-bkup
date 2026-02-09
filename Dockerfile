@@ -1,4 +1,4 @@
-FROM golang:1.25.4 AS build
+FROM golang:1.25.7 AS build
 WORKDIR /app
 ARG appVersion=""
 # Copy the source code.
