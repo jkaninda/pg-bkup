@@ -29,11 +29,13 @@ import (
 )
 
 const (
-	tmpPath       = "/tmp/backup"
-	gpgHome       = "/config/gnupg"
-	gpgExtension  = "gpg"
-	timeFormat    = "2006-01-02 at 15:04:05"
-	defaultDbPort = "5432"
+	tmpPath           = "/tmp/backup"
+	gpgHome           = "/config/gnupg"
+	gpgExtension      = "gpg"
+	timeFormat        = "2006-01-02 at 15:04:05"
+	defaultDbPort     = "5432"
+	defaultSslMode    = "disable"
+	defaultAuthDbName = "postgres"
 )
 
 var (

@@ -52,6 +52,8 @@ func initDbConfig(cmd *cobra.Command) *dbConfig {
 	dConf.dbName = os.Getenv("DB_NAME")
 	dConf.dbUserName = os.Getenv("DB_USERNAME")
 	dConf.dbPassword = os.Getenv("DB_PASSWORD")
+	dConf.dbSslMode = utils.EnvWithDefault("DB_SSL_MODE", defaultSslMode)
+	dConf.dbAuthDatabase = utils.EnvWithDefault("DB_AUTH_DATABASE", defaultAuthDbName)
 
 	err := utils.CheckEnvVars(dbHVars)
 	if err != nil {
@@ -68,12 +70,16 @@ func getDatabase(database Database) *dbConfig {
 	database.Password = goutils.ReplaceEnvVars(getEnvOrDefault(database.Password, "DB_PASSWORD", database.Name, ""))
 	database.Host = goutils.ReplaceEnvVars(getEnvOrDefault(database.Host, "DB_HOST", database.Name, ""))
 	database.Port = goutils.ReplaceEnvVars(getEnvOrDefault(database.Port, "DB_PORT", database.Name, defaultDbPort))
+	database.SslMode = goutils.ReplaceEnvVars(getEnvOrDefault(database.SslMode, "DB_SSL_MODE", database.Name, defaultSslMode))
+	database.AuthDatabase = goutils.ReplaceEnvVars(getEnvOrDefault(database.AuthDatabase, "DB_AUTH_DATABASE", database.Name, defaultAuthDbName))
 	return &dbConfig{
-		dbHost:     database.Host,
-		dbPort:     database.Port,
-		dbName:     database.Name,
-		dbUserName: database.User,
-		dbPassword: database.Password,
+		dbHost:         database.Host,
+		dbPort:         database.Port,
+		dbName:         database.Name,
+		dbUserName:     database.User,
+		dbPassword:     database.Password,
+		dbSslMode:      database.SslMode,
+		dbAuthDatabase: database.AuthDatabase,
 	}
 }
 
@@ -284,11 +290,13 @@ func initTargetDbConfig() *targetDbConfig {
 			logger.Fatal("Error", "error", err.Error())
 		}
 		return &targetDbConfig{
-			targetDbHost:     config.dbHost,
-			targetDbPort:     config.dbPort,
-			targetDbName:     config.dbName,
-			targetDbPassword: config.dbPassword,
-			targetDbUserName: config.dbUserName,
+			targetDbHost:         config.dbHost,
+			targetDbPort:         config.dbPort,
+			targetDbName:         config.dbName,
+			targetDbPassword:     config.dbPassword,
+			targetDbUserName:     config.dbUserName,
+			targetDbSslMode:      config.dbSslMode,
+			targetDbAuthDatabase: utils.EnvWithDefault("TARGET_DB_AUTH_DATABASE", defaultAuthDbName),
 		}
 	}
 	tdbConfig := targetDbConfig{}
@@ -297,6 +305,8 @@ func initTargetDbConfig() *targetDbConfig {
 	tdbConfig.targetDbName = os.Getenv("TARGET_DB_NAME")
 	tdbConfig.targetDbUserName = os.Getenv("TARGET_DB_USERNAME")
 	tdbConfig.targetDbPassword = os.Getenv("TARGET_DB_PASSWORD")
+	tdbConfig.targetDbSslMode = utils.EnvWithDefault("TARGET_DB_SSL_MODE", defaultSslMode)
+	tdbConfig.targetDbAuthDatabase = utils.EnvWithDefault("TARGET_DB_AUTH_DATABASE", defaultAuthDbName)
 
 	err := utils.CheckEnvVars(tdbRVars)
 	if err != nil {
