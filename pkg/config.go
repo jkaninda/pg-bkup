@@ -238,6 +238,23 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.schemaOnly = schemaOnly
 	config.dataOnly = dataOnly
 	config.tables = tables
+
+	multipart := utils.FlagGetBool(cmd, "multipart") || os.Getenv("MULTIPART_ENABLED") == "true"
+	multipartSizeStr := os.Getenv("MULTIPART_SIZE")
+	var multipartSize int64 = 0
+	if multipartSizeStr != "" {
+		size, err := strconv.ParseInt(multipartSizeStr, 10, 64)
+		if err == nil {
+			multipartSize = size * 1024 * 1024
+		} else {
+			logger.Warn("Invalid MULTIPART_SIZE value, using default (no multipart)")
+		}
+	}
+	if multipartSize > 0 {
+		multipart = true
+	}
+	config.multipart = multipart
+	config.multipartSize = multipartSize
 	return &config
 }
 
@@ -250,6 +267,7 @@ type RestoreConfig struct {
 	usingKey   bool
 	passphrase string
 	privateKey string
+	multipart  bool
 }
 
 func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
@@ -280,6 +298,8 @@ func initRestoreConfig(cmd *cobra.Command) *RestoreConfig {
 	rConfig.passphrase = passphrase
 	rConfig.usingKey = usingKey
 	rConfig.privateKey = privateKeyFile
+
+	rConfig.multipart = utils.FlagGetBool(cmd, "multipart") || os.Getenv("MULTIPART_ENABLED") == "true"
 	return &rConfig
 }
 func initTargetDbConfig() *targetDbConfig {

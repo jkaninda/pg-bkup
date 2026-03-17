@@ -22,6 +22,11 @@ It is a lightweight, multi-architecture solution compatible with **Docker**, **D
     - SSH-compatible storage
     - Azure Blob storage
 
+- **Multipart Backup:**
+    - Split large backups into multiple smaller files
+    - Configurable chunk size for storage with file limits
+    - Works with all storage backends (local, S3, SSH, FTP, Azure)
+
 - **Data Security:**
     - Backups can be encrypted using **GPG** to ensure confidentiality.
 
@@ -167,6 +172,128 @@ docker run --rm --network your_network_name \
   -e "DB_USERNAME=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d database_name --tables table1,table2
+```
+
+### Multipart Backup
+
+For large databases, you can split backup files into multiple smaller parts. This is useful for:
+- Uploading to storage with file size limits
+- Parallel uploads/downloads
+- Easier management of large backups
+
+#### Enable Multipart Backup
+
+Set the `MULTIPART_SIZE` environment variable (in MB) and use the `--multipart` flag:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "MULTIPART_SIZE=100" \
+  jkaninda/pg-bkup backup -d database_name --multipart
+```
+
+Or enable via environment variable:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "MULTIPART_ENABLED=true" \
+  -e "MULTIPART_SIZE=100" \
+  jkaninda/pg-bkup backup -d database_name
+```
+
+#### Restore from Multipart Backup
+
+Use the `--multipart` flag when restoring:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup restore -d database_name --multipart -f database_name_20240101_120000.sql.gz
+```
+
+Or enable via environment variable:
+
+```shell
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "MULTIPART_ENABLED=true" \
+  jkaninda/pg-bkup restore -d database_name -f database_name_20240101_120000.sql.gz
+```
+
+**Docker Compose example for restore:**
+
+```yaml
+services:
+  pg-bkup-restore:
+    image: jkaninda/pg-bkup
+    command: restore -d database_name --multipart -f database_name_20240101_120000.sql.gz
+    environment:
+      - DB_HOST=postgres
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+    volumes:
+      - ./backup:/backup
+```
+
+> **Note:** Specify the base filename (without `.partXXX` extension). The tool will automatically find and merge all parts.
+
+#### Multipart with S3 Storage
+
+```shell
+# Backup with multipart to S3
+docker run --rm --network your_network_name \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "AWS_S3_BUCKET_NAME=your-bucket" \
+  -e "AWS_S3_ENDPOINT=https://s3.amazonaws.com" \
+  -e "AWS_ACCESS_KEY=your-access-key" \
+  -e "AWS_SECRET_KEY=your-secret-key" \
+  -e "MULTIPART_SIZE=100" \
+  jkaninda/pg-bkup backup -d database_name --multipart --storage s3
+
+# Restore from multipart S3 backup (using flag)
+docker run --rm --network your_network_name \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "AWS_S3_BUCKET_NAME=your-bucket" \
+  -e "AWS_S3_ENDPOINT=https://s3.amazonaws.com" \
+  -e "AWS_ACCESS_KEY=your-access-key" \
+  -e "AWS_SECRET_KEY=your-secret-key" \
+  jkaninda/pg-bkup restore -d database_name --multipart --storage s3 -f database_name_20240101_120000.sql.gz
+
+# Restore from multipart S3 backup (using environment variable)
+docker run --rm --network your_network_name \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "AWS_S3_BUCKET_NAME=your-bucket" \
+  -e "AWS_S3_ENDPOINT=https://s3.amazonaws.com" \
+  -e "AWS_ACCESS_KEY=your-access-key" \
+  -e "AWS_SECRET_KEY=your-secret-key" \
+  -e "MULTIPART_ENABLED=true" \
+  jkaninda/pg-bkup restore -d database_name --storage s3 -f database_name_20240101_120000.sql.gz
 ```
 
 
