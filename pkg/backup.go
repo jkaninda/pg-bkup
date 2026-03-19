@@ -36,6 +36,7 @@ import (
 	"github.com/jkaninda/pg-bkup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -377,28 +378,58 @@ func localBackup(db *dbConfig, config *BackupConfig) {
 		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, gpgExtension)
 	}
-	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+
+	// Handle multipart split if enabled
+	filesToCopy, err := handleMultipartBackup(config, finalFileName)
 	if err != nil {
+		logger.Fatal("Error splitting backup file", "error", err)
+	}
+
+	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
+	if err != nil && len(filesToCopy) == 1 {
 		logger.Error("Error getting backup info", "error", err)
 	}
-	backupSize = fileInfo.Size()
+	if fileInfo != nil {
+		backupSize = fileInfo.Size()
+	}
+
 	localStorage := local.NewStorage(local.Config{
 		LocalPath:  tmpPath,
 		RemotePath: storagePath,
 	})
-	err = localStorage.Copy(finalFileName)
-	if err != nil {
-		logger.Fatal("Error copying backup file", "error", err)
+
+	// Copy all files (single file or multiple parts)
+	totalSize := backupSize
+	for _, fileName := range filesToCopy {
+		err = localStorage.Copy(fileName)
+		if err != nil {
+			logger.Fatal("Error copying backup file", "error", err)
+		}
+		if len(filesToCopy) > 1 {
+			partInfo, _ := os.Stat(filepath.Join(tmpPath, fileName))
+			if partInfo != nil {
+				totalSize += partInfo.Size()
+			}
+		}
 	}
 
 	duration := goutils.FormatDuration(time.Since(startTime), 0)
-	logger.Info("Backup file copied to local storage", "file", finalFileName, "destination", storagePath)
-	logger.Info("Backup completed", "file", finalFileName, "size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
+	if len(filesToCopy) > 1 {
+		logger.Info("Backup files copied to local storage", "parts", len(filesToCopy), "destination", storagePath)
+		logger.Info("Backup completed", "parts", len(filesToCopy), "total_size", goutils.ConvertBytes(uint64(totalSize)), "duration", duration)
+	} else {
+		logger.Info("Backup file copied to local storage", "file", finalFileName, "destination", storagePath)
+		logger.Info("Backup completed", "file", finalFileName, "size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
+	}
 
 	// Send notification
+	notificationFile := finalFileName
+	if len(filesToCopy) > 1 {
+		notificationFile = fmt.Sprintf("%s (%d parts)", finalFileName, len(filesToCopy))
+	}
 	utils.NotifySuccess(&utils.NotificationData{
-		File:           finalFileName,
-		BackupSize:     goutils.ConvertBytes(uint64(backupSize)),
+		File:           notificationFile,
+		BackupSize:     goutils.ConvertBytes(uint64(totalSize)),
 		Database:       db.dbName,
 		Storage:        string(config.storage),
 		BackupLocation: filepath.Join(storagePath, finalFileName),
@@ -518,4 +549,76 @@ func recoverMode(err error, msg string) {
 		}
 	}
 
+}
+
+// splitFile splits a file into multiple parts of specified chunk size
+// Returns the list of part filenames
+func splitFile(filePath string, chunkSize int64) ([]string, error) {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	if fileInfo.Size() <= chunkSize {
+		return nil, nil
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	var parts []string
+	baseName := filepath.Base(filePath)
+	dir := filepath.Dir(filePath)
+	partNum := 1
+	buffer := make([]byte, chunkSize)
+
+	for {
+		n, err := file.Read(buffer)
+		if err != nil && err != io.EOF {
+			return nil, fmt.Errorf("failed to read file: %w", err)
+		}
+		if n == 0 {
+			break
+		}
+
+		partFileName := fmt.Sprintf("%s.part%03d", baseName, partNum)
+		partPath := filepath.Join(dir, partFileName)
+
+		if err := os.WriteFile(partPath, buffer[:n], 0644); err != nil {
+			return nil, fmt.Errorf("failed to write part file: %w", err)
+		}
+
+		parts = append(parts, partFileName)
+		partNum++
+	}
+
+	logger.Info("File split into parts", "parts", len(parts), "base_name", baseName)
+	return parts, nil
+}
+
+// handleMultipartBackup handles multipart backup splitting if enabled
+func handleMultipartBackup(config *BackupConfig, fileName string) ([]string, error) {
+	if !config.multipart || config.multipartSize <= 0 {
+		return []string{fileName}, nil
+	}
+
+	filePath := filepath.Join(tmpPath, fileName)
+	parts, err := splitFile(filePath, config.multipartSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to split file: %w", err)
+	}
+
+	if len(parts) == 0 {
+		return []string{fileName}, nil
+	}
+
+	// Remove original file after successful split
+	if err := os.Remove(filePath); err != nil {
+		logger.Warn("Failed to remove original file after split", "error", err)
+	}
+
+	return parts, nil
 }

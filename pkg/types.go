@@ -82,6 +82,14 @@ type BackupConfig struct {
 	schemaOnly         bool
 	dataOnly           bool
 	tables             []string
+	multipart          bool
+	multipartSize      int64
+}
+
+type MultipartConfig struct {
+	enabled    bool
+	chunkSize  int64
+	filePrefix string
 }
 type FTPConfig struct {
 	host       string

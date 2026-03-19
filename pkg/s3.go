@@ -50,6 +50,13 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 		encryptBackup(config)
 		finalFileName = fmt.Sprintf("%s.%s", config.backupFileName, "gpg")
 	}
+
+	// Handle multipart split if enabled
+	filesToUpload, err := handleMultipartBackup(config, finalFileName)
+	if err != nil {
+		logger.Fatal("Error splitting backup file", "error", err)
+	}
+
 	logger.Info("Uploading backup archive to remote storage S3 ... ")
 	awsConfig := initAWSConfig()
 	if config.remotePath == "" {
@@ -70,23 +77,24 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	if err != nil {
 		logger.Fatal("Error creating s3 storage", "error", err)
 	}
-	err = s3Storage.Copy(finalFileName)
-	if err != nil {
-		logger.Fatal("Error uploading backup file", "error", err)
-	}
-	// Get backup info
-	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
-	if err != nil {
-		logger.Error("Error getting backup info", "error", err)
-	}
-	backupSize = fileInfo.Size()
 
-	// Delete backup file from tmp folder
-	err = utils.DeleteFile(filepath.Join(tmpPath, config.backupFileName))
-	if err != nil {
-		fmt.Println("Error deleting file: ", err)
-
+	// Upload all files (single file or multiple parts)
+	totalSize := int64(0)
+	for _, fileName := range filesToUpload {
+		err = s3Storage.Copy(fileName)
+		if err != nil {
+			logger.Fatal("Error uploading backup file", "error", err)
+		}
+		partInfo, _ := os.Stat(filepath.Join(tmpPath, fileName))
+		if partInfo != nil {
+			totalSize += partInfo.Size()
+		}
 	}
+
+	if totalSize > 0 {
+		backupSize = totalSize
+	}
+
 	// Delete old backup
 	if config.prune {
 		err := s3Storage.Prune(config.backupRetention)
@@ -96,11 +104,21 @@ func s3Backup(db *dbConfig, config *BackupConfig) {
 	}
 
 	duration := goutils.FormatDuration(time.Since(startTime), 2)
-	logger.Info("Backup file uploaded to  S3 storage", "file", finalFileName, "destination", storagePath)
-	logger.Info("Backup completed", "file", finalFileName, "size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
+	if len(filesToUpload) > 1 {
+		logger.Info("Backup files uploaded to S3 storage", "parts", len(filesToUpload), "destination", config.remotePath)
+		logger.Info("Backup completed", "parts", len(filesToUpload), "total_size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
+	} else {
+		logger.Info("Backup file uploaded to  S3 storage", "file", finalFileName, "destination", storagePath)
+		logger.Info("Backup completed", "file", finalFileName, "size", goutils.ConvertBytes(uint64(backupSize)), "duration", duration)
+	}
+
 	// Send notification
+	notificationFile := finalFileName
+	if len(filesToUpload) > 1 {
+		notificationFile = fmt.Sprintf("%s (%d parts)", finalFileName, len(filesToUpload))
+	}
 	utils.NotifySuccess(&utils.NotificationData{
-		File:           finalFileName,
+		File:           notificationFile,
 		BackupSize:     goutils.ConvertBytes(uint64(backupSize)),
 		Database:       db.dbName,
 		Storage:        string(config.storage),
@@ -132,9 +150,33 @@ func s3Restore(db *dbConfig, conf *RestoreConfig) {
 	if err != nil {
 		logger.Fatal("Error creating s3 storage", "error", err)
 	}
-	err = s3Storage.CopyFrom(conf.file)
-	if err != nil {
-		logger.Fatal("Error download file from S3 storage", "error", err)
+
+	// If multipart is enabled, download all part files
+	if conf.multipart {
+		logger.Info("Downloading multipart backup files from S3...")
+		partNum := 1
+		for {
+			partFileName := fmt.Sprintf("%s.part%03d", conf.file, partNum)
+			err := s3Storage.CopyFrom(partFileName)
+			if err != nil {
+				break
+			}
+			partNum++
+		}
+		if partNum > 1 {
+			logger.Info("Downloaded multipart backup files from S3", "parts", partNum-1)
+		} else {
+			logger.Info("No multipart parts found in S3, checking for base file...")
+			err := s3Storage.CopyFrom(conf.file)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found in S3", "base_file", conf.file)
+			}
+		}
+	} else {
+		err = s3Storage.CopyFrom(conf.file)
+		if err != nil {
+			logger.Fatal("Error download file from S3 storage", "error", err)
+		}
 	}
 	RestoreDatabase(db, conf)
 }
