@@ -166,7 +166,11 @@ func s3Restore(db *dbConfig, conf *RestoreConfig) {
 		if partNum > 1 {
 			logger.Info("Downloaded multipart backup files from S3", "parts", partNum-1)
 		} else {
-			logger.Fatal("No multipart files found", "base_file", conf.file)
+			logger.Info("No multipart parts found in S3, checking for base file...")
+			err := s3Storage.CopyFrom(conf.file)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found in S3", "base_file", conf.file)
+			}
 		}
 	} else {
 		err = s3Storage.CopyFrom(conf.file)

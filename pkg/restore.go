@@ -90,7 +90,11 @@ func localRestore(dbConf *dbConfig, restoreConf *RestoreConfig) {
 		if partNum > 1 {
 			logger.Info("Downloaded multipart backup files", "parts", partNum-1)
 		} else {
-			logger.Fatal("No multipart files found", "base_file", fileName)
+			logger.Info("No multipart parts found, checking for base file...")
+			err := localStorage.CopyFrom(fileName)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found", "base_file", fileName)
+			}
 		}
 	} else {
 		err := localStorage.CopyFrom(fileName)

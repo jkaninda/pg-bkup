@@ -134,7 +134,11 @@ func azureRestore(db *dbConfig, conf *RestoreConfig) {
 		if partNum > 1 {
 			logger.Info("Downloaded multipart backup files from Azure", "parts", partNum-1)
 		} else {
-			logger.Fatal("No multipart files found", "base_file", conf.file)
+			logger.Info("No multipart parts found in Azure Blob storage, checking for base file...")
+			err := azureStorage.CopyFrom(conf.file)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found in Azure Blob storage", "base_file", conf.file)
+			}
 		}
 	} else {
 		err = azureStorage.CopyFrom(conf.file)

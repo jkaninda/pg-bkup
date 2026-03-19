@@ -147,7 +147,11 @@ func remoteRestore(db *dbConfig, conf *RestoreConfig) {
 		if partNum > 1 {
 			logger.Info("Downloaded multipart backup files from remote", "parts", partNum-1)
 		} else {
-			logger.Fatal("No multipart files found", "base_file", conf.file)
+			logger.Info("No multipart parts found on remote server, checking for base file...")
+			err := sshStorage.CopyFrom(conf.file)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found on remote server", "base_file", conf.file)
+			}
 		}
 	} else {
 		err = sshStorage.CopyFrom(conf.file)
@@ -187,7 +191,11 @@ func ftpRestore(db *dbConfig, conf *RestoreConfig) {
 		if partNum > 1 {
 			logger.Info("Downloaded multipart backup files from FTP", "parts", partNum-1)
 		} else {
-			logger.Fatal("No multipart files found", "base_file", conf.file)
+			logger.Info("No multipart parts found on FTP server, checking for base file...")
+			err := ftpStorage.CopyFrom(conf.file)
+			if err != nil {
+				logger.Fatal("No multipart files or base file found on FTP server", "base_file", conf.file)
+			}
 		}
 	} else {
 		err = ftpStorage.CopyFrom(conf.file)
