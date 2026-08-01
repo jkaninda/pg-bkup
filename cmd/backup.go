@@ -58,4 +58,6 @@ func init() {
 	BackupCmd.PersistentFlags().Bool("schema-only", false, "Backup database schema only")
 	BackupCmd.PersistentFlags().Bool("data-only", false, "Backup database data only")
 	BackupCmd.PersistentFlags().StringSliceP("tables", "t", []string{}, "List of tables to include in the backup")
+	BackupCmd.PersistentFlags().StringSlice("exclude-db", []string{}, "Databases to exclude from backup (e.g. `--exclude-db _aiven,defaultdb`)")
+	BackupCmd.PersistentFlags().Bool("no-role-passwords", false, "Do not dump role passwords (useful for managed databases like OVH, Aiven)")
 }

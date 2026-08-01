@@ -238,6 +238,8 @@ func initBackupConfig(cmd *cobra.Command) *BackupConfig {
 	config.schemaOnly = schemaOnly
 	config.dataOnly = dataOnly
 	config.tables = tables
+	config.excludeDatabases, _ = cmd.Flags().GetStringSlice("exclude-db")
+	config.noRolePasswords, _ = cmd.Flags().GetBool("no-role-passwords")
 	return &config
 }
 
