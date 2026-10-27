@@ -36,14 +36,15 @@ docker run --rm --network your_network_name \
 ```
 ### Single Backup File
 
-Using --all-in-one (-A) creates a single backup file containing all databases.
+Using `--all-in-one` (`-A`) creates a single backup file containing all databases using `pg_dumpall`.
 
 - Creates a single backup file containing all databases.
+- Includes global objects: **roles, tablespaces, and schemas**.
 - Easier to manage if you need to restore everything at once.
 - Faster to back up and restore in bulk.
 - Can be problematic if you only need to restore a specific database or table.
 - It is recommended to use this option for disaster recovery purposes.
-- It backups system databases as well.
+- Supports `--exclude-db` to exclude specific databases.
 
 ```bash
 docker run --rm --network your_network_name \
@@ -57,5 +58,46 @@ docker run --rm --network your_network_name \
 
 ### When to Use Which?
 
-- Use `--all-in-one` if you want a quick, simple backup for disaster recovery where you'll restore everything at once.
+- Use `--all-in-one` if you want a quick, simple backup for disaster recovery where you'll restore everything at once, including roles and global schemas.
 - Use `--all-databases` if you need granularity in restoring specific databases or tables without affecting others.
+
+## Excluding Databases
+
+The `--exclude-db` flag is supported by **both** `--all-databases` and `--all-in-one`.
+
+```bash
+# Separate files
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup --all-databases --exclude-db _aiven,defaultdb
+
+# Single file
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  jkaninda/pg-bkup backup --all-in-one --exclude-db _aiven,defaultdb
+```
+
+## Managed Databases (OVH, Aiven, RDS...)
+
+On managed PostgreSQL instances, the user does not have superuser access and cannot read role passwords from `pg_authid`. Use `--no-role-passwords` to dump roles without their passwords.
+
+```bash
+docker run --rm --network your_network_name \
+  -v $PWD/backup:/backup/ \
+  -e "DB_HOST=dbhost" \
+  -e "DB_PORT=5432" \
+  -e "DB_USERNAME=username" \
+  -e "DB_PASSWORD=password" \
+  -e "DB_AUTH_DATABASE=defaultdb" \
+  jkaninda/pg-bkup backup --all-in-one --no-role-passwords --exclude-db _aiven
+```
+
+> **Note:** `DB_AUTH_DATABASE` should be set to an accessible database (e.g. `defaultdb` on OVH/Aiven) so that `pg_dumpall` can establish its initial connection.
