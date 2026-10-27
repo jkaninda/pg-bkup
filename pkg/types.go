@@ -82,6 +82,8 @@ type BackupConfig struct {
 	schemaOnly         bool
 	dataOnly           bool
 	tables             []string
+	excludeDatabases   []string
+	noRolePasswords    bool
 }
 type FTPConfig struct {
 	host       string
