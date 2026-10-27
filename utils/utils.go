@@ -226,6 +226,16 @@ func GetIntEnv(envName string) int {
 	return ret
 }
 
+// Contains returns true if slice contains the given string
+func Contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
 func EnvWithDefault(envName string, defaultValue string) string {
 	value := os.Getenv(envName)
 	if value == "" {

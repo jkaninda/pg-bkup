@@ -25,6 +25,7 @@
 package pkg
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -130,7 +131,18 @@ func backupAll(db *dbConfig, config *BackupConfig) {
 	if err != nil {
 		logger.Fatal("Error listing databases", "error", err)
 	}
-	logger.Info("Backing up all databases", "count", len(databases))
+	if len(config.excludeDatabases) > 0 {
+		filtered := []string{}
+		for _, name := range databases {
+			if !utils.Contains(config.excludeDatabases, name) {
+				filtered = append(filtered, name)
+			}
+		}
+		logger.Info("Databases after exclusion", "excluded", len(databases)-len(filtered), "remaining", len(filtered))
+		databases = filtered
+	} else {
+		logger.Info("Backing up all databases", "count", len(databases))
+	}
 	for _, dbName := range databases {
 		db.dbName = dbName
 		config.backupFileName = fmt.Sprintf("%s_%s.sql.gz", dbName, time.Now().Format("20060102_150405"))
@@ -283,8 +295,21 @@ func BackupDatabase(db *dbConfig, config *BackupConfig) error {
 	}
 
 	if config.all && config.allInOne {
-		logger.Info("Backing up all databases...")
 		dumpCmd = "pg_dumpall"
+		if db.dbAuthDatabase != "" {
+			dumpArgs = append(dumpArgs, fmt.Sprintf("--database=%s", db.dbAuthDatabase))
+		}
+		if config.noRolePasswords {
+			dumpArgs = append(dumpArgs, "--no-role-passwords")
+		}
+		if len(config.excludeDatabases) > 0 {
+			for _, excluded := range config.excludeDatabases {
+				dumpArgs = append(dumpArgs, fmt.Sprintf("--exclude-database=%s", excluded))
+			}
+			logger.Info("Backing up all databases...", "excluded", config.excludeDatabases)
+		} else {
+			logger.Info("Backing up all databases...")
+		}
 	} else {
 		dumpCmd = "pg_dump"
 		dumpArgs = append(dumpArgs, db.dbName)
@@ -335,6 +360,8 @@ func runCommandWithCompression(command string, args []string, outputPath string)
 	if err != nil {
 		return fmt.Errorf("failed to create stdout pipe: %w", err)
 	}
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 
 	gzipCmd := exec.Command("gzip")
 	gzipCmd.Stdin = stdout
@@ -354,7 +381,7 @@ func runCommandWithCompression(command string, args []string, outputPath string)
 		return fmt.Errorf("failed to start gzip: %w", err)
 	}
 	if err = cmd.Run(); err != nil {
-		return fmt.Errorf("failed to execute %s: %w", command, err)
+		return fmt.Errorf("failed to execute %s: %w\n%s", command, err, stderr.String())
 	}
 	if err = gzipCmd.Wait(); err != nil {
 		return fmt.Errorf("failed to wait for gzip completion: %w", err)
