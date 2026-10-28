@@ -27,7 +27,7 @@ spec:
               value: ""
             - name: DB_NAME
               value: ""
-            - name: DB_USERNAME
+            - name: DB_USER
               value: ""
             # Please use secret!
             - name: DB_PASSWORD

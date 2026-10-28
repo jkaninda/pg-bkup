@@ -8,6 +8,6 @@ databases:
     password: password
   - name: testdb2
     # database credentials from environment variables
-    #TESTDB2_DB_USERNAME
+    #TESTDB2_DB_USER
     #TESTDB2_DB_PASSWORD
     #TESTDB2_DB_HOST

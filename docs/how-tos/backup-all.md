@@ -30,7 +30,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup --all-databases
 ```
@@ -51,7 +51,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup --all-in-one
 ```
@@ -71,7 +71,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup --all-databases --exclude-db _aiven,defaultdb
 
@@ -80,7 +80,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup --all-in-one --exclude-db _aiven,defaultdb
 ```
@@ -94,7 +94,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   -e "DB_AUTH_DATABASE=defaultdb" \
   jkaninda/pg-bkup backup --all-in-one --no-role-passwords --exclude-db _aiven

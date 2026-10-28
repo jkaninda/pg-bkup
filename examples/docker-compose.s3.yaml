@@ -6,12 +6,12 @@ services:
     # for a list of available releases.
     image: jkaninda/pg-bkup
     container_name: pg-bkup
-    command: backup --storage s3 -d my-database"
+    command: backup --storage s3 -d my-database
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## AWS configurations
       - AWS_S3_ENDPOINT=https://s3.amazonaws.com

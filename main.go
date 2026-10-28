@@ -1,33 +1,19 @@
-/*
-MIT License
-
-Copyright (c) 2023 Jonas Kaninda
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
+// Command pg-bkup backs up, restores and migrates PostgreSQL databases.
 package main
 
-import "github.com/jkaninda/pg-bkup/cmd"
+import (
+	"github.com/jkaninda/bkupkit/cli"
+	"github.com/jkaninda/pg-bkup/internal/pg"
+)
+
+var Version = "dev"
 
 func main() {
-
-	cmd.Execute()
-
+	app := &cli.App{
+		Engine:  pg.New(),
+		Version: Version,
+		Short:   "Back up, restore and migrate PostgreSQL databases (local, S3, GCS, Azure, SFTP, FTP)",
+		Extend:  pg.Extend,
+	}
+	app.Main()
 }

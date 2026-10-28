@@ -43,7 +43,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
     # Ensure the pg-bkup container is connected to the same network as your database
     networks:
