@@ -24,7 +24,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -307,33 +306,14 @@ func files(t *testing.T, out string) []string {
 
 func last(fs []string) string { return fs[len(fs)-1] }
 
-func hostClientMajor(t *testing.T) int {
-	out, err := exec.Command("pg_dump", "--version").Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-	m := regexp.MustCompile(`(\d+)\.`).FindStringSubmatch(string(out))
-	if m == nil {
-		t.Fatalf("pg_dump --version: %s", out)
-	}
-	n, _ := strconv.Atoi(m[1])
-	return n
-}
-
 func TestIntegrationRoundTripVersions(t *testing.T) {
 	for _, c := range []struct {
 		img   string
 		major int
 	}{{"postgres:13-alpine", 13}, {"postgres:16-alpine", 16}, {"postgres:18-alpine", 18}} {
 		t.Run(c.img, func(t *testing.T) {
-			// pg_dump >= 17 writes "SET transaction_timeout", which older
-			// servers reject. With versioned clients installed (alpine or
-			// PGDG layout) the engine picks a matching pg_dump; with a
-			// single PATH client, older servers are covered by the image test.
-			versioned := len(pg.FindClients(pg.ClientGlobs...).Majors()) > 0
-			if m := hostClientMajor(t); !versioned && m >= 17 && c.major < 17 {
-				t.Skipf("host pg_dump %d writes dumps a PostgreSQL %d server cannot replay; covered by TestIntegrationImage", m, c.major)
-			}
+			// With a single PATH client newer than the server, the dump
+			// carries "SET transaction_timeout", which the restore guards.
 			s := startPG(t, c.img, "")
 			store := isolate(t)
 			s.useAsSource(t)
@@ -561,6 +541,211 @@ func mustOpen(t *testing.T, p string) *os.File {
 
 // TestIntegrationCorruptRestore: a restore whose input fails must exit
 // non-zero and leave the target database exactly as it was.
+// TestIntegrationForeignRoles restores dumps naming roles the target server
+// does not have (Miabi: u_<id> owners, read-only users), as a non-superuser
+// owning the target database, like Miabi does.
+func TestIntegrationForeignRoles(t *testing.T) {
+	src := startPG(t, "postgres:17-alpine", "")
+	dst := startPG(t, "postgres:16-alpine", "")
+	store := isolate(t)
+	src.exec(t, "postgres",
+		"CREATE ROLE u_83c8ac41 LOGIN PASSWORD 'x'", "CREATE ROLE ro_83c8ac41 LOGIN PASSWORD 'x'",
+		"CREATE DATABASE shop OWNER u_83c8ac41")
+	src.exec(t, "shop", "SET ROLE u_83c8ac41", seedSQL,
+		"CREATE FUNCTION grant_ro() RETURNS void LANGUAGE plpgsql AS $$\nBEGIN\nGRANT SELECT ON users TO ro_83c8ac41;\nEND\n$$",
+		"RESET ROLE",
+		"GRANT USAGE ON SCHEMA public TO ro_83c8ac41", "GRANT SELECT ON ALL TABLES IN SCHEMA public TO ro_83c8ac41",
+		"ALTER DEFAULT PRIVILEGES FOR ROLE u_83c8ac41 IN SCHEMA public GRANT SELECT ON TABLES TO ro_83c8ac41")
+	want := src.checksum(t, "shop")
+	src.useAsSource(t)
+	plain := last(files(t, mustRun(t, "backup", "-d", "shop")))
+	custom := last(files(t, mustRun(t, "backup", "-d", "shop", "--dump-format", "custom")))
+
+	dst.exec(t, "postgres", "CREATE ROLE u_other LOGIN PASSWORD '"+strings.ReplaceAll(password, "'", "''")+"'")
+	dst.useAsSource(t)
+	t.Setenv("DB_USERNAME", "u_other")
+	for i, c := range []struct{ file, noOwner string }{{plain, "true"}, {custom, "true"}, {plain, "false"}, {custom, "false"}} {
+		t.Run(fmt.Sprintf("%s no-owner=%s", filepath.Ext(strings.TrimSuffix(c.file, ".gz")), c.noOwner), func(t *testing.T) {
+			db := fmt.Sprintf("copy%d", i)
+			dst.exec(t, "postgres", "CREATE DATABASE "+db+" OWNER u_other")
+			t.Setenv("RESTORE_NO_OWNER", c.noOwner)
+			out := mustRun(t, "restore", "-d", db, "-f", c.file)
+			if got := dst.checksum(t, db); got != want {
+				t.Fatalf("restore differs:\n got %s\nwant %s\n%s", got, want, out)
+			}
+			if !strings.Contains(out, "ro_83c8ac41") {
+				t.Errorf("no warning about the missing role:\n%s", out)
+			}
+			var owner, body string
+			c := dst.db(t, db)
+			if err := c.QueryRow(context.Background(), "SELECT tableowner FROM pg_tables WHERE tablename = 'users'").Scan(&owner); err != nil || owner != "u_other" {
+				t.Fatalf("owner %q %v", owner, err)
+			}
+			if err := c.QueryRow(context.Background(), "SELECT prosrc FROM pg_proc WHERE proname = 'grant_ro'").Scan(&body); err != nil || !strings.Contains(body, "\nGRANT SELECT ON users TO ro_83c8ac41;\n") {
+				t.Fatalf("function body %q %v", body, err)
+			}
+		})
+	}
+
+	// The same dump into a server that has the read-only role keeps its grants.
+	dst.exec(t, "postgres", "CREATE ROLE ro_83c8ac41 LOGIN")
+	dst.exec(t, "postgres", "CREATE DATABASE copy_ro OWNER u_other")
+	mustRun(t, "restore", "-d", "copy_ro", "-f", plain)
+	var ok bool
+	if err := dst.db(t, "copy_ro").QueryRow(context.Background(), "SELECT has_table_privilege('ro_83c8ac41', 'users', 'SELECT')").Scan(&ok); err != nil || !ok {
+		t.Fatalf("grant to an existing role lost: %v %v", ok, err)
+	}
+
+	// A genuine error still fails the restore and leaves the database as it was.
+	bad := "bad_20250101_000000.sql"
+	if err := os.WriteFile(filepath.Join(store, bad), []byte("CREATE TABLE t(id int);\nGRANT SELECT ON t TO nobody_here;\nSELECT * FROM no_such_table;\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	dst.exec(t, "postgres", "CREATE DATABASE copy_bad OWNER u_other")
+	if out, code := run(t, "restore", "-d", "copy_bad", "-f", bad); code == 0 {
+		t.Fatalf("restore succeeded:\n%s", out)
+	}
+	if got := dst.checksum(t, "copy_bad"); got != "" {
+		t.Fatalf("partial restore left %s", got)
+	}
+}
+
+// foreignSource starts a server whose database posta belongs to u_src, with
+// grants to a read-only role and a function whose body grants: what Miabi
+// dumps look like. It returns the server and the checksum of posta.
+func foreignSource(t *testing.T, img string) (*server, string) {
+	t.Helper()
+	src := startPG(t, img, "")
+	src.exec(t, "postgres", "CREATE ROLE u_src LOGIN PASSWORD 'x'", "CREATE ROLE ro_src LOGIN PASSWORD 'x'",
+		"CREATE DATABASE posta OWNER u_src")
+	src.exec(t, "posta", "SET ROLE u_src", seedSQL,
+		"CREATE FUNCTION grant_ro() RETURNS void LANGUAGE plpgsql AS $$\nBEGIN\nGRANT SELECT ON users TO ro_src;\nEND\n$$",
+		"COMMENT ON TABLE users IS 'GRANT x TO y; ALTER TABLE t OWNER TO z;'",
+		"RESET ROLE",
+		"GRANT USAGE ON SCHEMA public TO ro_src", "GRANT SELECT ON ALL TABLES IN SCHEMA public TO ro_src",
+		"ALTER DEFAULT PRIVILEGES FOR ROLE u_src IN SCHEMA public GRANT SELECT ON TABLES TO ro_src")
+	src.exec(t, "postgres", "GRANT CONNECT ON DATABASE posta TO ro_src", "COMMENT ON DATABASE posta IS 'source'")
+	return src, src.checksum(t, "posta")
+}
+
+// dumpPosta runs the server's own pg_dump (not pg-bkup) on posta.
+func (s *server) dumpPosta(t *testing.T, args ...string) []byte {
+	t.Helper()
+	out, err := exec.Command("docker", append([]string{"exec", s.id, "pg_dump", "-U", "postgres", "-d", "posta"}, args...)...).Output()
+	if err != nil {
+		t.Fatalf("pg_dump %v: %v", args, err)
+	}
+	return out
+}
+
+// restoreUser creates a non-superuser login owning the databases it restores
+// into, as Miabi's per-database users are.
+func (s *server) restoreUser(t *testing.T, name string, dbs ...string) {
+	t.Helper()
+	s.exec(t, "postgres", "CREATE ROLE "+name+" LOGIN PASSWORD '"+strings.ReplaceAll(password, "'", "''")+"'")
+	for _, db := range dbs {
+		s.exec(t, "postgres", "CREATE DATABASE "+db+" OWNER "+name)
+	}
+	s.useAsSource(t)
+	t.Setenv("DB_USERNAME", name)
+}
+
+// TestIntegrationUploads restores dumps written by other tools and servers
+// (Miabi's "restore from file"): pg_dump 18 output, --create dumps, custom
+// archives, INSERT dumps and hand-written SQL, into a PostgreSQL 16 database
+// of another name, as a non-superuser that owns it.
+func TestIntegrationUploads(t *testing.T) {
+	src, want := foreignSource(t, "postgres:18-alpine")
+	dst := startPG(t, "postgres:16-alpine", "")
+	store := isolate(t)
+	plain := src.dumpPosta(t)
+	var gz bytes.Buffer
+	zw := gzip.NewWriter(&gz)
+	_, _ = zw.Write(plain)
+	_ = zw.Close()
+	handWritten, err := os.ReadFile("../../migrations/init.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	files := []struct{ name, file string }{
+		{"pg_dump plain", "posta_1.sql"},
+		{"pg_dump --create --clean", "posta_2.sql"},
+		{"pg_dump -Fc", "posta_3.dump"},
+		{"gzip", "posta_4.sql.gz"},
+		{"--column-inserts", "posta_5.sql"},
+	}
+	for f, b := range map[string][]byte{
+		"posta_1.sql": plain, "posta_2.sql": src.dumpPosta(t, "--create", "--clean", "--if-exists"),
+		"posta_3.dump": src.dumpPosta(t, "-Fc"), "posta_4.sql.gz": gz.Bytes(),
+		"posta_5.sql": src.dumpPosta(t, "--column-inserts"), "init.sql": handWritten,
+	} {
+		if err := os.WriteFile(filepath.Join(store, f), b, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	dbs := []string{"mail1", "mail2", "mail3", "mail4", "mail5", "handwritten"}
+	dst.restoreUser(t, "mailer", dbs...)
+	for i, c := range files {
+		t.Run(c.name, func(t *testing.T) {
+			db := dbs[i]
+			out := mustRun(t, "restore", "-d", db, "-f", c.file)
+			if got := dst.checksum(t, db); got != want {
+				t.Fatalf("restore differs:\n got %s\nwant %s\n%s", got, want, out)
+			}
+			var owner string
+			if err := dst.db(t, db).QueryRow(context.Background(), "SELECT tableowner FROM pg_tables WHERE tablename = 'orders'").Scan(&owner); err != nil || owner != "mailer" {
+				t.Fatalf("owner %q %v", owner, err)
+			}
+			var comment string
+			_ = dst.db(t, db).QueryRow(context.Background(), "SELECT obj_description('public.users'::regclass)").Scan(&comment)
+			if comment != "GRANT x TO y; ALTER TABLE t OWNER TO z;" {
+				t.Fatalf("comment %q", comment)
+			}
+		})
+	}
+	t.Run("hand-written SQL", func(t *testing.T) {
+		mustRun(t, "restore", "-d", "handwritten", "-f", "init.sql")
+		var n int
+		if err := dst.db(t, "handwritten").QueryRow(context.Background(), "SELECT (SELECT count(*) FROM users) + (SELECT count(*) FROM orders)").Scan(&n); err != nil || n != 6 {
+			t.Fatalf("rows %d %v", n, err)
+		}
+	})
+	var n int
+	if err := dst.db(t, "postgres").QueryRow(context.Background(), "SELECT count(*) FROM pg_database WHERE datname = 'posta'").Scan(&n); err != nil || n != 0 {
+		t.Fatalf("the --create dump created its source database on the target (%d, %v)", n, err)
+	}
+
+	// A --create dump restored on the server it came from never drops or
+	// reconnects to the source database.
+	src.exec(t, "postgres", "CREATE ROLE mailer LOGIN PASSWORD '"+strings.ReplaceAll(password, "'", "''")+"'", "CREATE DATABASE posta_copy OWNER mailer")
+	src.useAsSource(t)
+	t.Setenv("DB_USERNAME", "mailer")
+	mustRun(t, "restore", "-d", "posta_copy", "-f", "posta_2.sql")
+	if got := src.checksum(t, "posta_copy"); got != want {
+		t.Fatal("restore on the source server differs")
+	}
+	if got := src.checksum(t, "posta"); got != want {
+		t.Fatal("the source database changed")
+	}
+}
+
+// TestIntegrationMigrateForeignRoles migrates a database owned by roles the
+// target does not have, as a non-superuser target user.
+func TestIntegrationMigrateForeignRoles(t *testing.T) {
+	src, want := foreignSource(t, "postgres:17-alpine")
+	dst := startPG(t, "postgres:16-alpine", "")
+	isolate(t)
+	dst.restoreUser(t, "mailer", "mail")
+	src.useAsSource(t)
+	dst.useAsTarget(t)
+	t.Setenv("TARGET_DB_USERNAME", "mailer")
+	t.Setenv("TARGET_DB_NAME", "mail")
+	mustRun(t, "migrate", "-d", "posta")
+	if got := dst.checksum(t, "mail"); got != want {
+		t.Fatalf("migrated database differs:\n got %s\nwant %s", got, want)
+	}
+}
+
 func TestIntegrationCorruptRestore(t *testing.T) {
 	s := startPG(t, "postgres:17-alpine", "")
 	store := isolate(t)

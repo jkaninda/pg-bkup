@@ -61,23 +61,10 @@ func Sniff(r io.Reader, file string) (Kind, io.Reader, error) {
 	return KindPlain, br, nil
 }
 
-// RestoreCommand returns the client and arguments for restoring a dump of
-// kind into db. The data is read from stdin.
-func RestoreCommand(v *config.Values, kind Kind, db string) (string, []string) {
-	single := v.Bool(SingleTransaction)
-	if kind == KindCustom {
-		args := []string{"-w", "-d", ConnInfo(db), "--exit-on-error"}
-		if single {
-			args = append(args, "--single-transaction")
-		}
-		if v.Bool(RestoreNoOwner) {
-			args = append(args, "--no-owner")
-		}
-		if v.Bool(Clean) {
-			args = append(args, "--clean", "--if-exists")
-		}
-		return "pg_restore", args
-	}
+// PsqlArgs returns the psql arguments for replaying a dump of kind into db,
+// read from stdin. A custom-format archive reaches psql as the SQL script
+// pg_restore makes of it (ScriptArgs), so both formats restore the same way.
+func PsqlArgs(v *config.Values, kind Kind, db string) []string {
 	args := []string{"-X", "-q", "-w", "-d", ConnInfo(db)}
 	stop := v.String(OnErrorStop)
 	if stop == "true" || (stop != "false" && kind != KindCluster) {
@@ -85,8 +72,21 @@ func RestoreCommand(v *config.Values, kind Kind, db string) (string, []string) {
 	}
 	// A pg_dumpall dump runs CREATE DATABASE and \connect: it cannot run in
 	// one transaction.
-	if single && kind != KindCluster {
+	if v.Bool(SingleTransaction) && kind != KindCluster {
 		args = append(args, "--single-transaction")
 	}
-	return "psql", args
+	return args
+}
+
+// ScriptArgs returns the pg_restore arguments that turn a custom-format
+// archive read from stdin into a SQL script on stdout.
+func ScriptArgs(v *config.Values) []string {
+	args := []string{"-f", "-"}
+	if v.Bool(RestoreNoOwner) {
+		args = append(args, "--no-owner")
+	}
+	if v.Bool(Clean) {
+		args = append(args, "--clean", "--if-exists")
+	}
+	return args
 }

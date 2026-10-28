@@ -107,19 +107,31 @@ func (e *Engine) Migrate(ctx context.Context, source, target engine.Target) erro
 	if err != nil {
 		return err
 	}
-	tool, args := RestoreCommand(v, kind, dstDB)
+	var filter func(io.Reader) io.ReadCloser
+	if kind != KindCluster {
+		// The target has its own roles, not necessarily the source's.
+		filter = e.roleSafe(v)
+	}
 	return pipe(ctx,
 		execx.Cmd{Name: bin, Args: dumpArgs, Env: src.Env(), Log: log(), StderrLevel: slog.LevelWarn},
-		execx.Cmd{Name: e.restoreBin(v, tool), Args: args, Env: dst.Env(), Log: log()},
+		execx.Cmd{Name: e.restoreBin(v, "psql"), Args: PsqlArgs(v, kind, dstDB), Env: dst.Env(), Log: log()},
+		filter,
 	)
 }
 
-// pipe runs producer | consumer. The first failure closes the pipe with an
-// error on both ends, so execx kills the other process.
-func pipe(ctx context.Context, producer, consumer execx.Cmd) error {
+// pipe runs producer | filter | consumer (filter may be nil). The first
+// failure closes the pipe with an error on both ends, so execx kills the
+// other process.
+func pipe(ctx context.Context, producer, consumer execx.Cmd, filter func(io.Reader) io.ReadCloser) error {
 	pr, pw := io.Pipe()
 	producer.Stdout = pw
-	consumer.Stdin = pr
+	var in io.Reader = pr
+	if filter != nil {
+		f := filter(pr)
+		defer func() { _ = f.Close() }()
+		in = f
+	}
+	consumer.Stdin = in
 	var (
 		wg            sync.WaitGroup
 		prodErr, cErr error
@@ -142,7 +154,7 @@ func pipe(ctx context.Context, producer, consumer execx.Cmd) error {
 			return
 		}
 		// Drain so a producer never blocks if the consumer exits early.
-		_, _ = io.Copy(io.Discard, pr)
+		_, _ = io.Copy(io.Discard, in)
 	}()
 	wg.Wait()
 	if prodErr != nil {
