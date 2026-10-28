@@ -300,31 +300,28 @@ func TestSniff(t *testing.T) {
 	}
 }
 
-func TestRestoreCommand(t *testing.T) {
+func TestRestoreArgs(t *testing.T) {
 	v := values(t, nil)
-	tool, args := RestoreCommand(v, KindPlain, "db")
-	if tool != "psql" || !reflect.DeepEqual(args, []string{"-X", "-q", "-w", "-d", "dbname='db'", "-v", "ON_ERROR_STOP=1", "--single-transaction"}) {
-		t.Fatalf("%s %q", tool, args)
+	if args := PsqlArgs(v, KindPlain, "db"); !reflect.DeepEqual(args, []string{"-X", "-q", "-w", "-d", "dbname='db'", "-v", "ON_ERROR_STOP=1", "--single-transaction"}) {
+		t.Fatalf("%q", args)
 	}
-	tool, args = RestoreCommand(v, KindCluster, "postgres")
-	if tool != "psql" || slices.Contains(args, "--single-transaction") || slices.Contains(args, "ON_ERROR_STOP=1") {
-		t.Fatalf("%s %q", tool, args)
+	if args := PsqlArgs(v, KindCustom, "db"); !reflect.DeepEqual(args, PsqlArgs(v, KindPlain, "db")) {
+		t.Fatalf("custom: %q", args)
 	}
-	tool, args = RestoreCommand(v, KindCustom, "db")
-	if tool != "pg_restore" || !reflect.DeepEqual(args, []string{"-w", "-d", "dbname='db'", "--exit-on-error", "--single-transaction", "--no-owner", "--clean", "--if-exists"}) {
-		t.Fatalf("%s %q", tool, args)
+	if args := PsqlArgs(v, KindCluster, "postgres"); slices.Contains(args, "--single-transaction") || slices.Contains(args, "ON_ERROR_STOP=1") {
+		t.Fatalf("%q", args)
+	}
+	if args := ScriptArgs(v); !reflect.DeepEqual(args, []string{"-f", "-", "--no-owner", "--clean", "--if-exists"}) {
+		t.Fatalf("%q", args)
 	}
 	v = values(t, map[string]string{"RESTORE_SINGLE_TRANSACTION": "false", "RESTORE_ON_ERROR_STOP": "true", "RESTORE_NO_OWNER": "false"})
-	_, args = RestoreCommand(v, KindPlain, "db")
-	if slices.Contains(args, "--single-transaction") || !slices.Contains(args, "ON_ERROR_STOP=1") {
+	if args := PsqlArgs(v, KindPlain, "db"); slices.Contains(args, "--single-transaction") || !slices.Contains(args, "ON_ERROR_STOP=1") {
 		t.Fatalf("%q", args)
 	}
-	_, args = RestoreCommand(v, KindCluster, "db")
-	if !slices.Contains(args, "ON_ERROR_STOP=1") {
+	if args := PsqlArgs(v, KindCluster, "db"); !slices.Contains(args, "ON_ERROR_STOP=1") {
 		t.Fatalf("%q", args)
 	}
-	_, args = RestoreCommand(v, KindCustom, "db")
-	if slices.Contains(args, "--no-owner") || slices.Contains(args, "--single-transaction") {
+	if args := ScriptArgs(v); slices.Contains(args, "--no-owner") {
 		t.Fatalf("%q", args)
 	}
 }

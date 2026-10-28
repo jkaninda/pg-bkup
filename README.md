@@ -16,7 +16,7 @@ Documentation: <https://jkaninda.github.io/pg-bkup> · MySQL: [mysql-bkup](https
 - **Storage:** local, Amazon S3 and S3-compatible (MinIO, Wasabi, R2...), Google Cloud Storage, Azure Blob, SFTP, FTP/FTPS.
 - **Streaming:** `pg_dump | gzip/zstd | GPG/age | upload`, and back for restores. Nothing is written to disk.
 - **Encryption:** GPG (passphrase or public key) and [age](https://age-encryption.org) (recipients or passphrase).
-- **Safe restores:** `psql -v ON_ERROR_STOP=1 --single-transaction` (or `pg_restore --single-transaction`): a failing or corrupted backup changes nothing.
+- **Safe restores:** `psql -v ON_ERROR_STOP=1 --single-transaction` (custom archives too, through `pg_restore -f -`): a failing or corrupted backup changes nothing, and a dump from another server is not stopped by its roles or its `pg_dump` version.
 - **Every PostgreSQL version:** the image ships the 16, 17 and 18 clients and picks, per server, the lowest `pg_dump` that is not older than the server (servers 9.2 and newer). No more "server version mismatch".
 - **Backup index and retention:** by age (`BACKUP_RETENTION_DAYS`) or count (`BACKUP_RETENTION_COUNT`); only backups recorded in the index are ever deleted.
 - **Commands:** `backup`, `restore`, `migrate`, `verify`, `list`, `delete`, `prune`, `reconcile`, `config`, `health`.
@@ -69,7 +69,7 @@ A connection URL works too: `DB_URL=postgres://user:p%40ss@host:5432/db?sslmode=
 `--all-databases` skips templates and the `postgres` database; databases are listed from `DB_AUTH_DATABASE` (default `postgres`).
 An `--all-in-one` file is restored with `restore -f all_databases_....sql.gz` (no `-d`): it is replayed without a single transaction and, by default, without `ON_ERROR_STOP`, because `pg_dumpall` output always contains statements such as `CREATE ROLE postgres` that fail on an existing server (`RESTORE_ON_ERROR_STOP`).
 
-The custom format is dumped with `pg_dump -Fc -Z0` and compressed by the pipeline (parallel gzip or zstd), so `COMPRESSION` applies to both formats and every artifact is decompressed the same way. Custom-format archives are restored with `pg_restore --single-transaction --exit-on-error --no-owner` (`RESTORE_NO_OWNER=false` keeps ownership).
+The custom format is dumped with `pg_dump -Fc -Z0` and compressed by the pipeline (parallel gzip or zstd), so `COMPRESSION` applies to both formats and every artifact is decompressed the same way. Custom-format archives are turned into SQL by `pg_restore --no-owner -f -` and replayed by the same `psql` as plain dumps (`RESTORE_NO_OWNER=false` keeps ownership).
 
 ### Migrate
 
@@ -195,6 +195,7 @@ The image also provides `backup`, `restore` and `migrate` wrapper scripts and th
 Every 1.x variable and flag still works; renamed variables log a deprecation warning once. What changed:
 
 - **Restores are atomic.** Database dumps are replayed with `ON_ERROR_STOP=1 --single-transaction`: the first error rolls everything back and the command fails (1.x continued after errors). v2 dumps include `DROP ... IF EXISTS` statements (`PG_CLEAN`, default on), so restoring one over an existing database replaces its objects inside that transaction. A 1.x dump (no drops) restored into a database that already contains its tables now fails instead of half-applying: restore it into an empty database, or set `RESTORE_SINGLE_TRANSACTION=false` and/or `RESTORE_ON_ERROR_STOP=false` for the 1.x behaviour.
+- **Restores into another server still work.** Ownership statements are skipped (`RESTORE_NO_OWNER`), and grants to roles the server does not have, or a `SET` of a parameter it does not know (`transaction_timeout` on PostgreSQL 16 and older), are skipped with a warning rather than stopping the restore. A `pg_dump --create` dump is restored into the named database, never into or over its source database. Any other error still rolls it back.
 - **`--schema-only` and `--tables` backups are compressed** (`shop_schema_<timestamp>.sql.gz`; 1.x wrote `.sql`). `--data-only` files get a `_data_` infix. Use `--disable-compression` for the old extension.
 - **Client versions:** `pg_dump` 16, 17 or 18 is chosen per server; `PG_CLIENT_VERSION` forces one. Dumps of servers older than 17 are taken with `pg_dump` 16, so they restore on those servers.
 - **`DB_SSL_MODE` is passed to `pg_dump`, `psql` and `pg_restore`** (1.x only used it for the connection test). The default is now libpq's own (`prefer`) instead of `disable`; `DB_SSL_CA`, `DB_SSL_CERT` and `DB_SSL_KEY` are new.
@@ -415,7 +416,7 @@ Generated with `pg-bkup config --env-docs`. Every secret also accepts `<NAME>_FI
 | `RESTORE_SINGLE_TRANSACTION` |  | `true` |  | Restore a database dump in one transaction (all or nothing); not used for --all-in-one dumps |
 | `RESTORE_ON_ERROR_STOP` |  | `auto` |  | Stop a psql restore at the first error; auto = on for database dumps, off for --all-in-one (pg_dumpall) dumps, which always contain 'role already exists' errors (auto, true, false) |
 | `PG_CLEAN` |  | `true` |  | Drop objects before recreating them (pg_dump/pg_restore --clean --if-exists), so a restore replaces an existing database inside its transaction |
-| `RESTORE_NO_OWNER` |  | `true` |  | pg_restore (custom format): do not restore object ownership (--no-owner) |
+| `RESTORE_NO_OWNER` |  | `true` |  | Do not restore object ownership: skip ALTER ... OWNER TO (pg_restore --no-owner for custom dumps), so the restoring user owns the objects; grants to roles missing on the server are skipped with a warning either way |
 
 <!-- env-docs:end -->
 

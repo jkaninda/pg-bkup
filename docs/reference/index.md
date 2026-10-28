@@ -77,10 +77,19 @@ Connection settings reach the clients through their environment (`PGHOST`, `PGPO
 | Backup | Restored with |
 |---|---|
 | plain dump of one database | `psql -v ON_ERROR_STOP=1 --single-transaction -d DB` |
-| custom format (`PGDMP` header, `.dump`) | `pg_restore --single-transaction --exit-on-error --no-owner -d DB` |
+| custom format (`PGDMP` header, `.dump`) | `pg_restore --no-owner -f -` piped into the same `psql` |
 | `--all-in-one` (`pg_dumpall`) | `psql -d DB_AUTH_DATABASE` (or `-d`), no transaction, no `ON_ERROR_STOP` |
 
 The format is detected from the first bytes of the decompressed stream. A failing download, decryption or decompression kills the client before it sees the end of its input, so nothing is committed. `RESTORE_SINGLE_TRANSACTION`, `RESTORE_ON_ERROR_STOP` and `RESTORE_NO_OWNER` change these defaults.
+
+A dump names the roles of the server it was taken on and sets the parameters of the `pg_dump` that wrote it. So that a restore on another server (other roles, older version) does not stop at those, database dumps and migrations are adjusted on the way to `psql`:
+
+- `ALTER ... OWNER TO` is skipped (`RESTORE_NO_OWNER`, default on): the restoring user owns the objects.
+- `GRANT`, `REVOKE` and `ALTER DEFAULT PRIVILEGES` (and `OWNER TO` with `RESTORE_NO_OWNER=false`) are kept, but a role missing on the server, or a missing right, skips the statement with a warning instead of failing the restore.
+- `SET` of a parameter the server may not know (`transaction_timeout` from `pg_dump` 17+) is skipped with a warning on older servers.
+- A `pg_dump --create` dump is restored into the database the restore names: its `DROP`/`CREATE`/`ALTER DATABASE` statements, the comment and grants on that database, and its `\connect` are skipped, never applied to the source database.
+
+Any other error still stops the restore and rolls it back. `--all-in-one` dumps are replayed as they are: they create the roles they name.
 
 ---
 
@@ -287,7 +296,7 @@ The format is detected from the first bytes of the decompressed stream. A failin
 | `RESTORE_SINGLE_TRANSACTION` |  | `true` |  | Restore a database dump in one transaction (all or nothing); not used for --all-in-one dumps |
 | `RESTORE_ON_ERROR_STOP` |  | `auto` |  | Stop a psql restore at the first error; auto = on for database dumps, off for --all-in-one (pg_dumpall) dumps, which always contain 'role already exists' errors (auto, true, false) |
 | `PG_CLEAN` |  | `true` |  | Drop objects before recreating them (pg_dump/pg_restore --clean --if-exists), so a restore replaces an existing database inside its transaction |
-| `RESTORE_NO_OWNER` |  | `true` |  | pg_restore (custom format): do not restore object ownership (--no-owner) |
+| `RESTORE_NO_OWNER` |  | `true` |  | Do not restore object ownership: skip ALTER ... OWNER TO (pg_restore --no-owner for custom dumps), so the restoring user owns the objects; grants to roles missing on the server are skipped with a warning either way |
 
 
 ---

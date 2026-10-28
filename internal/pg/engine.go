@@ -302,9 +302,23 @@ func (e *Engine) Restore(ctx context.Context, t engine.Target, r io.Reader, info
 		}
 		db = c.AuthDB
 	}
-	tool, args := RestoreCommand(v, kind, db)
-	log().Info("Restoring", "database", db, "format", kind.String(), "client", tool)
-	return execx.Run(ctx, execx.Cmd{
-		Name: e.restoreBin(v, tool), Args: args, Env: c.Env(), Stdin: br, Log: log(),
-	})
+	log().Info("Restoring", "database", db, "format", kind.String(), "client", "psql")
+	psql := execx.Cmd{Name: e.restoreBin(v, "psql"), Args: PsqlArgs(v, kind, db), Env: c.Env(), Log: log()}
+	switch kind {
+	case KindCluster:
+		// pg_dumpall creates the roles it names.
+		psql.Stdin = br
+		return execx.Run(ctx, psql)
+	case KindCustom:
+		script := execx.Cmd{Name: e.restoreBin(v, "pg_restore"), Args: ScriptArgs(v), Env: c.Env(), Stdin: br, Log: log(), StderrLevel: slog.LevelWarn}
+		return pipe(ctx, script, psql, e.roleSafe(v))
+	}
+	in := RoleSafe(br, v.Bool(RestoreNoOwner))
+	defer func() { _ = in.Close() }()
+	psql.Stdin = in
+	return execx.Run(ctx, psql)
+}
+
+func (e *Engine) roleSafe(v *config.Values) func(io.Reader) io.ReadCloser {
+	return func(r io.Reader) io.ReadCloser { return RoleSafe(r, v.Bool(RestoreNoOwner)) }
 }

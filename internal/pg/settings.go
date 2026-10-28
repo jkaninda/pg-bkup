@@ -94,7 +94,7 @@ func (e *Engine) Settings(r *config.Registry) {
 			Usage: "Stop a psql restore at the first error; auto = on for database dumps, off for --all-in-one (pg_dumpall) dumps, which always contain 'role already exists' errors"},
 		config.Setting{Key: Clean, Kind: config.Bool, Default: "true", Group: config.GroupDatabase,
 			Usage: "Drop objects before recreating them (pg_dump/pg_restore --clean --if-exists), so a restore replaces an existing database inside its transaction"},
-		config.Setting{Key: RestoreNoOwner, Kind: config.Bool, Default: "true", Group: config.GroupDatabase, Usage: "pg_restore (custom format): do not restore object ownership (--no-owner)"},
+		config.Setting{Key: RestoreNoOwner, Kind: config.Bool, Default: "true", Group: config.GroupDatabase, Usage: "Do not restore object ownership: skip ALTER ... OWNER TO (pg_restore --no-owner for custom dumps), so the restoring user owns the objects; grants to roles missing on the server are skipped with a warning either way"},
 	)
 }
 
