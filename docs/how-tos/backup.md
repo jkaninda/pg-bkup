@@ -43,7 +43,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## Optional: Use JDBC connection string
       #- DB_URL=jdbc:postgresql://postgres:5432/database?user=user&password=password
@@ -66,7 +66,7 @@ You can also run backups directly using the Docker CLI:
 docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d database_name
 ```
@@ -83,7 +83,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d database_name --schema-only
 ```
@@ -97,7 +97,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d database_name --tables table1,table2
 ```
@@ -124,7 +124,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## Optional: Define a cron schedule for recurring backups
       - BACKUP_CRON_EXPRESSION=@midnight

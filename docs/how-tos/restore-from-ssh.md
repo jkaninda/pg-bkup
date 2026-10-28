@@ -41,20 +41,23 @@ services:
     volumes:
       - ./backup:/backup  # Mount the directory for local operations (if needed)
       - ./id_ed25519:/tmp/id_ed25519  # Mount the SSH private key file
+      - ./known_hosts:/config/known_hosts:ro
     environment:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## SSH Configuration
-      - SSH_HOST_NAME=hostname
-      - SSH_PORT=22
-      - SSH_USER=user
-      - SSH_REMOTE_PATH=/home/jkaninda/backups
-      - SSH_IDENTIFY_FILE=/tmp/id_ed25519
+      - SFTP_HOST=hostname
+      - SFTP_PORT=22
+      - SFTP_USER=user
+      - REMOTE_PATH=/home/jkaninda/backups
+      - SFTP_IDENTITY_FILE=/tmp/id_ed25519
+      ## Host keys are verified (v2): mount a known_hosts file
+      - SFTP_KNOWN_HOSTS=/config/known_hosts
       ## Optional: Use password instead of private key (not recommended)
-      #- SSH_PASSWORD=password
+      #- SFTP_PASSWORD=password
     # Ensure the pg-bkup container is connected to the same network as your database
     networks:
       - web
@@ -70,5 +73,5 @@ networks:
 - **Supported File Formats**: The restore process supports `.sql`, `.sql.gz`, `.sql.gpg`, and `.sql.gz.gpg` files.
 - **SSH Path**: Use the `--path` flag to specify the folder on the SSH remote server where the backup file is located.
 - **Encrypted Backups**: If the backup is encrypted with GPG, ensure the `GPG_PASSPHRASE` environment variable is set for automatic decryption.
-- **SSH Authentication**: Use a private key (`SSH_IDENTIFY_FILE`) for SSH authentication instead of a password for better security.
+- **SSH Authentication**: Use a private key (`SFTP_IDENTITY_FILE`) for SSH authentication instead of a password for better security.
 - **Network Configuration**: Ensure the `pg-bkup` container is connected to the same network as your database.

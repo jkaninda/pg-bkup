@@ -64,14 +64,14 @@ Save your credentials in a `.env` file (e.g., `your-env`):
 DB_HOST=postgres
 DB_PORT=5432
 DB_NAME=source_db
-DB_USERNAME=source_user
+DB_USER=source_user
 DB_PASSWORD=source_pass
 
 # Target Database
 TARGET_DB_HOST=target-postgres
 TARGET_DB_PORT=5432
 TARGET_DB_NAME=target_db
-TARGET_DB_USERNAME=target_user
+TARGET_DB_USER=target_user
 TARGET_DB_PASSWORD=target_pass
 ```
 
@@ -123,7 +123,7 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       # Optional: Use JDBC connection string
       #- DB_URL=jdbc:postgresql://postgres:5432/database?user=username&password=password
@@ -132,7 +132,7 @@ services:
       - TARGET_DB_HOST=target-postgres
       - TARGET_DB_PORT=5432
       - TARGET_DB_NAME=dbname
-      - TARGET_DB_USERNAME=username
+      - TARGET_DB_USER=username
       - TARGET_DB_PASSWORD=password
       # Optional: Use JDBC connection string
       #- TARGET_DB_URL=jdbc:postgresql://target-postgres:5432/dbname?user=username&password=password

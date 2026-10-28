@@ -9,5 +9,5 @@ services:
     environment:
       - DB_PORT=5432
       - DB_HOST=postgress
-      - DB_USERNAME=userName
+      - DB_USER=userName
       - DB_PASSWORD=${DB_PASSWORD}

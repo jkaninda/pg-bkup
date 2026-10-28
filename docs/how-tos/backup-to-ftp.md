@@ -48,7 +48,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## FTP Configuration
       - FTP_HOST="hostname"

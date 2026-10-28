@@ -43,7 +43,7 @@ databases:
   - host: lldap-db             # Optional: Overrides DB_HOST or uses DB_HOST_LLDAP, or ${DB_HOST} if not set.
     port: 5432                 # Optional: Defaults to 5432. Overrides DB_PORT or uses DB_PORT_LLDAP.
     name: lldap                # Required: Database name
-    user: lldap                # Optional: Can override via DB_USERNAME or uses DB_USERNAME_LLDAP.
+    user: lldap                # Optional: Can override via DB_USER or uses DB_USER_LLDAP.
     password: password         # Optional: Can override via DB_PASSWORD or uses DB_PASSWORD_LLDAP.
     path: /s3-path/lldap       # Required: Destination path (S3, FTP, SSH, etc.)
 

@@ -19,7 +19,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d database_name
 ```
@@ -42,7 +42,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup --all-databases --disable-compression
 ```
@@ -60,7 +60,7 @@ docker run --rm --network your_network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=dbhost" \
   -e "DB_PORT=5432" \
-  -e "DB_USERNAME=username" \
+  -e "DB_USER=username" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup restore -d database_name -f backup_file.sql.gz
 ```
@@ -85,7 +85,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=foo
-      - DB_USERNAME=bar
+      - DB_USER=bar
       - DB_PASSWORD=password
       - TZ=Europe/Paris
     networks:
@@ -105,7 +105,7 @@ You can schedule recurring backups using the `--cron-expression` or `-e` flag:
 docker run --rm --network network_name \
   -v $PWD/backup:/backup/ \
   -e "DB_HOST=hostname" \
-  -e "DB_USERNAME=user" \
+  -e "DB_USER=user" \
   -e "DB_PASSWORD=password" \
   jkaninda/pg-bkup backup -d dbName --cron-expression "@every 15m"
 ```
@@ -147,7 +147,7 @@ spec:
           env:
             - name: DB_HOST
               value: "postgres"
-            - name: DB_USERNAME
+            - name: DB_USER
               value: "postgres"
             - name: DB_PASSWORD
               value: "password"
@@ -187,7 +187,7 @@ spec:
               env:
                 - name: DB_HOST
                   value: "postgres"
-                - name: DB_USERNAME
+                - name: DB_USER
                   value: "postgres"
                 - name: DB_PASSWORD
                   value: "password"

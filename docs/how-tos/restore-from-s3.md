@@ -44,7 +44,7 @@ services:
       - DB_PORT=5432
       - DB_HOST=postgres
       - DB_NAME=database
-      - DB_USERNAME=username
+      - DB_USER=username
       - DB_PASSWORD=password
       ## AWS S3 Configuration
       - AWS_S3_ENDPOINT=https://s3.amazonaws.com

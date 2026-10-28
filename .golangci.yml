@@ -22,6 +22,8 @@ linters:
     - unparam
     - unused
   settings:
+    goconst:
+      min-occurrences: 6
     revive:
       rules:
         - name: comment-spacings
@@ -30,8 +32,10 @@ linters:
     rules:
       - linters:
           - dupl
+          - goconst
           - lll
-        path: pkg/*
+          - prealloc
+        path: _test\.go
     paths:
       - third_party$
       - builtin$
