@@ -11,7 +11,7 @@ COPY . .
 RUN GOARM="${TARGETVARIANT#v}" CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -trimpath -ldflags="-s -w -X main.Version=${appVersion}" -o /out/pg-bkup .
 
-FROM alpine:3.23.4
+FROM alpine:3.24.3
 ARG appVersion="dev"
 ENV TZ=UTC
 LABEL author="Jonas Kaninda" \
